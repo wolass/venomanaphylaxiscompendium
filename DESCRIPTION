@@ -13,3 +13,7 @@ Encoding: UTF-8
 LazyData: true
 URL: https://github.com/wolass/venomanaphylaxiscompendium
 BugReports: https://github.com/wolass/venomanaphylaxiscompendium/issues
+Imports: bookdown
+Suggests: 
+    testthat
+RoxygenNote: 6.1.1
