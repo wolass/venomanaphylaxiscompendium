@@ -117,8 +117,16 @@ mosaicplot(formula = d_severity_rm~d_insect_gr4,data = rdb)
 ## Symptoms
 ```{r}
 testInsectsbinomialTab$symptoms[,-7] %>% knitr::kable()
+```
+
+```{r}
 plotSympt
 ```
+
+Patients who underent anaphylaxis due to insect venom more often experienced 
+cardiologic symptoms. Especially collapsing due to hypotension was prominently 
+more often seen in patient who underwent venom anaphylaxis. This difference was especially visible in children under the age of 18 years.  
+
 
 ```{r}
 crammerElicitorBinvsSympt[1:15,] %>% arrange(desc(CV)) %>% knitr::kable()
@@ -149,6 +157,9 @@ testInsectsbinomialTab$management[,-7] %>% knitr::kable()
 testInsectsbinomialTab$prophylaxis[,-7] %>% knitr::kable()
 ```
 
+## Diagnostics 
+
+
 ## Repeated reactions
 
 ```{r}
@@ -159,6 +170,10 @@ In general `r treact[1,2]`% patient with insect allergy had experienced anaphyla
 Out of these `r sum(greter_same)` (`r sum(greter_same)/sum(repeated_reaction_in_Reg)*100`%) had Insect elicited anaphylaxis and in `r greter_same[1]` (`r greter_same[1]/sum(greter_same)*100`) The follwoeing reaction was more severe than before.  
 
 # Discussion
+
+Cardiologic symptoms and hypotensive collapse might be associated with vanom anaphylaxis due to the vaso-vagal reflex. As seen in patients undrgoing blood sampling needles (and probably also insect stings) may elicit a hypotensive response due to extreme emotional distress with bradycardia, limiting the bloodflow to the brain and causing a syncope. This mechanism may contribute to the ongoing histamin-induced vasodialation and may worsen the symptoms of an allergic reaction.
+
+
 
 # Conclusion
 
@@ -190,6 +205,12 @@ mosaic(d_organ_sum~d_elicitor_gr5,data=rdb)
 
 ```{r}
 mosaic(d_severity_rm~d_elicitor_gr5,data=rdb)
-
 ```
 
+```{r}
+hypotensionPlot
+```
+
+```{r}
+cramerPlot
+```

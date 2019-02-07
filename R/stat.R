@@ -4,7 +4,7 @@ require(magrittr)
 require(ggplot2)
 require(forestplot)
 require(summarytools)
-st_options('bootstrap.css', FALSE)
+
 #### GET THE DATA ########
 # Note the path that we need to use to access our data files when rendering this document
 load('../RefractoryAnaOrg/analysis/data/raw_data/data4.R')
@@ -294,7 +294,12 @@ funF2 <- function(var, grouping_var){
   #group_by(grouping_var) %>%
   #summarise(count=n())
 }
-
+funC <- function(var, grouping_var){
+  temp <- var %>%
+    data.frame(grouping_var) %>%
+    table %>% {.[1:2,]} %>%
+    assocstats() %>% {.$cramer}
+}
 #' This function takes grouping vector and a DATA FRame ONLY OF  variables to test
 #'
 ChiF <- function(variablesDF,grouping){
@@ -303,7 +308,8 @@ ChiF <- function(variablesDF,grouping){
              counts_1 = lapply(variablesDF,funN1,grouping) %>%unlist,
              counts_2 = lapply(variablesDF,funN2,grouping) %>%unlist,
              fraq_1 = lapply(variablesDF,funF1,grouping) %>%unlist,
-             fraq_2 = lapply(variablesDF,funF2,grouping) %>%unlist
+             fraq_2 = lapply(variablesDF,funF2,grouping) %>%unlist,
+             Crammer = lapply(variablesDF,funC,grouping) %>% unlist
   )
 }
 
@@ -650,25 +656,8 @@ FigForestCofactors <- makeForestPlot(rdb,
 
 
 
-#### MEasures of Association ############
-rdb$q_114_hypotension_collapse_v5
-vcd::assocstats(table(rdb$q_114_hypotension_collapse_v5,
-                      grouping))
-require(vcd)
 
-# Tu skonczyles - zrób assocstats lapply na wielu zmiennych z groupingiem
-crammerElicitorBinvsSympt <-
-lapply(variableSelectionTab(rdb) %>% filter(section=="symptoms",level==3) %>%
-         pull(variableName),function(x){
-           assocstats(rdb[,x] %>%
-                      table(grouping))[[4]]
-         }) %>%
-  unlist %>%
-  {data.frame(CV=.,
-              var=variableSelectionTab(rdb) %>%
-                filter(section=="symptoms",level==3) %>%
-                pull(variableName))}
-
+##### Gonvert to function ######
 crammerElicitorBinvsSympt2 <-
   lapply(variableSelectionTab(rdb) %>% filter(section=="symptoms",level==3) %>%
            pull(variableName),function(x){
@@ -779,6 +768,7 @@ repeated_reaction_in_Reg <- split(tempDF,tempDF$b_patient_code,drop = T) %>% lap
                            "greater"))
   }) %>% unlist() %>% factor %>% summary()
 
+
 iCodeDF <- tempDF %>% filter(b_patient_code%in%iCode) %>%
   group_by(b_patient_code) %>% summarize(first = q_340_insects[1],
                                          first_sev = d_severity_rm[1],
@@ -804,11 +794,125 @@ plotSympt <- ggplot(testInsectsbinomialTab$symptoms %>%
   theme_classic()+
   theme(axis.text.x = element_text(angle = 50,hjust =1))
 
-plotSymptKids <- ggplot(makeTests(rdb) %>%
-                      tidyr::gather(key = "group",value = "Fraction", 4:5) %>%
-                      arrange(pval),
-                    aes(reorder(variableName,pval),Fraction, fill = group))+
+# Split the plot into kids and grown ups AGE division - 12
+# Get the proper table
+
+
+symptTabKids <- makeTests(rdb=rdb[rdb$d_age<13,],
+          grouping = rdb$grouping[rdb$d_age<13]) %>%
+          {split(.,.$section)} %>%
+  .$symptoms %>% mutate(subset = "children")
+
+symptTabAdults <- makeTests(rdb=rdb[rdb$d_age>13,],
+                                  grouping = rdb$grouping[rdb$d_age>13]) %>%
+                                  {split(.,.$section)} %>%
+                          .$symptoms %>% mutate(subset = "adults")
+ex <- full_join(symptTabKids,symptTabAdults)
+
+ggplot(ex %>% filter(pval<1e-10) %>%
+         tidyr::gather(key = "group",value = "Fraction", c("fraq_1","fraq_2")) %>%
+         arrange(pval),
+       aes(reorder(variableName,pval),Fraction, fill = group))+
   geom_bar(stat = "identity", position = "dodge",na.rm = T)+
+  facet_grid(.~subset)+
   theme_classic()+
   theme(axis.text.x = element_text(angle = 50,hjust =1))
 
+
+hypotensionPlot <- ggplot(ex %>% filter(variableName =="q_114_hypotension_collapse_v5") %>%
+         tidyr::gather(key = "group",value = "Fraction", c("fraq_1","fraq_2")) %>%
+         arrange(pval),
+       aes(reorder(variableName,pval),Fraction, fill = group))+
+  geom_bar(stat = "identity", position = "dodge",na.rm = T)+
+  facet_grid(.~subset)+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 50,hjust =1))
+
+#' Check the variable in a dataset.
+#' @param data a data frame
+#' @param var  variable should be a binomial fctor
+#' @param groupby a binomial factor variable in the data frame to divide into two groups
+#'
+#' @export
+checkVarTab <- function(data, var, groupby){
+  data[!is.na(data[,var])&!is.na(data[,groupby]),] %>%
+    #filter(!is.na(get(groupby)&!is.na(get(var)))) %>%
+    group_by(get(groupby),get(var)) %>%
+    summarize(n = n()) %>%
+    mutate(perc = n/sum(n)*100)
+}
+
+checkVarTab(data = rdb,
+            var = "d_age_gr2",
+            groupby = "grouping")
+chisq.test(x = matrix(checkVarTab(data = rdb,
+                                    var = "d_age_gr2",
+                                    groupby = "grouping") %>%
+                           .$perc,
+                         ncol=2)
+           )$p.value
+
+#### MEasures of Association ############
+vcd::assocstats(table(rdb$q_114_hypotension_collapse_v5,
+                      grouping)[1:2,])
+vcd::assocstats(table(rdb$q_114,
+                      grouping)[1:2,])
+require(vcd)
+
+crammerElicitorBinvsSympt <-
+  lapply(variableSelectionTab(rdb) %>% filter(section=="symptoms",level==3) %>%
+           pull(variableName) %>% as.character(),function(x){
+             assocstats(rdb[,x] %>%
+                          table(grouping) %>% .[1:2,1:2])[[4]]
+           }) %>%
+  unlist %>%
+  {data.frame(CV=.,
+              var=variableSelectionTab(rdb) %>%
+                filter(section=="symptoms",level==3) %>%
+                pull(variableName))} %>%
+  arrange(desc(CV))
+
+### REmove the unknown group ####
+
+### Check associated variables
+checkVarTab(data = rdb,
+              var = as.character(crammerElicitorBinvsSympt[3,2]),
+              groupby = "grouping")
+
+#### The most associated differences
+AssociatedVars <- testInsectsbinomial %>%
+  arrange(desc(Crammer)) %>%
+  select(-c(2:5,11:16)) %>%
+  filter(Crammer>0.25)
+
+##### Plot the most Crammers V in ALL patients, Choldren, Adults and
+# testInsectsbinomialTab$symptoms
+# symptTabKids
+# symptTabAdults
+all = makeTests(rdb=rdb,
+                grouping = rdb$grouping) %>%
+                {split(.,.$section)} %>%
+  .$symptoms %>% mutate(subset = "all")
+ex <- full_join(all,
+  symptTabKids) %>%
+  full_join(symptTabAdults) %>% arrange(desc(Crammer)) %>%# select(variableName) %>% pull
+  filter(variableName%in%c("q_114",
+                           "q_114_dizziness",
+                           "q_114_reductions_of_alertness",
+                           "q_114_loss_of_consciousness",
+                           "q_114_hypotension_collapse_v5",
+                           "q_112_abdominal_pain",
+                           "q_112_vomiting"))
+ggplot(ex %>%
+         tidyr::gather(key = "group",value = "Fraction", c("fraq_1","fraq_2")) %>%
+         arrange(pval),
+       aes(reorder(variableName,pval),Fraction, fill = group))+
+  geom_bar(stat = "identity", position = "dodge",na.rm = T)+
+  facet_grid(.~subset)+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 50,hjust =1))
+
+cramerPlot <- ggplot(ex, aes(variableName,Crammer))+
+  geom_bar(stat = "identity", position = "dodge")+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 50,hjust =1))
