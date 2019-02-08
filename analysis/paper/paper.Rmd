@@ -91,7 +91,7 @@ demoTab
 
 ```{r, results='asis'}
 st_options('bootstrap.css', FALSE)
-rdb %>% select()
+#rdb %>% select()
 ctable(rdb$d_centres_country %>% sapply(function(x){
   as.character(x) %>% factor()
 }), rdb$q_340_insects%>% sapply(function(x){
@@ -102,6 +102,10 @@ ctable(rdb$d_centres_country %>% sapply(function(x){
        totals = F,
        round.digits = 1,
 dnn = c("Countries","Insects"))
+
+```
+```{r}
+plot.proportions(rdb, "d_centres_country","q_340_insects")
 
 ```
 
@@ -125,7 +129,8 @@ plotSympt
 
 Patients who underent anaphylaxis due to insect venom more often experienced 
 cardiologic symptoms. Especially collapsing due to hypotension was prominently 
-more often seen in patient who underwent venom anaphylaxis. This difference was especially visible in children under the age of 18 years.  
+more often seen in patient who underwent venom anaphylaxis. This difference was especially visible in children under the age of 18 years. (See the ade adapted symptoms plot). 
+We saw prominent differences in association of specific symptoms with eliocitor in cerain age groups. Children under 13 yoears of age showed association with IVIA and vomiting - whereas adults did not. Hypotension collapse was more prominently associated with IVIA in children whereas loss of consciousness in adults. 
 
 
 ```{r}
@@ -213,4 +218,42 @@ hypotensionPlot
 
 ```{r}
 cramerPlot
+```
+
+```{r}
+plot.Cramer(supraCramerFun(data =rdbp,
+               vars =c( "q_114",
+               "q_112_incontinence",
+               "q_114_dizziness",
+               "q_112_abdominal_pain",
+               "q_114_loss_of_consciousness",
+               "q_114_hypotension_collapse_v5",
+               "q_114_reductions_of_alertness",
+               "q_111_angioedema",
+               "q_113_wheezing_expiratory_distress_v5"),
+               grouping = "grouping",
+               subset = "d_age_gr2"))
+
+
+```
+
+
+```{r}
+plot.Cramer(cramerFun(data =rdbp,
+               vars=c("q_114",
+               "q_112_incontinence",
+               "q_114_dizziness",
+               "q_112_abdominal_pain",
+               "q_114_loss_of_consciousness",
+               "q_114_hypotension_collapse_v5",
+               "q_114_reductions_of_alertness",
+               "q_111_angioedema",
+               "q_113_wheezing_expiratory_distress_v5"),
+               grouping = "grouping"))
+```
+
+```{r}
+tryptase_plot(rdb)+
+  scale_x_log10()
+
 ```

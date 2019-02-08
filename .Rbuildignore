@@ -4,3 +4,5 @@
 ^README\.Rmd$
 ^README-.*\.png$
 analysis
+^CONDUCT\.md$
+^CONTRIBUTING\.md$

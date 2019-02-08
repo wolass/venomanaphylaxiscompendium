@@ -4,6 +4,7 @@ require(magrittr)
 require(ggplot2)
 require(forestplot)
 require(summarytools)
+require(vcd)
 
 #### GET THE DATA ########
 # Note the path that we need to use to access our data files when rendering this document
@@ -295,21 +296,42 @@ funF2 <- function(var, grouping_var){
   #summarise(count=n())
 }
 funC <- function(var, grouping_var){
-  temp <- var %>%
+  var %>%
     data.frame(grouping_var) %>%
     table %>% {.[1:2,]} %>%
     assocstats() %>% {.$cramer}
 }
+
+# funC <- function(var, grouping_var){
+#   temp <- var %>%
+#     data.frame(grouping_var) %>%
+#     table %>% {.[1:2,]} %>%
+#     DescTools::CramerV(conf.level = T,method = "fisher")
+# }
+# funCl <- function(var, grouping_var){
+#   temp <- var %>%
+#     data.frame(grouping_var) %>%
+#     table %>% {.[1:2,]} %>%
+#     DescTools::CramerV(conf.level = T) %>% .[2]
+# }
+# funCu <- function(var, grouping_var){
+#   temp <- var %>%
+#     data.frame(grouping_var) %>%
+#     table %>% {.[1:2,]} %>%
+#     DescTools::CramerV(conf.level = T)
+# }
+
 #' This function takes grouping vector and a DATA FRame ONLY OF  variables to test
 #'
 ChiF <- function(variablesDF,grouping){
+  # C <- lapply(variablesDF,funC,grouping)
   data.frame(variables = names(variablesDF),
              pval = lapply(variablesDF,funChi,grouping) %>% unlist,
              counts_1 = lapply(variablesDF,funN1,grouping) %>%unlist,
              counts_2 = lapply(variablesDF,funN2,grouping) %>%unlist,
              fraq_1 = lapply(variablesDF,funF1,grouping) %>%unlist,
              fraq_2 = lapply(variablesDF,funF2,grouping) %>%unlist,
-             Crammer = lapply(variablesDF,funC,grouping) %>% unlist
+             Cramer = lapply(variablesDF,funC,grouping) %>% unlist
   )
 }
 
@@ -658,30 +680,84 @@ FigForestCofactors <- makeForestPlot(rdb,
 
 
 ##### Gonvert to function ######
-crammerElicitorBinvsSympt2 <-
-  lapply(variableSelectionTab(rdb) %>% filter(section=="symptoms",level==3) %>%
-           pull(variableName),function(x){
-             assocstats(rdb[,x] %>%
-                          table(testYJ))[[4]]
-           }) %>%
-  unlist %>%
-  {data.frame(CV=.,
-              var=variableSelectionTab(rdb) %>%
-                filter(section=="symptoms",level==3) %>%
-                pull(variableName))}
 
+cramerFun <- function(data,grouping,vars){
+  lapply(data[,vars],function(x){
+           DescTools::CramerV(table(x,
+                            data[,grouping]),
+                            conf.level = 0.80,
+                            method = "ncchisqadj")
+         }) %>% do.call(what=rbind) %>%  {data.frame(var=rownames(.),.)} #%>%
+         #data.frame(var=vars)
+}
 
 rdbp <-rdb
 rdbp$grouping<- grouping
 
-printx <- function(x){
-  ggplot(rdbp,aes(get(x),fill=grouping))+
-    geom_bar()
+cramerFun(data =rdbp,
+          grouping = "grouping",
+          vars = c("q_114",
+                   "q_112_incontinence",
+                   "q_114_dizziness",
+                   "q_112_abdominal_pain",
+                   "q_114_loss_of_consciousness",
+                   "q_114_hypotension_collapse_v5",
+                   "q_114_reductions_of_alertness",
+                   "q_111_angioedema",
+                   "q_113_wheezing_expiratory_distress_v5",
+                   "q_111_pruritus"))
+
+supraCramerFun <- function(data,vars,grouping,subset = NULL){
+  if(is.null(subset)){
+   o <- cramerFun(data,grouping,vars)
+  } else{
+    o <- split(data,data[,subset]) %>%  lapply(function(x){
+      cramerFun(x,grouping,vars) %>% data.frame()
+    })
+  }
+  out <- list(NULL)
+  for(x in names(o)){
+    out[[x]] <- mutate(o[[x]],subset = x)
+  }
+  out %>% do.call(what=rbind) %>% data.frame()
 }
 
-lapply(crammerElicitorBinvsSympt$var %>% as.character() %>% .[1:5],
-       printx)
-crammerElicitorBinvsSympt[4,]
+temp <- cramerFun(data =rdbp,
+               vars =c( "q_114",
+               "q_112_incontinence",
+               "q_114_dizziness",
+               "q_112_abdominal_pain",
+               "q_114_loss_of_consciousness",
+               "q_114_hypotension_collapse_v5",
+               "q_114_reductions_of_alertness",
+               "q_111_angioedema",
+               "q_113_wheezing_expiratory_distress_v5"),
+               grouping = "grouping")
+
+plot.Cramer <- function(x){
+  if(is.null(x$subset)){
+    p <- ggplot(x, aes(var,Cramer.V))+
+      geom_bar(stat = "identity")+
+      geom_errorbar(aes(ymin= lwr.ci,
+                        ymax = upr.ci),
+                    width=0.2)
+  } else {
+    p <- ggplot(x, aes(var,Cramer.V,fill=subset))+
+      geom_bar(stat = "identity",position = "dodge")+
+      geom_errorbar(aes(ymin= lwr.ci,
+                        ymax = upr.ci),
+                    position = position_dodge(0.9),
+                    width=0.2)
+  }
+  p + geom_segment(mapping = aes(x=0.5,xend = length(levels(var))+0.5,
+                             y = 0.1, yend= 0.1),
+               linetype = 2, color = "gray")+
+  geom_segment(mapping = aes(x=0.5,xend = length(levels(var))+0.5,
+                             y = 0.3, yend= 0.3),
+               linetype = 2, color = "gray")+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 45,hjust=1))
+}
 
 #### Demographics####
 
@@ -881,38 +957,58 @@ checkVarTab(data = rdb,
 
 #### The most associated differences
 AssociatedVars <- testInsectsbinomial %>%
-  arrange(desc(Crammer)) %>%
+  arrange(desc(Cramer)) %>%
   select(-c(2:5,11:16)) %>%
-  filter(Crammer>0.25)
+  filter(Cramer>0.25)
 
+#### Crammer Plot ####
 ##### Plot the most Crammers V in ALL patients, Choldren, Adults and
 # testInsectsbinomialTab$symptoms
 # symptTabKids
 # symptTabAdults
-all = makeTests(rdb=rdb,
-                grouping = rdb$grouping) %>%
-                {split(.,.$section)} %>%
-  .$symptoms %>% mutate(subset = "all")
-ex <- full_join(all,
-  symptTabKids) %>%
-  full_join(symptTabAdults) %>% arrange(desc(Crammer)) %>%# select(variableName) %>% pull
-  filter(variableName%in%c("q_114",
-                           "q_114_dizziness",
-                           "q_114_reductions_of_alertness",
-                           "q_114_loss_of_consciousness",
-                           "q_114_hypotension_collapse_v5",
-                           "q_112_abdominal_pain",
-                           "q_112_vomiting"))
-ggplot(ex %>%
-         tidyr::gather(key = "group",value = "Fraction", c("fraq_1","fraq_2")) %>%
-         arrange(pval),
-       aes(reorder(variableName,pval),Fraction, fill = group))+
-  geom_bar(stat = "identity", position = "dodge",na.rm = T)+
-  facet_grid(.~subset)+
-  theme_classic()+
-  theme(axis.text.x = element_text(angle = 50,hjust =1))
+# rdb$grouping <- grouping
+# all = makeTests(rdb=rdb,
+#                 grouping = rdb$grouping) %>%
+#                 {split(.,.$section)} %>%
+#   .$symptoms %>% mutate(subset = "all")
+# ex <- full_join(all,
+#   symptTabKids) %>%
+#   full_join(symptTabAdults) %>% arrange(desc(Cramer)) %>%# select(variableName) %>% pull
+#   filter(variableName%in%c("q_114",
+#                            "q_114_dizziness",
+#                            "q_114_reductions_of_alertness",
+#                            "q_114_loss_of_consciousness",
+#                            "q_114_hypotension_collapse_v5",
+#                            "q_112_abdominal_pain",
+#                            "q_112_vomiting"))
+# ggplot(ex %>%
+#          tidyr::gather(key = "group",value = "Fraction", c("fraq_1","fraq_2")) %>%
+#          arrange(pval),
+#        aes(reorder(variableName,pval),Fraction, fill = group))+
+#   geom_bar(stat = "identity", position = "dodge",na.rm = T)+
+#   facet_grid(.~subset)+
+#   theme_classic()+
+#   theme(axis.text.x = element_text(angle = 50,hjust =1))
 
-cramerPlot <- ggplot(ex, aes(variableName,Crammer))+
+cramerPlot <-
+  ggplot(ex, aes(variableName,Cramer,fill=subset))+
   geom_bar(stat = "identity", position = "dodge")+
   theme_classic()+
   theme(axis.text.x = element_text(angle = 50,hjust =1))
+
+### Tryptase plot#####
+
+tryptase_plot <- function(data3){
+  ggplot(data3[!is.na(data3$q_340_insects),],aes(q_212_tryptase_value_v5,color=q_340_insects))+
+  geom_density()+
+  xlim(0,30)+
+  geom_density(mapping = aes(q_212_tryptase_value_v5),data3[data3$d_elicitor_gr5!="insects",],fill="black",alpha =0.2)
+}
+
+# Plot countries proportions
+plot.proportions <- function(data,varx,vary){
+  ggplot(data[!is.na(data[,vary]),], aes(get(varx), fill = get(vary)))+
+    geom_bar(position = "fill")+
+    theme(axis.text.x = element_text(angle = 45,hjust=1))
+}
+
