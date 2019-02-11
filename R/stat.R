@@ -372,12 +372,16 @@ countries <-rdb %>%
   group_by(d_centres_country) %>%
   summarize(n=n())%>% arrange(desc(n))
 
-grouping <- ifelse(rdb$d_elicitor_gr5=="insects","insects",
-                   ifelse(is.na(rdb$d_elicitor_gr5)|rdb$d_elicitor_gr5=="unkown",NA,"other")) %>%
+grouping <- ifelse(rdb$d_elicitor_gr5=="insects",
+                   "insects",
+                   ifelse(is.na(rdb$d_elicitor_gr5)|rdb$d_elicitor_gr5=="unkown",
+                          NA,
+                          "other")
+                   ) %>%
   factor
 
-group_triggerBinomial <- ifelse(rdb$d_elicitor_gr5=="insects","insects",
-                                ifelse(rdb$d_elicitor_gr5=="unkown",NA,"other"))
+rdbp <-rdb
+rdbp$grouping<- grouping
 
 
 variableSelectionTab <- function(data){
@@ -620,6 +624,7 @@ library(forestplot)
 #
 
 ## Creat a formatted data frame
+
 makeOdds <- function(data,var1,var2){ # var1 to predyktor, var2 - outcome
   if(var1=="b_sex"){
     or <- questionr::odds.ratio(data[,var1],data[,var2])
@@ -635,6 +640,7 @@ makeOdds <- function(data,var1,var2){ # var1 to predyktor, var2 - outcome
 }
 makeDF <- function(data,variables,grouping,outcome){
   o <-lapply(variables,function(x){
+    grouping <- data[,grouping]
     grA <- which(grouping==levels(grouping)[1])
     grB <- which(grouping==levels(grouping)[2])
     rbind(
@@ -654,7 +660,7 @@ makeTableText <- function(makeDF){
         makeDF[-c(1),c(1,6,2)])
 }
 
-makeForestPlot <- function(data,variables,grouping,outcome){
+makeForestPlot <- function(data,variables,grouping,outcome,cLow=0.2,cHigh = 4){
   df <- makeDF(data,variables,grouping,outcome)
   forestplot(labeltext = makeTableText(df),
              mean = df[,"mean"] %>% unlist,
@@ -662,22 +668,44 @@ makeForestPlot <- function(data,variables,grouping,outcome){
              upper = df[,"upper"] %>% unlist,
              new_page = TRUE,
              is.summary=c(T,rep(F,length(df[,1])-1)),
-             #clip=c(0.1,2.5),
+             clip=c(cLow,cHigh),
              xlog=TRUE,
              col=fpColors(box="royalblue",line="darkblue", summary="royalblue"))
 }
 
-
-FigForestCofactors <- makeForestPlot(rdb,
+png("analysis/figures/figForest.png")
+makeForestPlot(rdbp,
                testInsectsbinomial %>%
                  filter(section=="cofactors") %>%
                  arrange(pval) %>%
                  select(variableName) %>% pull() %>% {c(.[c(1,4,5,8)], "q_423_beta","q_422_stress","q_410_masto_cur" )},
-               grouping,
+               "grouping",
                "severity_brown")
-
-
-
+dev.off()
+png("analysis/figures/kidsForest.png")
+makeForestPlot(rdbp[rdbp$d_age<18,],
+               testInsectsbinomial %>%
+                 filter(section=="cofactors") %>%
+                 arrange(pval) %>%
+                 select(variableName) %>% pull() %>% {c(.[c(1,2,6,7,15,18
+                                                            )])},
+               "grouping",
+               "severity_brown",
+               cLow= 0.3,
+               cHigh = 4)
+dev.off()
+png("analysis/figures/adultsForest.png")
+makeForestPlot(rdbp[rdbp$d_age>18,],
+               testInsectsbinomial %>%
+                 filter(section=="cofactors") %>%
+                 arrange(pval) %>%
+                 select(variableName) %>% pull() %>% {c(.[c(1,6,16,17,18,19
+                                                            )])},
+               "grouping",
+               "severity_brown",
+               cLow = 0.5,
+               cHigh = 2)
+dev.off()
 
 ##### Gonvert to function ######
 
@@ -691,8 +719,6 @@ cramerFun <- function(data,grouping,vars){
          #data.frame(var=vars)
 }
 
-rdbp <-rdb
-rdbp$grouping<- grouping
 
 cramerFun(data =rdbp,
           grouping = "grouping",

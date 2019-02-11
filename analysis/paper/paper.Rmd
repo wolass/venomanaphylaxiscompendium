@@ -199,9 +199,17 @@ Cardiologic symptoms and hypotensive collapse might be associated with vanom ana
 knitr::include_graphics("../figures/flow.png")
 ```
 
-
 ```{r figforestcofactors}
-knitr::include_graphics("../../figFOREST.png")
+knitr::include_graphics("../figures/figForest.png")
+```
+
+
+```{r figforestcofactorskids}
+knitr::include_graphics("../figures/kidsForest.png")
+```
+
+```{r figforestcofactorsadults}
+knitr::include_graphics("../figures/adultsForest.png")
 ```
 
 ```{r}
