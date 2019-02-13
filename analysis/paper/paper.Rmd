@@ -71,46 +71,64 @@ Symptoms of insect venom anaphylaxis are distinctively different from other reac
 
 # Methods
 
-
-The European Anaphylaxis Registry [@Grabenhenrich2016] database from March 2018 wassearched for anaphylaxis cases elicited by insect venom. The flowchart in figure \@ref(fig:flowchart) represents the detailed case-selection process. 
+The European Anaphylaxis Registry [@Grabenhenrich2016] database from March 2018 was searched for anaphylaxis cases elicited by insect's venom. The flowchart in figure \@ref(fig:flowchart) represents the detailed case-selection process. 
 
 The final database consisted of `r countries %>% summarise(sum(n))` cases of insect elicited anaphylaxis from `r countries %>% summarize(length(n))` countries. Severe reactions were identified based on the definition by NIAID/FAAN [@Sampson2006] and presented with significant hypoxia, hypotension, confusion, collapse and loss of consciousness, or incontinence. 
 We compared the frequency of various elicitors, symptoms, and factors known to increase the risk of severe anaphylaxis [@Worm2018] in both groups. We evaluated symptoms, managment and risk factors of insect elicited cases in comparison to other known triggers of anaphylaxis.
 
 <!-- ## Data handling and statisitcs -->
-The statistical analysis was performed in the R Statistical Package [@R]. Simple comparison of categorical variables was performed using Fisher's exact test, continuous variables were analyzed using Mann-Whitney U test. We defined statistical significance as α = 0.05. Data along with the analysis script can be accessed at online at....
-
+The statistical analysis was performed in the R Statistical Package [@R]. Simple comparison of categorical variables was performed using either Chi^2^ test or Fisher's exact test (where the number of observation in a bin was less then 10), continuous variables were analyzed using Mann-Whitney U test. We defined statistical significance as α = 0.05. Data along with the analysis script can be accessed at online at https://github.com/wolass/venomanaphylaxiscompendium.
 
 # Results
 
 ## Demographics
 
+We saw a significant difference in the clinical features of insect anaphylaxis in children and adults. The younger popoulation significantly less often had concomitant conditions (i.e. DM, HT, malignant diseases and mastocytosis), and more often presented with atopic dermatitis, rhinitis and asthma. Therefore, we decided to analyse these groups separately.
+
+
 ```{r}
-demoTab
+demoTab %>% rbind(demo_age_tab) %>% t() %>%  
+  {data.frame(` `=rownames(.),.)} %>%
+#   flextable(col_keys = c("X.","female","male","children.adolescents","adults")) 
+# topology <- data.frame(col_keys = c("X.","female","male","children.adolescents","adults"),
+#                        colB = c("","Sex","Sex","Age","Age"),
+#                        ColA = c("","Female","Male","<18",">=18"))
+# tempT %>%  
+#   set_header_df(mapping = topology,key = "col_keys") %>% 
+#   merge_h(part="header") %>% 
+#   merge_v() %>% 
+#   empty_blanks() %>% 
+#   autofit()
+knitr::kable(col.names = c("","female","male","<18","adults"),row.names = F)
 ```
+
+
 
 ```{r, results='asis'}
-st_options('bootstrap.css', FALSE)
-#rdb %>% select()
-ctable(rdb$d_centres_country %>% sapply(function(x){
-  as.character(x) %>% factor()
-}), rdb$q_340_insects%>% sapply(function(x){
-  as.character(x) %>% factor()
-}), style = 'rmarkdown',
-       useNA = "no",
-       prop = "r",
-       totals = F,
-       round.digits = 1,
-dnn = c("Countries","Insects"))
+# st_options('bootstrap.css', FALSE)
+# #rdb %>% select()
+# ctable(rdb$d_centres_country %>% sapply(function(x){
+#   as.character(x) %>% factor()
+# }), rdb$q_340_insects%>% sapply(function(x){
+#   as.character(x) %>% factor()
+# }), style = 'rmarkdown',
+#        useNA = "no",
+#        prop = "r",
+#        totals = F,
+#        round.digits = 1,
+# dnn = c("Countries","Insects"))
 
 ```
-```{r}
+
+```{r insectsgeo, fig.cap="Proportion of anaphylaxis cases elicited by specific insects in reporting countries. Less frequent insects were groupeped together as 'other'."}
 plot.proportions(rdb, "d_centres_country","q_340_insects")
-
 ```
 
+The Figure \@ref(fig:insectsgeo) shows the distribution of insects according to the geographic area (countries). 
+
+
 ```{r}
-cdplot(grouping~d_age,data = rdb)
+plot_MOR
 ```
 
 ```{r}
@@ -158,10 +176,6 @@ testInsectsbinomialTab$cofactors[,-7] %>% knitr::kable()
 testInsectsbinomialTab$management[,-7] %>% knitr::kable()
 ```
 
-```{r}
-testInsectsbinomialTab$prophylaxis[,-7] %>% knitr::kable()
-```
-
 ## Diagnostics 
 
 
@@ -202,7 +216,6 @@ knitr::include_graphics("../figures/flow.png")
 ```{r figforestcofactors}
 knitr::include_graphics("../figures/figForest.png")
 ```
-
 
 ```{r figforestcofactorskids}
 knitr::include_graphics("../figures/kidsForest.png")
@@ -264,4 +277,13 @@ plot.Cramer(cramerFun(data =rdbp,
 tryptase_plot(rdb)+
   scale_x_log10()
 
+```
+
+```{r reactionmonthincountries, fig.cap="Proportional insect venom induced anaphylaxis to specific insects during a year according to countries.", fig.height=8,fig.width=5}
+plot_MOR+
+  facet_grid(d_centres_country~.)
+```
+
+```{r}
+plot_MOR
 ```

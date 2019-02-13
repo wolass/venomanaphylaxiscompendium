@@ -1,12 +1,12 @@
 Package: venomanaphylaxiscompendium
-Title: What the Package Does (One Line, Title Case)
+Title: Compendium for the Venom Anaphylaxis paper
 Version: 0.0.0.9000
 Authors@R:
-    person(given = "First",
-           family = "Last",
+    person(given = "Wojciech",
+           family = "Francuzik",
            role = c("aut", "cre"),
-           email = "first.last@example.com")
-Description: What the package does (one paragraph)
+           email = "wolass@gmail.com")
+Description: Thi is a compendium package for the paper and contains the R code and data for reproducible analysis. 
 License: MIT + file LICENSE
 ByteCompile: true
 Encoding: UTF-8

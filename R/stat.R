@@ -263,21 +263,21 @@ funChi <-function(var,grouping_var){
     {chisq.test(.[,1],.[,2])$p.value}
 }
 funN1 <- function(var, grouping_var){
-  temp <- var %>%
+  var %>%
     data.frame(grouping_var) %>% table %>%
     {.[2,1]}
     #group_by(grouping_var) %>%
     #summarise(count=n())
 }
 funN2 <- function(var, grouping_var){
-  temp <- var %>%
+  var %>%
     data.frame(grouping_var) %>% table %>%
     {.[2,2]}
   #group_by(grouping_var) %>%
   #summarise(count=n())
 }
 funF1 <- function(var, grouping_var){
-  temp <- var %>%
+  var %>%
     data.frame(grouping_var) %>%
     table %>% {.[1:2,]} %>%
     prop.table(2) %>%
@@ -287,7 +287,7 @@ funF1 <- function(var, grouping_var){
 }
 
 funF2 <- function(var, grouping_var){
-  temp <- var %>%
+  var %>%
     data.frame(grouping_var) %>%
     table %>% {.[1:2,]} %>%
     prop.table(2) %>%
@@ -379,7 +379,7 @@ grouping <- ifelse(rdb$d_elicitor_gr5=="insects",
                           "other")
                    ) %>%
   factor
-
+rdb$grouping <- grouping
 rdbp <-rdb
 rdbp$grouping<- grouping
 
@@ -787,28 +787,54 @@ plot.Cramer <- function(x){
 
 #### Demographics####
 
+f4 <- function(x){
+  x[rdb$d_elicitor_gr5=="insects"]%>%
+  split(rdb$b_sex[rdb$d_elicitor_gr5=="insects"]) %>%
+  f3
+}
+f5 <- function(x){
+  x[rdb$d_elicitor_gr5=="insects"]%>%
+    split(rdb$d_age_gr2[rdb$d_elicitor_gr5=="insects"]) %>%
+    f3
+}
 demoTab <- cbind(n = rdb$b_sex[rdb$d_elicitor_gr5=="insects"] %>% summary(),
                  Age = rdb$d_age[rdb$d_elicitor_gr5=="insects"] %>%
                    split(rdb$b_sex[rdb$d_elicitor_gr5=="insects"]) %>%
                    lapply(.,function(x){mean(x) %>% signif(3)}),
-                 Cardiologic = rdb$q_410_cardio_cur[rdb$d_elicitor_gr5=="insects"]%>%
-                   split(rdb$b_sex[rdb$d_elicitor_gr5=="insects"]) %>%
-                   f3,
-                 DM = rdb$q_410_diab_cur_v6[rdb$d_elicitor_gr5=="insects"]%>%
-                   split(rdb$b_sex[rdb$d_elicitor_gr5=="insects"]) %>%
-                   f3,
-                 `Food allergy` = rdb$q_410_foodallergy_cur_v6[rdb$d_elicitor_gr5=="insects"]%>%
-                   split(rdb$b_sex[rdb$d_elicitor_gr5=="insects"]) %>%
-                   f3,
-                 Mastocytosis = rdb$q_410_masto_cur[rdb$d_elicitor_gr5=="insects"] %>%
-                   split(rdb$b_sex[rdb$d_elicitor_gr5=="insects"]) %>% f3,
-                 Malignancy = rdb$q_410_malig_cur[rdb$d_elicitor_gr5=="insects"] %>%
-                   split(rdb$b_sex[rdb$d_elicitor_gr5=="insects"])  %>% f3,
-                 `Atopic dermatitis` = rdb$q_410_ad_cur[rdb$d_elicitor_gr5=="insects"] %>%
-                   split(rdb$b_sex[rdb$d_elicitor_gr5=="insects"])  %>% f3,
+                 Cardiologic = f4(rdb$q_410_cardio_cur),
+                 DM = f4(rdb$q_410_diab_cur_v6),
+                 `Food allergy` = f4(rdb$q_410_foodallergy_cur_v6),
+                 Mastocytosis = f4(rdb$q_410_masto_cur),
+                 Malignancy = f4(rdb$q_410_malig_cur),
+                 `Atopic dermatitis` = f4(rdb$q_410_ad_cur),
+                 `Rhinitis` = f4(rdb$q_410_rhinitis_cur),
+                 Asthma = f4(rdb$q_410_asthma_cur),
                  `tryptase [median]` = rdb$q_212_tryptase_value_v5 [rdb$d_elicitor_gr5=="insects"]%>%
                    split(rdb$b_sex[rdb$d_elicitor_gr5=="insects"]) %>%
-                   lapply(median,na.rm=T)
+                   lapply(median,na.rm=T),
+                 `Insects as elicitors` = rdb$grouping %>%
+                   split(rdb$b_sex) %>%
+                   lapply(function(x){(length(which(x=="insects"))/length(x)*100) %>% roP})
+)
+
+demo_age_tab <- cbind(n = rdb$d_age_gr2[rdb$d_elicitor_gr5=="insects"] %>% summary(),
+                 Age = rdb$d_age[rdb$d_elicitor_gr5=="insects"] %>%
+                   split(rdb$d_age_gr2[rdb$d_elicitor_gr5=="insects"]) %>%
+                   lapply(.,function(x){mean(x) %>% signif(3)}),
+                 Cardiologic = f5(rdb$q_410_cardio_cur),
+                 DM = f5(rdb$q_410_diab_cur_v6),
+                 `Food allergy` = f5(rdb$q_410_foodallergy_cur_v6),
+                 Mastocytosis = f5(rdb$q_410_masto_cur),
+                 Malignancy = f5(rdb$q_410_malig_cur),
+                 `Atopic dermatitis` = f5(rdb$q_410_ad_cur),
+                 `Rhinitis` = f5(rdb$q_410_rhinitis_cur),
+                 Asthma = f5(rdb$q_410_asthma_cur),
+                 `tryptase [median]` = rdb$q_212_tryptase_value_v5 [rdb$d_elicitor_gr5=="insects"]%>%
+                   split(rdb$d_age_gr2[rdb$d_elicitor_gr5=="insects"]) %>%
+                   lapply(median,na.rm=T),
+                 `Insects as elicitors` = rdb$grouping %>%
+                   split(rdb$d_age_gr2) %>%
+                   lapply(function(x){(length(which(x=="insects"))/length(x)*100) %>% roP})
 )
 
 
@@ -817,11 +843,11 @@ demoTab <- cbind(n = rdb$b_sex[rdb$d_elicitor_gr5=="insects"] %>% summary(),
 t1 <- table(rdb$d_centres_country,rdb$q_340_insects)
 t2 <- t1 %>% prop.table(1) %>% {round(.*100,1)}
 
-rdb %>% group_by(d_centres_country,q_340_insects)%>%
-  select(d_centres_country,q_340_insects) %>%
-  summarize(n()) %>% tidyr::spread(key = d_centres_country,
-                            value = `n()`)
-
+# rdb %>% group_by(d_centres_country,q_340_insects)%>%
+#   select(d_centres_country,q_340_insects) %>%
+#   summarize(n()) %>% tidyr::spread(key = d_centres_country,
+#                             value = `n()`)
+#
 
 #### Previous ANA ####
 rdb$grouping <- grouping
@@ -1038,3 +1064,18 @@ plot.proportions <- function(data,varx,vary){
     theme(axis.text.x = element_text(angle = 45,hjust=1))
 }
 
+#### plot MOR#####
+plot_MOR <- rdbp %>%
+  select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
+  mutate(MOR = substr(b_reactiondate,4,5)) %>%
+  filter(!is.na(q_340_insects)) %>%
+  ggplot(aes(MOR,fill=q_340_insects))+
+  geom_bar(position = "fill")
+
+
+# Plot countries proportions
+plot.proportions <- function(data,varx,vary){
+  ggplot(data[!is.na(data[,vary]),], aes(get(varx), fill = get(vary)))+
+    geom_bar(position = "fill")+
+    theme(axis.text.x = element_text(angle = 45,hjust=1))
+}
