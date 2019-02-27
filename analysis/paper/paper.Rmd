@@ -285,3 +285,8 @@ plot_MOR+
 ```{r}
 plot_MOR
 ```
+
+```{R adrenalineuse, fig.cap = "The proportion of insect venom elicited anaphylaxis cases that were treated with adrenaline in comparison to other elicitors."}
+F2$plot2
+
+```

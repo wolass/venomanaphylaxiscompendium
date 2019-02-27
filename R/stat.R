@@ -372,6 +372,7 @@ countries <-rdb %>%
   group_by(d_centres_country) %>%
   summarize(n=n())%>% arrange(desc(n))
 
+#### Grouping variable insects vs no insects #####
 grouping <- ifelse(rdb$d_elicitor_gr5=="insects",
                    "insects",
                    ifelse(is.na(rdb$d_elicitor_gr5)|rdb$d_elicitor_gr5=="unkown",
@@ -1113,7 +1114,7 @@ fisher.test(matrix(dt$n,ncol=4,byrow=T)[,2:4])
 # Probably there is a potential difference in the tests when we look into
 # a previous reaction severity and next reaction severity
 
-
+require(purrr)
 ##### F1 repeate reaction severity after SIT ######
 F1 <- list()
 ### rationale
@@ -1151,7 +1152,7 @@ F1$data[["dt"]]  <-
   group_by(b_patient_code) %>%
   #do(ifelse(.$Rdate==max(.$Rdate),"last","prev"))
   tidyr::nest() %>%
-  mutate(reaction = map(data,function(df){
+  mutate(reaction = purrr::map(data,function(df){
     ifelse(df$Rdate==max(df$Rdate),
            "last",
            "prev")
@@ -1183,14 +1184,65 @@ F1$conclusion <-  "More patients showed no reduction in severity after in repeat
 ### discussion
 F1$discussion <- "Low patient numbers could have prevented an adequate analysis"
 
+source("R/findingOrientedResearch.R")
+
 ### Adrenaline managment in insect cases ###
 # F2 Adrenaline use Corellation with severity? #####
-F2<- finding(rationale = "We saw that patients who were treated for anaphylaxis after insect sting less often recived adrenaline than patients who were treated for anaphylaxis due to other triggers. We want to evaluate the cause of this observation",
-             libs = "",
-             data = list(test=
-                           rdb$d_522_adren_agg
-                           ),
-             vis = list(plot="1"),
-             conclusion = "This is dumb test",
-             discussion = "test could be ok?")
+F2<- list(rationale = "We saw that patients who were treated for anaphylaxis after insect sting less often recived adrenaline than patients who were treated for anaphylaxis due to other triggers. We want to evaluate the cause of this observation",
+             libs = "")
+
+F2$plot <- rdb %>%
+  filter(!is.na(d_severity_rm),
+         !is.na(d_522_adren_agg),
+         !is.na(grouping),
+         d_522_adren_agg!="unknown") %>%
+  group_by(d_severity_rm,grouping) %>%
+  summarize(n =mean(d_522_adren_agg=="yes")) %>%
+  ggplot(aes(d_severity_rm,n,fill = grouping))+
+  geom_bar(stat="identity",position="dodge")
+
+
+F2$test <- rdb %>%
+  filter(!is.na(d_severity_rm),
+         !is.na(d_522_adren_agg),
+         !is.na(grouping),
+         d_522_adren_agg!="unknown") %>%
+  {glm(d_522_adren_agg~grouping*d_severity_rm,family = "binomial",data =.)} %>%
+  summary()
+
+
+F2$plot2 <- rdb %>%
+  filter(!is.na(severity_brown),
+         !is.na(d_522_adren_agg),
+         !is.na(grouping),
+         d_522_adren_agg!="unknown") %>%
+  group_by(severity_brown,grouping) %>%
+  summarize(n =mean(d_522_adren_agg=="yes")) %>%
+  ggplot(aes(severity_brown,n,fill = grouping))+
+  geom_bar(stat="identity",position="dodge")
+
+
+rdb %>%
+  filter(!is.na(d_severity_rm),
+         !is.na(d_522_adren_agg),
+         !is.na(grouping),
+         d_522_adren_agg!="unknown") %>%
+   # select(#d_elicitor_gr5,
+  #    d_522_adren_agg,
+   #   d_severity_rm,
+    #  grouping)
+  #pull() %>%
+  ggplot(aes(d_severity_rm,fill=d_522_adren_agg))+
+  geom_bar(position = "fill")+
+  facet_grid(.~grouping)
+  #group_by(grouping,severity) %>%
+  #summarize()
+  # c(data.tab = F2$data.d %>%
+  #     group_by(grouping,d_severity_rm,d_522_adren_agg)
+  #   ) %>%
+  # c(vis = list(plot="1")
+  #   ) %>%
+  # c(conclusion = "This is dumb test") %>%
+  # c(discussion = "test could be ok?"
+  #   )
 
