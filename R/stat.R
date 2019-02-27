@@ -1074,8 +1074,123 @@ plot_MOR <- rdbp %>%
 
 
 # Plot countries proportions
-plot.proportions <- function(data,varx,vary){
-  ggplot(data[!is.na(data[,vary]),], aes(get(varx), fill = get(vary)))+
+plot.proportions <- function(data,varx,vary,minN){
+  ns <- data %>% filter(grouping == "insects") %>% group_by(get(varx)) %>%
+    summarize(n=n()) %>% filter(n>minN)
+  l=length(ns$n)
+  ggplot(data[!is.na(data[,vary])&
+                data[,varx]%in%ns$`get(varx)`,],
+         aes(get(varx),
+             fill = get(vary)))+
     geom_bar(position = "fill")+
-    theme(axis.text.x = element_text(angle = 45,hjust=1))
+    theme(axis.text.x = element_text(angle = 45,hjust=1))+
+    annotate(geom = "text",
+             x = 1:l,
+             y = rep(0.1,l),
+             label = paste("n =",ns%>% {as.character(.$n)}),
+             angle = 90)
 }
+
+
+##### reaction severity after SIT ######
+### rationale
+# Do patients with previous SIT had less severe reactions than these without previous SIT?
+### data and variables
+dt <- rdb %>%
+  filter(d_elicitor_gr5=="insects",
+         q_610_sit_prior_v5 %in% c("no","yes")) %>%
+  group_by(q_610_sit_prior_v5,d_severity_rm) %>%
+  summarize(n = n())
+
+### Plot
+dt %>% ggplot(aes(q_610_sit_prior_v5,fill=factor(d_severity_rm),y = n))+
+  geom_bar(stat="identity",position="fill")
+### stat test
+fisher.test(matrix(dt$n,ncol=4,byrow=T)[,2:4])
+### coonclusion
+# There were no statisitcally significant differences in these groups
+### discussion
+# Probably there is a potential difference in the tests when we look into
+# a previous reaction severity and next reaction severity
+
+
+##### F1 repeate reaction severity after SIT ######
+F1 <- list()
+### rationale
+F1$rationale<- "Do patients with previous SIT had less severe reactions than these without previous SIT? we compare these reactions in the same patients."
+### libraries
+F1$libs <- "purrr"
+### data and variables
+# patients with at leat two documented reactions in our database
+# split-apply-combine using dplyr,tidyr,purrr
+F1$data[["pat_ids"]]<-
+  data4 %>%
+  filter(d_elicitor_gr5=="insects") %>%
+  select(b_patient_code) %>%
+  group_by(b_patient_code) %>%
+  summarise(reps =n()) %>%
+  filter(reps>1) %>%
+  select(b_patient_code) %>% pull() %>% as.character()
+F1$data[["dt"]]  <-
+  data4 %>%
+  filter(d_elicitor_gr5=="insects",
+         #q_610_sit_prior_v5 %in% c("no","yes"),
+         b_patient_code %in% F1$data$pat_ids) %>%
+  select(b_patient_code,d_severity_rm,b_reactiondate) %>%
+  mutate(Rdate =  ifelse(substr(as.character(b_reactiondate),1,2)=="00",
+                         paste0("15",substr(as.character(b_reactiondate),3,10)),
+                         as.character(b_reactiondate))
+  ) %>%
+  mutate(Rdate = ifelse(substr(Rdate,4,5)=="00",
+                            paste0(substr(Rdate,1,3),
+                                   "06",
+                                   substr(Rdate,6,10)),
+                            Rdate)%>%
+           as.Date(format = "%d.%m.%Y")
+         ) %>%
+  group_by(b_patient_code) %>%
+  #do(ifelse(.$Rdate==max(.$Rdate),"last","prev"))
+  tidyr::nest() %>%
+  mutate(reaction = map(data,function(df){
+    ifelse(df$Rdate==max(df$Rdate),
+           "last",
+           "prev")
+  })) %>%
+  tidyr::unnest()
+
+F1$data[["dt2"]] <- F1$data$dt %>%
+  group_by(b_patient_code) %>%
+  tidyr::nest() %>%
+  mutate(compare_r = map(data,function(df){
+  ifelse(df$d_severity_rm[df$reaction=="last"]<df$d_severity_rm[df$reaction=="prev"],
+         "reduction",
+         "no reduction")
+})) %>%
+  tidyr::unnest(compare_r) %>%
+  group_by(compare_r) %>%
+  summarize(n=n())
+
+
+### Plot
+F1$vis <- dt%>% ggplot(aes(reaction,y=factor(d_severity_rm)))+
+  geom_point()+
+  geom_line(aes(group=b_patient_code),
+            position = position_jitter(height = 0.05))
+### stat test
+F1$tests <- NULL#fisher.test(matrix(dt$n,ncol=4,byrow=T)[,2:4])
+### coonclusion
+F1$conclusion <-  "More patients showed no reduction in severity after in repeated reaction after SIT"
+### discussion
+F1$discussion <- "Low patient numbers could have prevented an adequate analysis"
+
+### Adrenaline managment in insect cases ###
+# F2 Adrenaline use Corellation with severity? #####
+F2<- finding(rationale = "We saw that patients who were treated for anaphylaxis after insect sting less often recived adrenaline than patients who were treated for anaphylaxis due to other triggers. We want to evaluate the cause of this observation",
+             libs = "",
+             data = list(test=
+                           rdb$d_522_adren_agg
+                           ),
+             vis = list(plot="1"),
+             conclusion = "This is dumb test",
+             discussion = "test could be ok?")
+

@@ -120,16 +120,13 @@ knitr::kable(col.names = c("","female","male","<18","adults"),row.names = F)
 
 ```
 
-```{r insectsgeo, fig.cap="Proportion of anaphylaxis cases elicited by specific insects in reporting countries. Less frequent insects were groupeped together as 'other'."}
-plot.proportions(rdb, "d_centres_country","q_340_insects")
+```{r insectsgeo, fig.cap="Proportion of anaphylaxis cases elicited by specific insects in reporting countries. Less frequent insects were groupeped together as 'other'. Countries which reported less than 20 cases of anaphylaxis due to insect venom were not illustrated in this figure."}
+plot.proportions(rdb, "d_centres_country","q_340_insects",20)
 ```
 
-The Figure \@ref(fig:insectsgeo) shows the distribution of insects according to the geographic area (countries). 
+The Figure \@ref(fig:insectsgeo) shows the distribution of insects according to the geographic area (countries). The most common elicitor among most of the countries were yellow-jackets wasps. Switzerland had significantly more reactions to bees than Germany. Centers from Italy reported more cases elicited by hornets in comparison to other countries.
 
 
-```{r}
-plot_MOR
-```
 
 ```{r}
 mosaicplot(formula = d_severity_rm~d_insect_gr4,data = rdb)
@@ -275,7 +272,8 @@ plot.Cramer(cramerFun(data =rdbp,
 
 ```{r}
 tryptase_plot(rdb)+
-  scale_x_log10()
+  scale_x_log10()+
+  facet_grid(~d_age_gr2)
 
 ```
 
