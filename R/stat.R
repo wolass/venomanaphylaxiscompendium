@@ -700,7 +700,7 @@ makeForestPlot(rdbp[rdbp$d_age>18,],
                testInsectsbinomial %>%
                  filter(section=="cofactors") %>%
                  arrange(pval) %>%
-                 select(variableName) %>% pull() %>% {c(.[c(1,6,16,17,18,19
+                 select(variableName) %>% pull() %>% {c(.[c(1,6,16,41,18,27
                                                             )])},
                "grouping",
                "severity_brown",
@@ -852,11 +852,11 @@ t2 <- t1 %>% prop.table(1) %>% {round(.*100,1)}
 
 #### Previous ANA ####
 rdb$grouping <- grouping
-rdb$q_160_ever_react %>% table(rdb$grouping) %>% assocstats()
+rdb$q_160_ever_react %>% table(rdb$grouping) %>% {.[1:2,]} %>% assocstats()
 
-rdb$q_1622_ever_mild_v4 %>% table(grouping) %>% assocstats()
+rdb$q_1622_ever_mild_v4 %>% table(grouping) %>% {.[1:2,]}%>% assocstats()
 
-rdb$q_1621_ever_severe_v4 %>% table(grouping) %>% assocstats()
+rdb$q_1621_ever_severe_v4 %>% table(grouping) %>% {.[1:2,]} %>% assocstats()
 
 #### Previous Reacktions ########
 # Check for previous
@@ -908,12 +908,9 @@ iCodeDF <- tempDF %>% filter(b_patient_code%in%iCode) %>%
 greter_same <- iCodeDF %>%
   group_by(difference) %>% summarize(n = n()) %>% pull() %>% as.numeric()
 
-### Check what was the elicitor in the repeated cases
-
+iCodeDF %>% filter(difference=="greater")
 
 ### PLOT Szmptom differences ####
-
-
 
 plotSympt <- ggplot(testInsectsbinomialTab$symptoms %>%
                       tidyr::gather(key = "group",value = "Fraction", 4:5) %>%
@@ -1034,17 +1031,21 @@ AssociatedVars <- testInsectsbinomial %>%
 #                            "q_114_hypotension_collapse_v5",
 #                            "q_112_abdominal_pain",
 #                            "q_112_vomiting"))
-# ggplot(ex %>%
-#          tidyr::gather(key = "group",value = "Fraction", c("fraq_1","fraq_2")) %>%
-#          arrange(pval),
-#        aes(reorder(variableName,pval),Fraction, fill = group))+
-#   geom_bar(stat = "identity", position = "dodge",na.rm = T)+
-#   facet_grid(.~subset)+
-#   theme_classic()+
-#   theme(axis.text.x = element_text(angle = 50,hjust =1))
+ggplot(ex %>%
+         tidyr::gather(key = "group",value = "Fraction", c("fraq_1","fraq_2")) %>%
+         arrange(pval),
+       aes(reorder(variableName,pval),Fraction, fill = group))+
+  geom_bar(stat = "identity", position = "dodge",na.rm = T)+
+  facet_grid(.~subset)+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 50,hjust =1))
 
 cramerPlot <-
-  ggplot(ex, aes(variableName,Cramer,fill=subset))+
+  ex %>%
+  filter(!is.na(Cramer),
+         variableName%in%ex$variableName[which(ex$Cramer>0.1)]
+         ) %>%
+  ggplot( aes(variableName,Cramer,fill=subset))+
   geom_bar(stat = "identity", position = "dodge")+
   theme_classic()+
   theme(axis.text.x = element_text(angle = 50,hjust =1))
@@ -1058,26 +1059,58 @@ tryptase_plot <- function(data3){
   geom_density(mapping = aes(q_212_tryptase_value_v5),data3[data3$d_elicitor_gr5!="insects",],fill="black",alpha =0.2)
 }
 
-# Plot countries proportions
-plot.proportions <- function(data,varx,vary){
-  ggplot(data[!is.na(data[,vary]),], aes(get(varx), fill = get(vary)))+
-    geom_bar(position = "fill")+
-    theme(axis.text.x = element_text(angle = 45,hjust=1))
-}
 
 #### plot MOR#####
-plot_MOR <- rdbp %>%
+plot_MOR <- gridExtra::grid.arrange(
+  #cowplot::plot_grid(
+  rdbp %>%
   select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
   mutate(MOR = substr(b_reactiondate,4,5)) %>%
-  filter(!is.na(q_340_insects)) %>%
+  filter(!is.na(q_340_insects),MOR!="00") %>%
   ggplot(aes(MOR,fill=q_340_insects))+
-  geom_bar(position = "fill")
-
-
-# Plot countries proportions
+  geom_bar(position = "fill")+
+    theme_classic()+
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "none"
+        )+
+  ylab("Proportion"),
+rdbp %>%
+  select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
+  mutate(MOR = substr(b_reactiondate,4,5)) %>%
+  filter(!is.na(q_340_insects),MOR!="00") %>%
+  ggplot(aes(MOR,fill=q_340_insects))+
+  geom_bar()+
+  theme_classic()+
+  labs(fill="Insect",x = "Month of the year")+
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = c(0.01,.98),
+        legend.justification = c(0,1)),
+rdbp %>%
+  select(b_reactiondate,grouping,d_elicitor_gr5,d_centres_country) %>%
+  mutate(MOR = substr(b_reactiondate,4,5),
+         d_elicitor_gr5 = relevel(d_elicitor_gr5, "insects")) %>%
+  filter(!is.na(grouping),MOR!="00") %>%
+  group_by(MOR,grouping) %>%
+  summarize(n = n()) %>%
+  group_by(MOR) %>%
+  summarise(prop = n[1]/sum(n)) %>%
+  ggplot(aes(MOR,prop))+
+  geom_bar(stat="identity")+
+  theme_classic()+
+  labs(x = "Month of the year",y = "Fraction of insect elicited ANA"),
+  #theme(legend.position = c(0.01,.98),
+  #      legend.justification = c(0,1)),
+heights = c(0.4,1,0.5),
+ncol = 1
+)
+ # Plot countries proportions
 plot.proportions <- function(data,varx,vary,minN){
   ns <- data %>% filter(grouping == "insects") %>% group_by(get(varx)) %>%
-    summarize(n=n()) %>% filter(n>minN)
+    summarize(n=n()) %>% filter(n>minN) %>%
   l=length(ns$n)
   ggplot(data[!is.na(data[,vary])&
                 data[,varx]%in%ns$`get(varx)`,],
@@ -1091,6 +1124,7 @@ plot.proportions <- function(data,varx,vary,minN){
              label = paste("n =",ns%>% {as.character(.$n)}),
              angle = 90)
 }
+plot.proportions(rdb, "d_centres_country","q_340_insects",20)
 
 
 ##### reaction severity after SIT ######
@@ -1102,6 +1136,15 @@ dt <- rdb %>%
          q_610_sit_prior_v5 %in% c("no","yes")) %>%
   group_by(q_610_sit_prior_v5,d_severity_rm) %>%
   summarize(n = n())
+
+dt3 <- rdb %>%
+  filter(d_elicitor_gr5=="insects",
+         q_610_sit_prior_v5 %in% c("no","yes")) %>%
+  group_by(q_610_sit_prior_v5,severity_brown) %>%
+  summarize(n = n())
+dt3 %>% ggplot(aes(q_610_sit_prior_v5,fill=factor(severity_brown),y = n))+
+  geom_bar(stat="identity",position="fill")
+fisher.test(matrix(dt3$n,ncol=2,byrow=T))
 
 ### Plot
 dt %>% ggplot(aes(q_610_sit_prior_v5,fill=factor(d_severity_rm),y = n))+
@@ -1173,7 +1216,7 @@ F1$data[["dt2"]] <- F1$data$dt %>%
 
 
 ### Plot
-F1$vis <- dt%>% ggplot(aes(reaction,y=factor(d_severity_rm)))+
+F1$vis <- F1$data$dt%>% ggplot(aes(reaction,y=factor(d_severity_rm)))+
   geom_point()+
   geom_line(aes(group=b_patient_code),
             position = position_jitter(height = 0.05))
@@ -1182,7 +1225,7 @@ F1$tests <- NULL#fisher.test(matrix(dt$n,ncol=4,byrow=T)[,2:4])
 ### coonclusion
 F1$conclusion <-  "More patients showed no reduction in severity after in repeated reaction after SIT"
 ### discussion
-F1$discussion <- "Low patient numbers could have prevented an adequate analysis"
+F1$discussion <- "Low patient numbers could have prevented an adequate analysis. This is very plausible as many of these reactions which happen in the meantime could be really mild and therefore not cosidered anaphylaxis and therefore not reported in the registry"
 
 source("R/findingOrientedResearch.R")
 
@@ -1191,7 +1234,7 @@ source("R/findingOrientedResearch.R")
 F2<- list(rationale = "We saw that patients who were treated for anaphylaxis after insect sting less often recived adrenaline than patients who were treated for anaphylaxis due to other triggers. We want to evaluate the cause of this observation",
              libs = "")
 
-F2$plot <- rdb %>%
+F2$plot[["RM"]] <- rdb %>%
   filter(!is.na(d_severity_rm),
          !is.na(d_522_adren_agg),
          !is.na(grouping),
@@ -1211,7 +1254,7 @@ F2$test <- rdb %>%
   summary()
 
 
-F2$plot2 <- rdb %>%
+F2$plot[["brown"]] <- rdb %>%
   filter(!is.na(severity_brown),
          !is.na(d_522_adren_agg),
          !is.na(grouping),
@@ -1222,7 +1265,7 @@ F2$plot2 <- rdb %>%
   geom_bar(stat="identity",position="dodge")
 
 
-rdb %>%
+F2$plot[["insectvsother"]] <- rdb %>%
   filter(!is.na(d_severity_rm),
          !is.na(d_522_adren_agg),
          !is.na(grouping),
@@ -1246,3 +1289,49 @@ rdb %>%
   # c(discussion = "test could be ok?"
   #   )
 
+F3 <- list()
+F3$rationale <- "The treatment groups need to be adjusted for the availibility of autoinjectors so that the actual use can be calcualted"
+F3$plot
+#rdb$
+#ggplot(aes())
+####Propensity Score MAtching #####
+#' The functition to match samples based on the minimal set of predictors
+#' provide data, grouping variables and predictor variables as well as others..
+require(MatchIt)
+prop_fun <- function(data, grouping_var, predictor_vars, other_vars=NULL) {
+  temp <- data %>%
+    select(!!!grouping_var,!!!predictor_vars,!!!other_vars) %>%
+    filter(complete.cases(.)) %>%
+    mutate(grouping = ifelse(get(grouping_var) == "insects", T,
+                           F))
+  match_stats <- matchit(formula = paste0(grouping_var,
+                                          "~",
+                                          paste0(predictor_vars,
+                                                 collapse = "+"))%>%
+                           as.formula(),
+                         data=data.frame(temp),
+                         method = "optimal",
+                         ratio = 1,
+                         na.rm=T)
+  return(temp)#%>%
+}#str()
+
+temp <- prop_fun(data = rdb,
+         grouping_var = "grouping",
+         predictor_vars = c("b_sex","d_age"),
+         other_vars = c("q_116_VAS_v7")
+         )
+match_stats <- matchit(formula = grouping~d_age+b_sex,
+        data=data.frame(temp),
+        method = "optimal",
+        ratio = 1,
+        na.rm=T)
+match_stats %>% summary()
+match.data(match_stats) %>%
+ggplot(aes(grouping,y=q_116_VAS_v7))+
+  geom_violin()
+
+match.data(match_stats) %>%
+{kruskal.test(.$q_116_VAS_v7,.$grouping)}
+rdb %>%
+{kruskal.test(.$q_116_VAS_v7,.$grouping)}

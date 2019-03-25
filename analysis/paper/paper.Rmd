@@ -83,7 +83,7 @@ The statistical analysis was performed in the R Statistical Package [@R]. Simple
 
 ## Demographics
 
-We saw a significant difference in the clinical features of insect anaphylaxis in children and adults. The younger popoulation significantly less often had concomitant conditions (i.e. DM, HT, malignant diseases and mastocytosis), and more often presented with atopic dermatitis, rhinitis and asthma. Therefore, we decided to analyse these groups separately.
+We saw a significant difference in the clinical features of insect anaphylaxis in children and adults. The younger popoulation significantly less often had concomitant conditions (i.e. DM, HT, malignant diseases and mastocytosis), and more often presented with atopic dermatitis, rhinitis and asthma. Therefore, we decided to adjust the analysis for age and sex. 
 
 
 ```{r}
@@ -120,16 +120,33 @@ knitr::kable(col.names = c("","female","male","<18","adults"),row.names = F)
 
 ```
 
+## Temporal distribution of anaphylaxis cases by elicitor.
+
+
+```{r insectstime, fig.cap="Proportion of anaphylaxis cases elicited by specific insects according to the month in which the reaction occured. Less frequent insects were groupeped together as 'other'. The lowest panel shows the proportion of insect elicited cases to ceses elicited by other triggers."}
+plot.proportions(rdb, "d_centres_country","q_340_insects",20)
+```
+
+Insect venom elicited anaphylaxis in contrast to other elicitors showed a significant seasonal fluctuation and was most frequently reported from May till October. Their proportion to other cases during the summer seasons reached 60 % and was as under 1% of cases during winter. Yellow-jacket was the most prominent causing-insect reported in these cases foolowed by bee (Fig \@ref(fig:insectstime)).  
+
+
 ```{r insectsgeo, fig.cap="Proportion of anaphylaxis cases elicited by specific insects in reporting countries. Less frequent insects were groupeped together as 'other'. Countries which reported less than 20 cases of anaphylaxis due to insect venom were not illustrated in this figure."}
 plot.proportions(rdb, "d_centres_country","q_340_insects",20)
 ```
 
-The Figure \@ref(fig:insectsgeo) shows the distribution of insects according to the geographic area (countries). The most common elicitor among most of the countries were yellow-jackets wasps. Switzerland had significantly more reactions to bees than Germany. Centers from Italy reported more cases elicited by hornets in comparison to other countries.
+The Figure \@ref(fig:insectsgeo) shows the distribution of insects according to the geographic area (countries). The most common elicitor among most of the countries were yellow-jackets. Switzerland had significantly more reactions to bees than Germany. Centers from Italy reported more cases elicited by hornets in comparison to other countries.
 
+```{r age}
+cdplot(rdb$grouping~as.numeric(rdb$d_age))
+```
 
 
 ```{r}
 mosaicplot(formula = d_severity_rm~d_insect_gr4,data = rdb)
+rdb %>% filter(!is.na(d_insect_gr4)) %>% 
+ggplot(aes(d_insect_gr4,fill=factor(d_severity_rm)))+
+  geom_bar(position="fill")+
+  facet_grid(.~d_age_gr2)
 ```
 
 
@@ -150,6 +167,13 @@ We saw prominent differences in association of specific symptoms with eliocitor 
 
 ```{r}
 crammerElicitorBinvsSympt[1:15,] %>% arrange(desc(CV)) %>% knitr::kable()
+
+crammerElicitorBinvsSympt[1:15,] %>% arrange(desc(CV)) %>%
+  filter(CV<0.3,
+         CV>0.15) %>% 
+  ggplot(aes(reorder(var,-CV),CV))+
+  geom_col()+
+  theme(axis.text.x = element_text(angle=90))
 ```
 
 
@@ -165,12 +189,28 @@ Forest plot ! Risk that the symptom will occure given that the reaction was elic
 ## Co-factors
 ```{r}
 testInsectsbinomialTab$cofactors[,-7] %>% knitr::kable()
+
+testInsectsbinomialTab$cofactors[,-7] %>%
+  tidyr::gather(value ="Proportion",
+         key="Group",
+         4:5) %>% 
+  ggplot(aes(reorder(variableName,-Proportion),Proportion,fill=Group))+
+  geom_bar(stat="identity",position="dodge")+
+  theme(axis.text.x=element_text(angle=90))
 ```
 
 
 ## Managment
 ```{r}
 testInsectsbinomialTab$management[,-7] %>% knitr::kable()
+testInsectsbinomialTab$management[,-7]%>%
+  tidyr::gather(value ="Proportion",
+         key="Group",
+         4:5) %>% 
+  ggplot(aes(reorder(variableName,-Proportion),Proportion,fill=Group))+
+  geom_bar(stat="identity",position="dodge")+
+  theme(axis.text.x=element_text(angle=90))+
+  geom_text(aes(y=0.5,label=reorder(signif(pval,2),-Proportion)),angle=90)
 ```
 
 ## Diagnostics 
