@@ -8,7 +8,15 @@ require(vcd)
 
 #### GET THE DATA ########
 # Note the path that we need to use to access our data files when rendering this document
-load('../RefractoryAnaOrg/analysis/data/raw_data/data4.R')
+# data5 <-foreign::read.spss("analysis/data/raw_data/anaphylaxis_registry_15_mar_2019_mergedSD.sav",
+#                            use.value.labels = TRUE,
+#                            to.data.frame = T,
+#                            trim.factor.names = T,
+#                            trim_values = T)
+
+#load('../RefractoryAnaOrg/analysis/data/raw_data/data4.R')
+load("data.R") # here the anascore is done using the severity_analysis R script
+data4 <-data
 
 
 ####### Functions #############
@@ -363,7 +371,50 @@ levels(data4$q_561_hospital_admission_v6) %<>% {c(NA,.[2:3],NA)}
 levels(data4$q_562_intensive_care_v6)%<>% {c(NA,.[2:3],NA)}
 levels(data4$q_632_autoinj_number_v7) %<>% {c(.[1:3],NA)}
 levels(data4$q_422_stress) <- c("no","yes")
+levels(data4$q_340_insects) <-c(levels(data4$q_340_insects)[1:7],"other")
 
+### REstricted ring and messmer (conformat with the RUEFF work)
+data4$d_severity_rmr <- ifelse(data4$d_severity_rm%in%c(3,4),
+                               "severe",
+                               "mild")
+### ATOPIC VARIABLE (posible many NAs)
+data4$atopy <- ifelse(data4$q_410_rhinitis_cur=="yes"|
+                        data4$q_410_rhinitis_prev_v5=="yes"|
+                        data4$q_410_asthma_cur=="yes"|
+                        data4$q_410_asthma_prev_v5=="yes"|
+                        data4$q_410_ad_cur=="yes"|
+                        data4$q_410_ad_prev_v5=="yes",
+                      "yes",
+                      "no") %>% factor()
+summary(data4$q_410_ad_cur)
+
+#### Cardiologic grouping var
+data4$cc_cardio <- ifelse(data4$q_410_cardio_cur=="yes"|
+                        data4$q_410_cardio_prev_v5=="yes"
+                        ,
+                      "yes",
+                      "no") %>% factor()
+data4$cc_cardio %>% summary()
+data4$q_410_cardio_cur %>% summary()
+data4$q_410_cardio_prev_v5 %>% summary()
+
+### Add tryptase coategory based on RUEFF (cut off 8)
+data4 %<>%
+  mutate(tryp_cat=ifelse(q_212_tryptase_value_v5<8,
+               "low",
+               "high"))
+###  var sc. route of administration ####
+data4$route_sc <- rep(FALSE,length(data4$b_submitdate))
+data4$route_sc[data4$d_330_drug_group %in%
+                     c("biologics",
+                       #"xray_cm",
+                       "local_anaesthetics",
+                       #"chemotherapeutics",
+                       "immunisation"#,
+                       #"volume replacement",
+                       #"muscle relaxant"
+                       )] <- TRUE
+data4$route_sc[data4$d_elicitor_gr5 == "insects"] <- T
 #FINAL DATABASE RDB ######
 rdb <- data4[data4$reaction_type_brown=="anaphylaxis",]
 countries <-rdb %>%
@@ -383,6 +434,7 @@ grouping <- ifelse(rdb$d_elicitor_gr5=="insects",
 rdb$grouping <- grouping
 rdbp <-rdb
 rdbp$grouping<- grouping
+
 
 
 variableSelectionTab <- function(data){
@@ -708,9 +760,10 @@ makeForestPlot(rdbp[rdbp$d_age>18,],
                cHigh = 2)
 dev.off()
 
-##### Gonvert to function ######
+##### convert to function ######
 
 cramerFun <- function(data,grouping,vars){
+
   lapply(data[,vars],function(x){
            DescTools::CramerV(table(x,
                             data[,grouping]),
@@ -1060,57 +1113,11 @@ tryptase_plot <- function(data3){
 }
 
 
-#### plot MOR#####
-plot_MOR <- gridExtra::grid.arrange(
-  #cowplot::plot_grid(
-  rdbp %>%
-  select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
-  mutate(MOR = substr(b_reactiondate,4,5)) %>%
-  filter(!is.na(q_340_insects),MOR!="00") %>%
-  ggplot(aes(MOR,fill=q_340_insects))+
-  geom_bar(position = "fill")+
-    theme_classic()+
-  theme(axis.text.x = element_blank(),
-        axis.title.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        legend.position = "none"
-        )+
-  ylab("Proportion"),
-rdbp %>%
-  select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
-  mutate(MOR = substr(b_reactiondate,4,5)) %>%
-  filter(!is.na(q_340_insects),MOR!="00") %>%
-  ggplot(aes(MOR,fill=q_340_insects))+
-  geom_bar()+
-  theme_classic()+
-  labs(fill="Insect",x = "Month of the year")+
-  theme(axis.text.x = element_blank(),
-        axis.title.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        legend.position = c(0.01,.98),
-        legend.justification = c(0,1)),
-rdbp %>%
-  select(b_reactiondate,grouping,d_elicitor_gr5,d_centres_country) %>%
-  mutate(MOR = substr(b_reactiondate,4,5),
-         d_elicitor_gr5 = relevel(d_elicitor_gr5, "insects")) %>%
-  filter(!is.na(grouping),MOR!="00") %>%
-  group_by(MOR,grouping) %>%
-  summarize(n = n()) %>%
-  group_by(MOR) %>%
-  summarise(prop = n[1]/sum(n)) %>%
-  ggplot(aes(MOR,prop))+
-  geom_bar(stat="identity")+
-  theme_classic()+
-  labs(x = "Month of the year",y = "Fraction of insect elicited ANA"),
-  #theme(legend.position = c(0.01,.98),
-  #      legend.justification = c(0,1)),
-heights = c(0.4,1,0.5),
-ncol = 1
-)
+
  # Plot countries proportions
 plot.proportions <- function(data,varx,vary,minN){
   ns <- data %>% filter(grouping == "insects") %>% group_by(get(varx)) %>%
-    summarize(n=n()) %>% filter(n>minN) %>%
+    summarize(n=n()) %>% filter(n>minN)
   l=length(ns$n)
   ggplot(data[!is.na(data[,vary])&
                 data[,varx]%in%ns$`get(varx)`,],
@@ -1124,7 +1131,10 @@ plot.proportions <- function(data,varx,vary,minN){
              label = paste("n =",ns%>% {as.character(.$n)}),
              angle = 90)
 }
-plot.proportions(rdb, "d_centres_country","q_340_insects",20)
+plot.proportions(data = rdb,
+                 varx = "d_centres_country",
+                 vary = "q_340_insects",
+                 minN = 20)
 
 
 ##### reaction severity after SIT ######
@@ -1294,11 +1304,14 @@ F3$rationale <- "The treatment groups need to be adjusted for the availibility o
 F3$plot
 #rdb$
 #ggplot(aes())
+
 ####Propensity Score MAtching #####
 #' The functition to match samples based on the minimal set of predictors
 #' provide data, grouping variables and predictor variables as well as others..
 require(MatchIt)
-prop_fun <- function(data, grouping_var, predictor_vars, other_vars=NULL) {
+prop_fun <- function(data, grouping_var, predictor_vars, other_vars=NULL,
+                     method = "optimal",
+                     samplesize = 200) {
   temp <- data %>%
     select(!!!grouping_var,!!!predictor_vars,!!!other_vars) %>%
     filter(complete.cases(.)) %>%
@@ -1309,29 +1322,371 @@ prop_fun <- function(data, grouping_var, predictor_vars, other_vars=NULL) {
                                           paste0(predictor_vars,
                                                  collapse = "+"))%>%
                            as.formula(),
-                         data=data.frame(temp),
-                         method = "optimal",
+                         data=data.frame(temp[sample(1:length(temp[,1]),
+                                                     samplesize),]),
+                         method = method,
                          ratio = 1,
                          na.rm=T)
-  return(temp)#%>%
+  return(list(pre_data = temp,
+              post_data = match.data(match_stats),
+              stats = match_stats))#%>%
 }#str()
 
 temp <- prop_fun(data = rdb,
          grouping_var = "grouping",
          predictor_vars = c("b_sex","d_age"),
-         other_vars = c("q_116_VAS_v7")
+         other_vars = c("q_116_VAS_v7"),
+         samplesize = 1200
          )
-match_stats <- matchit(formula = grouping~d_age+b_sex,
-        data=data.frame(temp),
-        method = "optimal",
-        ratio = 1,
-        na.rm=T)
-match_stats %>% summary()
-match.data(match_stats) %>%
+temp$post_data %>%
 ggplot(aes(grouping,y=q_116_VAS_v7))+
   geom_violin()
 
-match.data(match_stats) %>%
+temp$post_data %>%
 {kruskal.test(.$q_116_VAS_v7,.$grouping)}
 rdb %>%
 {kruskal.test(.$q_116_VAS_v7,.$grouping)}
+
+ggplot(temp$post_data, aes(grouping, q_116_VAS_v7))+
+  geom_boxplot()
+
+
+### route of administration severity ####
+rdb %>%
+  filter(route_sc==T | d_elicitor_gr5=="insects") %>%
+  #{table(.$d_severity_rm,.$d_elicitor_gr5)}
+  group_by(d_severity_rm,d_elicitor_gr5) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(fill=d_elicitor_gr5,x = d_severity_rm,y=n))+
+  geom_bar(stat = "identity",position = "fill")
+
+
+## matchit according to route of administration )
+# options("optmatch_max_problem_size" = Inf)
+temp <- prop_fun(data = rdb,
+                 grouping_var = "grouping",
+                 predictor_vars = c("b_sex","d_age"),
+                 other_vars = c("d_severity_rm","route_sc")
+)
+
+
+temp$post_data %>% group_by(grouping,route_sc) %>%
+  summarize(n())
+
+
+#Severity analysis####
+
+#### Symptoms severity #####
+symptomsdf <- data.frame( symptoms=c("q_111_angioedema",                        "q_111_erythema_flush_v5",
+                                     "q_111_pruritus",                          "q_111_urticaria",
+                                     "q_111_conjunctivitis_v5",                 "q_112_abdominal_pain",
+                                     "q_112_abdominal_distention_v5",           "q_112_diarrhoea",
+                                     "q_112_dysphagia_v5",                      "q_112_vomiting",
+                                     "q_112_incontinence",                      "q_112_nausea",
+                                     "q_113_respiratory_arrest",                "q_113_dyspnea",
+                                     "q_113_chest_tightness_v5",                "q_113_cough_v5",
+                                     "q_113_change_in_voice_v5",                "q_113_throat_tightness_v5",
+                                     "q_113_wheezing_expiratory_distress_v5",   "q_113_rhinitis_v5",
+                                     "q_113_stridor_inspiratory"   ,            "q_114_loss_of_consciousness",
+                                     "q_114_hypotension_collapse_v5",           "q_114_chest_pain_angina_v5",
+                                     "q_114_palpitations_cardiac_arrythmia_v5", "q_114_cardiac_arrest",
+                                     "q_114_dizziness",                         "q_114_tachycardia",
+                                     "q_114_reductions_of_alertness",           "q_115_dysarthria_v6",
+                                     "q_115_dysphonia_v6",                      "q_115_hot_sweat_tremble_v6",
+                                     "q_115_tingle_hands_feet_paresthesia_v6",  "q_115_sight_disorder_v6",
+                                     "q_115_agony_v6",                          "q_115_cyanosis_pallor_v6",
+                                     "q_140_fatal"                            ),
+                          weights=c(3,2,1,2,2,3,1,4,3,4,12,3,8,4,1,20,4,2,8,8,1,20,18,20,10,6,18,12,10,18,2,8,3,15,20,6,50),
+                          grades=c(1,1,1,1,1,1,1,2,1,2,3,1,2,2,1,4,2,1,2,2,1,4,3,4,2,2,3,3,2,3,1,2,1,3,4,2,5),
+                          myVas = c(449,74,56,114,132,170,54,173,319,628,
+                                    740,133,968,244,292,88,285,516,479,30,
+                                    401,887,846,516,580,983,552,214,770,298,
+                                    272,303,505,653,708,829,1000)
+)
+
+#data <- data5
+### ANASCORE######
+#MAke the anascore variable as the VAS points (0 - 1000) of the symptoms
+# Use only the maximum severe symptom.
+#
+# data$ANAscore <- (1:length(data[,1])) %>%
+#   map(function(x){
+#     data[x,] %>%
+#       select(as.character(symptomsdf[,1])) %>%
+#       tidyr::gather(key="symptom",value = "val") %>%
+#       cbind(point = symptomsdf$myVas) %>%
+#       filter(val=="yes") %>%
+#       summarize(score = max(point))
+#   }) %>% unlist()
+#
+# data$ANAscore[data$q_130_biphasic_v4 =="yes"] <-
+#   data$ANAscore[data$q_130_biphasic_v4 =="yes"]+150
+# load("data.R")
+
+# add_anascore_points <-function(x,points) {
+#   data$ANAscore[which(x =="yes")] <<-
+#     data$ANAscore[which(x =="yes")]+points
+#
+# }
+#
+#
+# add_anascore_points(data$d_552_adren_agg_v5,110)
+# add_anascore_points(data$d_522_adren_agg,100)
+# add_anascore_points(data$d_560_adren2_v5,130)
+# add_anascore_points(data$q_562_intensive_care_v6,200)
+# add_anascore_points(data$q_522_volume,50)
+# add_anascore_points(data$q_552_volume_v5,65)
+# add_anascore_points(data$q_561_hospital_admission_v6,100)
+# add_anascore_points(data$q_522_dopamine,75)
+# add_anascore_points(data$q_552_dopamine_v5_v5,85)
+
+# save(data, file="data.R")
+load("data.R")
+
+data %>%
+  ggplot(aes(d_severity_rm,as.numeric(q_116_VAS_v7)))+
+  geom_violin()
+
+data %>%
+  filter(!is.na(d_severity_rm)) %>%
+  ggplot(aes(d_severity_rm,as.numeric(q_116_VAS_v7)))+
+  geom_boxplot() +
+  labs(x="Ring and Messmer", y="VAS")
+
+# rdb %>%
+#   ggplot(aes(severity_brown,as.numeric(q_116_VAS_v7)))+
+#   geom_violin()
+#
+#
+# rdb %>%
+# ggplot(aes(x = ANAscore,y = as.numeric(q_116_VAS_v7))) +
+#   geom_point()
+#
+#
+# rdb %>%
+#   filter(!is.na(d_severity_rm)) %>%
+#   ggplot(aes(x = ANAscore,y = as.numeric(q_116_VAS_v7))) +
+#   geom_jitter()+
+#   facet_grid(.~d_severity_rm)
+#
+#
+# rdb %>%
+#   filter(!is.na(d_severity_rm)) %>%
+#   ggplot(aes(x = ANAscore,y = q_116_VAS_v7)) +
+#   geom_jitter()+
+#   facet_grid(severity_brown~d_severity_rm)
+#
+# rdb %>%
+#   filter(!is.na(d_severity_rm),
+#          !is.na(q_116_VAS_v7)) %>%
+#   ggplot(aes(x = ANAscore,y = factor(q_116_VAS_v7))) +
+#   geom_jitter()+
+#   facet_grid(severity_brown~d_severity_rm)
+#
+#
+# rdb %>%
+#   filter(!is.na(d_severity_rm),
+#          !is.na(q_116_VAS_v7)) %>%
+#   ggplot(aes(x = ANAscore,y = factor(q_116_VAS_v7), color= q_140_fatal)) +
+#   geom_jitter()+
+#   facet_grid(relevel(severity_brown,"severe")~d_severity_rm)
+#
+# rdb %>%
+#   filter(!is.na(d_severity_rm),
+#          !is.na(q_116_VAS_v7)) %>%
+#   ggplot(aes(x = ANAscore,y = factor(q_116_VAS_v7), color= q_113_respiratory_arrest)) +
+#   geom_jitter()+
+#   facet_grid(relevel(severity_brown,"severe")~d_severity_rm)
+#
+
+# purrr::map(symptomsdf[,1] %>% as.character,
+#            function(x){
+#   rdb %>%
+#   select(q_116_VAS_v7,!!!x) %>%
+#     group_by(q_116_VAS_v7) %>%
+#     summarize(x = sum(get(x)=="yes")/n()) %>%
+#                {.$q_116_VAS_v7[which(.$x == max(.$x,na.rm=T))]}
+#            })
+
+
+# data_lm=as.data.frame(rdb)
+# # Fit a logistic regression model
+# fit_glm=glm(paste("q_116_VAS_v7~",paste0(symptomsdf[,1],collapse = "+")) %>% as.formula()
+#             ,data=data_lm)
+# fit_glm_f <- MASS::stepAIC(fit_glm)
+# # generate summary
+# summary(fit_glm)
+# # Using varImp() function
+# library(caret)
+# varImp(fit_glm_f) %>%
+# {data.frame(var = rownames(.)[order(.,decreasing = T)],
+#             imp = .[order(.,decreasing = T),])}
+#
+#
+# #Import the random forest library and fit a model
+# library(randomForest)
+#
+# fit_glm_f$formula %>%
+#
+#
+# # data_lm %>%
+# #   select(fit_glm_f$data %>% names(),q_116_VAS_v7) %>%
+# #   tidyr::drop_na() %>%
+# #           {randomForest(fit_glm_f$formula, data=.)}
+#
+# library(rpart)
+# fit_rpart <- rpart::rpart(formula = fit_glm_f$formula,data = data_lm)
+# # Create an importance based on mean decreasing gini
+# # importance(fit_rf)
+# # importance(fit_rpart)
+# # compare the feature importance with varImp() function
+# # varImp(fit_rf)
+#
+# # Create a plot of importance scores by random forest
+# # varImpPlot(fit_rf)
+#
+#
+# rdb$q_116_VAS_v7 %>% factor() %>% summary()
+# data$q_116_VAS_v7 %>% factor() %>% summary()
+# # gbm::gbm(fit_glm_f$formula,data = data)
+#
+#
+# #Check if a symptom var is positive in a given case
+# # data[1,] %>% select(as.character(symptomsdf[1,1])) %>%
+# #   {ifelse(is.na(.),
+# #           0,
+# #           ifelse(.="yes"),
+# #   )}
+#
+#
+#
+#
+# #### Correlate ANASCORE wit VAS ####
+# rdb %>%
+#   filter(!is.na(d_severity_rm),
+#          !is.na(q_116_VAS_v7)) %>%
+#   ggplot(aes(x = ANAscore,y = factor(q_116_VAS_v7), color= q_113_respiratory_arrest)) +
+#   geom_jitter()+
+#   facet_grid(relevel(severity_brown,"severe")~d_severity_rm)
+
+data %>%
+  filter(!is.na(d_severity_rm),
+         !is.na(q_116_VAS_v7)) %>%
+  ggplot(aes(x = ANAscore,y = factor(q_116_VAS_v7), color= q_140_fatal)) +
+  geom_jitter()+
+  facet_grid(.~d_severity_rm)
+
+data %>%
+  filter(!is.na(d_severity_rm),
+         !is.na(q_116_VAS_v7)) %>%
+  ggplot(aes(x = ANAscore,y = factor(q_116_VAS_v7), color= q_140_fatal)) +
+  geom_jitter()#+
+#  facet_grid(.~d_severity_rm)
+
+data %>%
+  filter(#!is.na(d_severity_rm),
+    !is.na(q_116_VAS_v7)) %>%
+  ggplot(aes(x = d_age,y = as.numeric(q_116_VAS_v7)))+#, color= q_140_fatal)) +
+  geom_jitter()+
+  geom_smooth(aes(mean(as.numeric(q_116_VAS_v7))))
+
+data %>%
+  group_by(d_age) %>%
+  summarize(vas = mean(as.numeric(q_116_VAS_v7),na.rm=T)) %>%
+  ggplot(aes(d_age, vas))+
+  geom_point()+
+  geom_smooth()+
+  labs(y = "mean VAS score", x = "Age [years]")
+
+
+data %>%
+  group_by(d_age) %>%
+  summarize(vas = mean(as.numeric(ANAscore),na.rm=T)) %>%
+  ggplot(aes(d_age, vas))+
+  geom_point()+
+  geom_smooth()+
+  labs(y = "mean ANAscore", x = "Age [years]")
+cowplot::plot_grid(
+  data %>%
+    #group_by(d_age) %>%
+    #summarize(vas = mean(as.numeric(ANAscore),na.rm=T)) %>%
+    ggplot(aes(d_elicitor_gr5, ANAscore,fill=b_sex))+
+    geom_boxplot()+
+    #geom_smooth()+
+    labs(y = "mean ANAscore", x = "Age [years]")+
+    theme(legend.position = "none"),
+
+  data %>%
+    #group_by(d_age) %>%
+    #summarize(vas = mean(as.numeric(ANAscore),na.rm=T)) %>%
+    ggplot(aes(d_elicitor_gr5, as.numeric(q_116_VAS_v7),fill=b_sex))+
+    geom_boxplot()+
+    #geom_smooth()+
+    labs(y = "mean VAS", x = "Age [years]")
+)
+
+yesonly <- function(x){
+  ifelse(is.na(x),
+         "no",
+         ifelse(x=="yes",
+                "yes",
+                "no"))
+}
+
+data %>%
+  group_by(factor(ANAscore)) %>%
+  summarise(mean(as.numeric(q_116_VAS_v7),na.rm=T))
+
+data$q_116_VAS_v7 %<>% as.numeric(as.character())
+
+data %>%
+  select()
+
+
+fit <- glm(q_116_VAS_v7~ANAscore+
+             q_130_biphasic_v4+
+             q_562_intensive_care_v6+
+             q_522_volume+
+             #q_530_adren2_time_in_min_v5+
+             q_522_dopamine,
+           data = data)
+summary(fit)
+#### Assign VAS to other variables ####
+
+
+
+#### Classification problem ####
+
+# require(class)
+# cls <-data$q_116_VAS_v7
+# data %>%
+#   filter(!is.na(q_116_VAS_v7))
+# knn(train = data,)
+
+###### Select the features for severity models ######
+
+testInsectsbinomial %>%
+  filter(section=="cofactors") %>%
+  arrange(desc(Cramer)) %>%
+  select(1,8,9,10,pval) %>%{.[c(14,16:18,22,23,24,26,35,43),]} %>%
+  pull(variableName)
+
+# FEATURE SELECTION########
+# The features should contain:
+# 1. Atopic diseases groupped together
+# 2. Used medis grouped according to their background and effect on the anaphylaxis
+# 3. Age
+# 4. Sex
+# 5. elicitor
+# 6. Therapy? Not feasable
+# 7. Tryptase value
+
+# Build the models for RM, ANASCORE, BROWN and VAS
+# Severity as a response and clinical features as predictors (include tryptase)
+
+# Model for RM should take into account the fact that we have multiple level response
+
+# Check the collinearity of different assessment scales intra
+
+#
+

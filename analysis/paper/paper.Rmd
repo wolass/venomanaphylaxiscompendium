@@ -9,7 +9,8 @@ author:
   - Margitta Worm^1^
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
-    bookdown::html_document2:
+    #bookdown::html_document2:
+    bookdown::word_document2:
       fig_caption: yes
       reference_docx: "../templates/template.docx" # Insert path for the DOCX file
 bibliography: references.bib
@@ -123,15 +124,62 @@ knitr::kable(col.names = c("","female","male","<18","adults"),row.names = F)
 ## Temporal distribution of anaphylaxis cases by elicitor.
 
 
-```{r insectstime, fig.cap="Proportion of anaphylaxis cases elicited by specific insects according to the month in which the reaction occured. Less frequent insects were groupeped together as 'other'. The lowest panel shows the proportion of insect elicited cases to ceses elicited by other triggers."}
-plot.proportions(rdb, "d_centres_country","q_340_insects",20)
+```{r insectstime, fig.cap="Proportion of anaphylaxis cases elicited by specific insects according to the month in which the reaction occured. Less frequent insects were groupeped together as 'other'. The lowest panel shows the proportion of insect elicited cases to ceses elicited by other triggers.", fig.height=6,fig.width=4}
+#### plot MOR#####
+plot_MOR <- gridExtra::grid.arrange(
+  #cowplot::plot_grid(
+  rdbp %>%
+  select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
+  mutate(MOR = substr(b_reactiondate,4,5)) %>%
+  filter(!is.na(q_340_insects),MOR!="00") %>%
+  ggplot(aes(MOR,fill=q_340_insects))+
+  geom_bar(position = "fill")+
+    theme_classic()+
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "none"
+        )+
+  ylab("Proportion"),
+rdbp %>%
+  select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
+  mutate(MOR = substr(b_reactiondate,4,5)) %>%
+  filter(!is.na(q_340_insects),MOR!="00") %>%
+  ggplot(aes(MOR,fill=q_340_insects))+
+  geom_bar()+
+  theme_classic()+
+  labs(fill="Insect",x = "Month of the year")+
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = c(0.01,.98),
+        legend.justification = c(0,1)),
+rdbp %>%
+  select(b_reactiondate,grouping,d_elicitor_gr5,d_centres_country) %>%
+  mutate(MOR = substr(b_reactiondate,4,5),
+         d_elicitor_gr5 = relevel(d_elicitor_gr5, "insects")) %>%
+  filter(!is.na(grouping),MOR!="00") %>%
+  group_by(MOR,grouping) %>%
+  summarize(n = n()) %>%
+  group_by(MOR) %>%
+  summarise(prop = n[1]/sum(n)) %>%
+  ggplot(aes(MOR,prop))+
+  geom_bar(stat="identity")+
+  theme_classic()+
+  labs(x = "Month of the year",y = "Fraction of insect elicited ANA"),
+  #theme(legend.position = c(0.01,.98),
+  #      legend.justification = c(0,1)),
+heights = c(0.4,1,0.5),
+ncol = 1
+)
 ```
 
 Insect venom elicited anaphylaxis in contrast to other elicitors showed a significant seasonal fluctuation and was most frequently reported from May till October. Their proportion to other cases during the summer seasons reached 60 % and was as under 1% of cases during winter. Yellow-jacket was the most prominent causing-insect reported in these cases foolowed by bee (Fig \@ref(fig:insectstime)).  
 
 
 ```{r insectsgeo, fig.cap="Proportion of anaphylaxis cases elicited by specific insects in reporting countries. Less frequent insects were groupeped together as 'other'. Countries which reported less than 20 cases of anaphylaxis due to insect venom were not illustrated in this figure."}
-plot.proportions(rdb, "d_centres_country","q_340_insects",20)
+plot.proportions(rdb, "d_centres_country","q_340_insects",5)+
+  labs(x = "Country",y="Proportion of IVA cases",fill = "Species")
 ```
 
 The Figure \@ref(fig:insectsgeo) shows the distribution of insects according to the geographic area (countries). The most common elicitor among most of the countries were yellow-jackets. Switzerland had significantly more reactions to bees than Germany. Centers from Italy reported more cases elicited by hornets in comparison to other countries.
@@ -140,6 +188,7 @@ The Figure \@ref(fig:insectsgeo) shows the distribution of insects according to 
 cdplot(rdb$grouping~as.numeric(rdb$d_age))
 ```
 
+Cases of IVA were more requent in oder patients. Children suffered mainly form food elicited anaphylaxis. Therefore we adjusted the anlysis apropriately for age. 
 
 ```{r}
 mosaicplot(formula = d_severity_rm~d_insect_gr4,data = rdb)
@@ -200,6 +249,230 @@ testInsectsbinomialTab$cofactors[,-7] %>%
 ```
 
 
+
+### ACE-I
+Ruef wrote in 2009 that the use of ACE I increases the risk of a severe reaction. 
+
+```{r}
+data$q_423_ace <- yesonly(data$q_423_ace)
+
+wilcox.test(q_116_VAS_v7~q_423_ace,data = data)
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ggplot(aes(q_423_ace,q_116_VAS_v7))+
+  geom_violin()
+
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+group_by(q_423_ace) %>% 
+  summarise(medianVAS=median(q_116_VAS_v7,na.rm=T),
+            IQRVAS = IQR(q_116_VAS_v7,na.rm=T))
+
+
+wilcox.test(ANAscore~q_423_ace,data = data %>% 
+  filter(d_elicitor_gr5=="insects") 
+)
+
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ggplot(aes(q_423_ace,ANAscore))+
+  geom_violin()
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ group_by(q_423_ace) %>% 
+  summarise(medianANAscore=median(ANAscore,na.rm=T),
+            IQRANAscore = IQR(ANAscore,na.rm=T))
+
+cowplot::plot_grid(
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ggplot(aes(q_423_ace,q_116_VAS_v7))+
+  geom_boxplot(),
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ggplot(aes(q_423_ace,ANAscore))+
+  geom_boxplot()
+)
+
+```
+
+### Beta blockers 
+cardioselectivity??????
+```{r}
+data$q_423_beta <- yesonly(data$q_423_beta)
+
+wilcox.test(q_116_VAS_v7~q_423_beta,data = data)
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ggplot(aes(q_423_beta,q_116_VAS_v7))+
+  geom_violin()
+
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+group_by(q_423_beta) %>% 
+  summarise(medianVAS=median(q_116_VAS_v7,na.rm=T),
+            IQRVAS = IQR(q_116_VAS_v7,na.rm=T))
+
+
+wilcox.test(ANAscore~q_423_beta,data = data %>% 
+  filter(d_elicitor_gr5=="insects") 
+)
+
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ggplot(aes(q_423_beta,ANAscore))+
+  geom_violin()
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ group_by(q_423_beta) %>% 
+  summarise(medianANAscore=median(ANAscore,na.rm=T),
+            IQRANAscore = IQR(ANAscore,na.rm=T))
+
+cowplot::plot_grid(
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ggplot(aes(q_423_beta,q_116_VAS_v7))+
+  geom_boxplot(),
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ggplot(aes(q_423_beta,ANAscore))+
+  geom_boxplot()
+)
+
+```
+
+
+### mast cell burden - mastocytosis 
+
+```{r}
+data$q_410_masto_cur %<>%  yesonly()
+
+wilcox.test(q_116_VAS_v7~q_410_masto_cur,data = data)
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ggplot(aes(q_410_masto_cur,q_116_VAS_v7))+
+  geom_violin()
+
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+group_by(q_410_masto_cur) %>% 
+  summarise(medianVAS=median(q_116_VAS_v7,na.rm=T),
+            IQRVAS = IQR(q_116_VAS_v7,na.rm=T))
+
+
+wilcox.test(ANAscore~q_410_masto_cur,data = data %>% 
+  filter(d_elicitor_gr5=="insects") 
+)
+
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ggplot(aes(q_410_masto_cur,ANAscore))+
+  geom_violin()
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ group_by(q_410_masto_cur) %>% 
+  summarise(medianANAscore=median(ANAscore,na.rm=T),
+            IQRANAscore = IQR(ANAscore,na.rm=T))
+
+cowplot::plot_grid(
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ggplot(aes(q_410_masto_cur,q_116_VAS_v7))+
+  geom_boxplot(),
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ggplot(aes(q_410_masto_cur,ANAscore))+
+  geom_boxplot()
+)
+
+```
+
+```{r}
+cowplot::plot_grid(
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ggplot(aes(q_212_tryptase_value_v5,q_116_VAS_v7))+
+  geom_point()+
+  scale_x_log10(),
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+ggplot(aes(q_212_tryptase_value_v5,ANAscore))+
+  geom_point()+
+  scale_x_log10()
+)
+
+
+
+cowplot::plot_grid(
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+  mutate(typ_cat=ifelse(q_212_tryptase_value_v5<8,
+                  "low",
+                  "high")) %>% 
+  filter(!is.na(typ_cat)) %>% 
+  ggplot(aes(typ_cat,q_116_VAS_v7))+
+  geom_boxplot(),
+data %>% 
+  filter(d_elicitor_gr5=="insects") %>% 
+  mutate(typ_cat=ifelse(q_212_tryptase_value_v5<8,
+                  "low",
+                  "high")) %>% 
+  filter(!is.na(typ_cat)) %>% 
+  ggplot(aes(typ_cat,ANAscore))+
+  geom_boxplot(),
+data %>% 
+  filter(d_elicitor_gr5=="insects",
+         !is.na(d_severity_rm)) %>% 
+  mutate(typ_cat=ifelse(q_212_tryptase_value_v5<8,
+                  "low",
+                  "high")) %>% 
+  group_by(d_severity_rm,typ_cat) %>% 
+  filter(!is.na(typ_cat)) %>% 
+    summarize(n = n()) %>% 
+  ggplot(aes(typ_cat,n,fill=d_severity_rm))+
+  geom_bar(stat="identity",position= "fill"),
+data %>% 
+  filter(d_elicitor_gr5!="insects") %>% 
+  mutate(typ_cat=ifelse(q_212_tryptase_value_v5<8,
+                  "low",
+                  "high")) %>% 
+  filter(!is.na(typ_cat)) %>% 
+  ggplot(aes(typ_cat,q_116_VAS_v7))+
+  geom_boxplot(),
+data %>% 
+  filter(d_elicitor_gr5!="insects") %>% 
+  mutate(typ_cat=ifelse(q_212_tryptase_value_v5<8,
+                  "low",
+                  "high")) %>% 
+  filter(!is.na(typ_cat)) %>% 
+  ggplot(aes(typ_cat,ANAscore))+
+  geom_boxplot(),
+data %>% 
+  filter(d_elicitor_gr5!="insects",
+         !is.na(d_severity_rm)) %>% 
+  mutate(typ_cat=ifelse(q_212_tryptase_value_v5<8,
+                  "low",
+                  "high")) %>% 
+  group_by(d_severity_rm,typ_cat) %>% 
+  filter(!is.na(typ_cat)) %>% 
+    summarize(n = n()) %>% 
+  ggplot(aes(typ_cat,n,fill=d_severity_rm))+
+  geom_bar(stat="identity",position= "fill")
+)
+
+```
+
+Here put the mastocytosis and baseline serum tryptase as the evaluation of severe risk
+Here it is crucial to compare to even these reactions that had nearly no reactions
+
+### Model the risk of severity of a severe reaction in IVA
+
+USe the model from our previous paper
+```
+```
+
+
+
 ## Managment
 ```{r}
 testInsectsbinomialTab$management[,-7] %>% knitr::kable()
@@ -224,6 +497,195 @@ p <- table(rdb$grouping,rdb$q_160_ever_react)[,1:2] %>% summary() %>% {.$p.value
 ```
 In general `r treact[1,2]`% patient with insect allergy had experienced anaphylaxis in the past which is less than if the reaction is elicited by other elcitors (`r treact[2,2]`%, p = `r p`).  We documented `r sum(repeated_reaction_in_Reg)` patients with two documented reactions in our registry. 
 Out of these `r sum(greter_same)` (`r sum(greter_same)/sum(repeated_reaction_in_Reg)*100`%) had Insect elicited anaphylaxis and in `r greter_same[1]` (`r greter_same[1]/sum(greter_same)*100`) The follwoeing reaction was more severe than before.  
+
+
+### Do we know how mnay beekeepers were in our dataset?
+We were unable to estimate the fraction of cases that were elicited in bee-keepers as this information is not asked in the questionnaire. 
+
+### Hypothesis: Wasp stings are more severe than bee stings
+We previously saw that refractory anaphylaxis cases come from bees. Here we see no difference in the severity of cases elicited by bees and wasps (in the RM). 
+
+```{r}
+ana_outcome_matched <- function(data = data4,
+         outcome = "d_severity_rmr",
+         matching_var = "q_340_insects",
+         confounders_cat = c("b_sex", "cc_cardio"),
+         confounders_int = c("d_age"),
+         selected_predictors = c(1:4)
+         ){
+  possible_outcomes <- c("d_severity_rm",
+                         "d_severity_rmr",
+                         "severity_brown",
+                         "q_116_VAS_v7",
+                         "ANAscore")
+  predictors <- c(matching_var, confounders_cat,confounders_int)
+  df <- data %>% # first get the data frame
+   filter(!!as.name(matching_var) %in% c("yellow jacket", "bee")) %>% 
+   select(!!!matching_var,
+          !!!outcome,
+          !!!confounders_cat,
+          !!!confounders_int
+          ) %>%
+          {.[complete.cases(.),]}
+  ### we need to match the cases now to the first level of theoutcome variable
+  ref_level <- levels(df[,matching_var] %>% droplevels())
+  matched <- df %>% 
+    mutate(match = ifelse(!!as.name(matching_var)==ref_level[1],T,F),
+           out=ifelse(!!as.name(outcome)=="severe",1,0)) %>% 
+    matchit(formula = as.formula(
+      paste("match ~ ",paste0(confounders_cat),"+", paste0(confounders_int,collapse = " + ")))) %>% 
+    match.data() 
+  ## IFELSE
+  if(outcome %in% possible_outcomes[c(2,3)]){
+    plot <- matched %>% 
+      ggplot(aes(!!as.name(matching_var),
+               fill = !!as.name(outcome)))+
+      geom_bar()+
+      facet_grid(reformulate(confounders_cat[1],confounders_cat[2]))
+  
+    fit <- glm(as.formula(paste0(
+      "out ~ ",paste0(predictors[selected_predictors], collapse = " + ")
+    )),data= matched,family= "binomial")
+  } else if (outcome %in% possible_outcomes[c(1,4,5)]){
+     plot <- matched %>% 
+      ggplot(aes(!!as.name(matching_var),
+               y = !!as.name(outcome)))+
+      geom_boxplot()+
+      facet_grid(reformulate(confounders_cat[1],confounders_cat[2]))
+  
+    fit <- glm(as.formula(paste0(
+      outcome, " ~ ", paste0(predictors[selected_predictors], collapse = " + "))),
+             data = matched)
+  }
+  
+  return(list(mtched_df = matched,
+              ref_level = ref_level,
+              fit = fit,
+              plot = plot)) 
+}
+
+possible_outcomes <- c("d_severity_rm",
+                         "d_severity_rmr",
+                         "severity_brown",
+                         "q_116_VAS_v7",
+                         "ANAscore")
+
+output_severity <- lapply(possible_outcomes,
+                         function(x){
+                         ana_outcome_matched(data = data4,
+                            outcome = x,
+                            matching_var = "q_340_insects",
+                            confounders_cat = c("b_sex", "cc_cardio"),
+                            confounders_int = c("d_age"),
+                            selected_predictors = c(1:4))
+                           }
+)
+
+
+do_cof_tab <- function(x){
+  output_severity[[x]]$fit %>% summary() %>% {.$coefficients}%>% tidy() %>% as.matrix()
+}
+
+temp <- lapply(1:5,do_cof_tab) %>% do.call(what = rbind) %>%
+                          as_tibble() %>%
+  {mutate(.,
+         Estimate = as.numeric(Estimate),
+         Pr...t.. = as.numeric(Pr...t..)
+  )} %>%
+          {cbind(.,outcome = lapply(possible_outcomes,
+                          rep,
+                          nrow(.)/5) %>% unlist)
+          } %>% 
+           filter(.rownames!="(Intercept)")
+gridExtra::grid.arrange(output_severity[[2]]$plot,
+                        output_severity[[3]]$plot,
+                        output_severity[[1]]$plot,
+                        output_severity[[4]]$plot,
+                        output_severity[[5]]$plot,
+                        temp %>% 
+  ggplot(aes(.rownames,Pr...t.., color=outcome))+
+  geom_segment(x=0.5,xend=4.5,y=log10(0.05),yend=log10(0.05))+
+  scale_y_log10()+
+  geom_jitter()+
+  theme(axis.text.x = element_text(angle=40, hjust=1))
+  )#+
+  #geom_line(aes(group=outcome))
+```
+
+Based on the above graphs of patients matched according to sex and age we cannot say that the severity of their reaction differ between yellow-jackets and bees in any of the models except ANAscore - where yellow jacket were linked to  a slightly more severe reaction.
+
+But in the ANAscore variable it shows up to be significant ! Yellowjackets stings are more severe than the bee stings. This is however very hard to compare to refractory cases. Maybe we can use the refractory case identifier to say in which group we see more refractory cases? 
+
+
+### Increased BTSC develops in the normal range <8
+
+
+
+```{r}
+output_severity <- lapply(possible_outcomes,
+                         function(x){
+                         ana_outcome_matched(data = data4,
+                            outcome = x,
+                            matching_var = "q_340_insects",
+                            confounders_cat = c("tryp_cat", "cc_cardio"),
+                            confounders_int = c("d_age"),
+                            selected_predictors = c(1,2,4))
+                           }
+)
+
+
+do_cof_tab <- function(x){
+  output_severity[[x]]$fit %>% summary() %>% {.$coefficients}%>% tidy() %>% as.matrix()
+}
+
+temp <- lapply(1:5,do_cof_tab) %>% do.call(what = rbind) %>%
+                          as_tibble() %>%
+  {mutate(.,
+         Estimate = as.numeric(Estimate),
+         Pr...t.. = as.numeric(Pr...t..)
+  )} %>%
+          {cbind(.,outcome = lapply(possible_outcomes,
+                          rep,
+                          nrow(.)/5) %>% unlist)
+          } %>% 
+           filter(.rownames!="(Intercept)")
+gridExtra::grid.arrange(output_severity[[2]]$plot,
+                        output_severity[[3]]$plot,
+                        output_severity[[1]]$plot,
+                        output_severity[[4]]$plot,
+                        output_severity[[5]]$plot,
+                        temp %>% 
+  ggplot(aes(.rownames,Pr...t.., color=outcome))+
+  geom_segment(x=0.5,xend=4.5,y=log10(0.05),yend=log10(0.05))+
+  scale_y_log10()+
+  geom_jitter()+
+  theme(axis.text.x = element_text(angle=40, hjust=1))
+  )
+```
+
+Based on the above we see that the lower tryptase significantly decreased the severity of 
+
+
+### Mastocytosis
+
+### Older Age
+
+### ACE - I
+
+### previous reactions (severe)
+
+### Male sex
+
+### Beta blockers and CARDIOSELECTIVE BLOCKERS
+
+### Evaluate the pediatric population separately
+
+### Number of SAR during VIT compare to other hypos
+#### Compare bee sit to wasp sit for AEs
+#### correlate the tryptase value with SIT types and severity
+### 
+they used generalized aditive models (package GAM?)
+Also ROC curves for confirmation
 
 # Discussion
 
@@ -328,5 +790,4 @@ plot_MOR
 
 ```{R adrenalineuse, fig.cap = "The proportion of insect venom elicited anaphylaxis cases that were treated with adrenaline in comparison to other elicitors."}
 F2$plot2
-
 ```
