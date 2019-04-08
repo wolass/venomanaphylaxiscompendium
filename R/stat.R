@@ -270,6 +270,7 @@ funChi <-function(var,grouping_var){
     data.frame(gr = grouping_var) %>%
     {chisq.test(.[,1],.[,2])$p.value}
 }
+
 funN1 <- function(var, grouping_var){
   var %>%
     data.frame(grouping_var) %>% table %>%
@@ -469,7 +470,7 @@ makeTests <- function(grouping,rdb){
     rowwise() %>%
     mutate(fun = if(level==3|level==2){
       "chi"
-    } else if(variableName%in%c("q_212_tryptase_value_v5","d_age")) {
+    } else if(variableName%in%c("q_212_tryptase_value_v5","d_age","ANAscore")) {
       "t.test"
     } else if (variableName%in%c("d_severity_rm","d_organ_sum",
                                  "q_116_VAS_v7", "q_120_time_between_v4",
@@ -562,7 +563,7 @@ testInsectsbinomial <- makeTests(grouping,rdb=rdb) %>% arrange(pval)
 #   geom_point()+
 #   scale_y_log10()
 
-testInsectsbinomialTab <- testInsectsbinomial %>% filter(pval<1e-30) %>%
+testInsectsbinomialTab <- testInsectsbinomial %>% #filter(pval<1e-30) %>%
   select(variableName,counts_1,counts_2,fraq_1,fraq_2,
          pval,
          section) %>%
@@ -697,13 +698,13 @@ makeDF <- function(data,variables,grouping,outcome){
     grA <- which(grouping==levels(grouping)[1])
     grB <- which(grouping==levels(grouping)[2])
     rbind(
-      c(makeOdds(data =data, var1 = x, var2 = outcome),S="all"),
-      c(makeOdds(data =data[grA,], var1 = x, var2 = outcome),S="Lev1"),
-      c(makeOdds(data =data[grB,], var1 = x, var2 = outcome),S="Lev2"),
+      #c(makeOdds(data =data, var1 = x, var2 = outcome),S="all"),
+      c(makeOdds(data =data[grA,], var1 = x, var2 = outcome),S="IVA"),
+      c(makeOdds(data =data[grB,], var1 = x, var2 = outcome),S="non-IVA"),
       NA
     )
   }) %>% do.call(what=rbind) %>% data.frame()
-  return(rbind(rep(NA,length(o[1,])),o))
+  return(rbind(rep(NA,length(o[1,])),o) %>% data.frame())
 }
 
 
@@ -726,15 +727,51 @@ makeForestPlot <- function(data,variables,grouping,outcome,cLow=0.2,cHigh = 4){
              col=fpColors(box="royalblue",line="darkblue", summary="royalblue"))
 }
 
+### testing
+test1 <- makeDF(rdbp,
+                c( "q_410_cur",
+                   "q_410_asthma_cur",
+                   "q_410_masto_cur",
+                   "q_410_cardio_cur",
+                   "q_423_beta",
+                   "q_4211_exercise",
+                   "q_422_stress"),
+                "grouping",
+                "severity_brown")
+
+test1[1] <- c(NA,"Concomitant disease",NA,NA,"Asthma",NA,NA,"Mastocytosis",NA,NA,
+              "Cardiologic disese",NA,NA,"Beta-blockers",NA,NA,"Exercise",NA,NA,"Stress",NA,NA)
+test1 <- test1[-c(2:7,20:22),]
+png("analysis/figures/figForestfinal.png",
+    height = 400,
+    width = 700,
+    #res = 300,
+    pointsize = 22,
+    units="px")
+forestplot(labeltext = makeTableText(test1),
+           mean = test1[,"mean"] %>% unlist,
+           lower = test1[,"lower"] %>% unlist,
+           upper = test1[,"upper"] %>% unlist,
+           new_page = TRUE,
+           is.summary=c(T,rep(F,length(test1[,1])-1)),
+           clip=c(0.2,4),
+           xlog=TRUE,
+           col=fpColors(box="#92c442",line="gray", summary="royalblue"))
+dev.off()
+
 png("analysis/figures/figForest.png")
 makeForestPlot(rdbp,
-               testInsectsbinomial %>%
-                 filter(section=="cofactors") %>%
-                 arrange(pval) %>%
-                 select(variableName) %>% pull() %>% {c(.[c(1,4,5,8)], "q_423_beta","q_422_stress","q_410_masto_cur" )},
+               c( "q_410_cur",
+                  "q_410_asthma_cur",
+                  "q_410_masto_cur",
+                  "q_410_cardio_cur",
+                    "q_423_beta",
+                  "q_4211_exercise",
+                    "q_422_stress"),
                "grouping",
-               "severity_brown")
+               "d_severity_rmr")
 dev.off()
+
 png("analysis/figures/kidsForest.png")
 makeForestPlot(rdbp[rdbp$d_age<18,],
                testInsectsbinomial %>%
@@ -1689,4 +1726,48 @@ testInsectsbinomial %>%
 # Check the collinearity of different assessment scales intra
 
 #
+
+png(width = 400*2,height = 430*2,res = 300, filename = "elicitors_green.png",pointsize = 7)
+rdbp %>%
+  select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
+  mutate(MOR = substr(b_reactiondate,4,5),
+         q_340_insects = ifelse(is.na(q_340_insects),"non-IVA",as.character(q_340_insects)) %>%
+           factor(levels=c("yellow jacket","bee","hornet","bumble-bee","horsefly","mosquito","other","non-IVA"))) %>%
+  filter(!is.na(q_340_insects),MOR!="00") %>%
+  ggplot(aes(MOR,fill=q_340_insects))+
+  geom_bar()+
+  theme_classic()+
+  labs(fill="Insect",x = "Month of the year",y = "number of cases")+
+  theme(#axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        #axis.ticks.x = element_blank(),
+        legend.position = c(0.01,.98),
+        legend.justification = c(0,1),
+        panel.background = element_rect(fill = "#c9ccc5"),
+        legend.background = element_blank()
+  )+
+  scale_fill_brewer(palette = 2,direction = -1)
+dev.off()
+
+
+png(width =800*2,height = 630*2,res = 300, filename = "IVAonly.png",pointsize = 10)
+rdb %>%
+  mutate(q_340_insects = as.character(q_340_insects) %>%
+           factor(levels=c("yellow jacket",
+                           "bee",
+                           "hornet",
+                           "bumble-bee",
+                           "horsefly",
+                           "mosquito",
+                           "other"))) %>%
+  plot.proportions("d_centres_country","q_340_insects",5)+
+  labs(x = "Country",
+       y="Proportion of IVA cases",
+       fill = "Species")+
+  scale_fill_manual(values = rev(c("#E5F5E0", "#C7E9C0", "#A1D99B", "#74C476", "#41AB5D", "#238B45","#005A32")))
+
+# library(RColorBrewer)
+# brewer.pal(8, "Greens")
+
+dev.off()
 

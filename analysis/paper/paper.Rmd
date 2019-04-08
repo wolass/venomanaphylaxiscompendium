@@ -9,8 +9,8 @@ author:
   - Margitta Worm^1^
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
-    #bookdown::html_document2:
-    bookdown::word_document2:
+    bookdown::html_document2:
+    #bookdown::word_document2:
       fig_caption: yes
       reference_docx: "../templates/template.docx" # Insert path for the DOCX file
 bibliography: references.bib
@@ -56,11 +56,11 @@ devtools::load_all('.',quiet = T) # Or use devtools::load_all('.', quiet = T) if
 ```
 
 # Abstract
-Insect-venom elicited anaphylaxis is a common hypersensitivity reaction which may be life-threatening. Using the data from the European Anaphylaxis Registry (11596 cases in total) we identified insect-venom elicited anaphylaxis cases (n = 4482) and analyzed these in comparison to anaphylaxis elicited by other elicitors (n = 7114).
+Insect-venom elicited anaphylaxis is a common hypersensitivity reaction which may be life-threatening. Using the data from the European Anaphylaxis Registry (`r nrow(data)` cases in total) we identified insect-venom elicited anaphylaxis cases (n = `r {data$d_elicitor_gr5=="insects"} %>% sum()`) and analyzed these in comparison to anaphylaxis elicited by other elicitors (n = `r {data$d_elicitor_gr5!="insects"} %>% sum()`).
 
-The data show that 68.57% of all insect elicited cases were elicited by yellow jackets, followed by bees (21.86%). The insect venom elicited cases occurred mostly in outdoor places (44.65%) patients' homes (12.87%) or urban places (9.616%). 
+The data show that `r {{rdb$q_340_insects=="yellow jacket"} %>% sum(na.rm=T)/sum({!is.na(rdb$q_340_insects)})*100} %>% {round(.,1)}`% of all insect elicited cases were elicited by yellow jackets, followed by bees (`r {{rdb$q_340_insects=="bee"} %>% sum(na.rm=T)/sum({!is.na(rdb$q_340_insects)})*100} %>% {round(.,1)}`%). The insect venom elicited cases occurred mostly in outdoor places (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(q_152_location) %>% summarize(n=n()) %>% {.[c(4),2] %>% sum()/(.[,2] %>% sum)*100} %>% round(1)`%) patients' homes (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(q_152_location) %>% summarize(n=n()) %>% {.[c(8),2] %>% sum()/(.[,2] %>% sum)*100} %>% round(1)`%) or urban places (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(q_152_location) %>% summarize(n=n()) %>% {.[c(5),2] %>% sum()/(.[,2] %>% sum)*100} %>% round(1)`%). 
 
-Skin, gastrointestinal and respiratory symptoms occurred less frequently in insect elicited cases of anaphylaxis, whereas cardiologic symptoms (with hypotension, collapse, and loss of consciousness) were more frequent.  Intramuscular adrenaline (as a first-line therapy) was administered significantly less often in insect venom elicited cases (4.04%, p < 0.0001). The mortality rate in insect anaphylaxis was comparable (0.156%) to other cases (0.295%, p = 0.174).
+Skin, gastrointestinal and respiratory symptoms occurred less frequently in insect elicited cases of anaphylaxis, whereas cardiologic symptoms (with hypotension, collapse, and loss of consciousness) were more frequent.  Intramuscular adrenaline (as a first-line therapy) was administered significantly less often in insect venom elicited cases (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(d_522_adren_agg) %>% summarize(n=n()) %>% {.[2,2]/(.[1,2])*100} %>% round(1)`% vs `r rdb %>% filter(is.na(q_340_insects)) %>% group_by(d_522_adren_agg) %>% summarize(n=n()) %>% {.[2,2]/(.[1,2])*100} %>% round(1)`, p < 0.0001). The mortality rate in insect anaphylaxis was comparable (`r `%) to other cases (0.295%, p = 0.174).
 
 Patients who experienced insect-venom anaphylaxis were older (p < 0.0001), more often had concomitant mastocytosis (p < 0.0001) and cardiologic conditions (p < 0.0001) and females more often had concomitant thyroid diseases and less often suffered from a food allergy or atopic dermatitis. 
 
@@ -174,12 +174,20 @@ ncol = 1
 )
 ```
 
-Insect venom elicited anaphylaxis in contrast to other elicitors showed a significant seasonal fluctuation and was most frequently reported from May till October. Their proportion to other cases during the summer seasons reached 60 % and was as under 1% of cases during winter. Yellow-jacket was the most prominent causing-insect reported in these cases foolowed by bee (Fig \@ref(fig:insectstime)).  
+Insect venom elicited anaphylaxis in contrast to other elicitors showed a significant seasonal fluctuation and was most frequently reported from May till October. Their proportion to other cases during the summer seasons reached 60% and was as under 1% of cases during winter. Yellow-jacket was the most prominent causing-insect reported in these cases foolowed by bee (Fig \@ref(fig:insectstime)).  
+
+
+```{r MORaltogether}
+
+```
+
+
+
+
+
 
 
 ```{r insectsgeo, fig.cap="Proportion of anaphylaxis cases elicited by specific insects in reporting countries. Less frequent insects were groupeped together as 'other'. Countries which reported less than 20 cases of anaphylaxis due to insect venom were not illustrated in this figure."}
-plot.proportions(rdb, "d_centres_country","q_340_insects",5)+
-  labs(x = "Country",y="Proportion of IVA cases",fill = "Species")
 ```
 
 The Figure \@ref(fig:insectsgeo) shows the distribution of insects according to the geographic area (countries). The most common elicitor among most of the countries were yellow-jackets. Switzerland had significantly more reactions to bees than Germany. Centers from Italy reported more cases elicited by hornets in comparison to other countries.
@@ -505,7 +513,9 @@ We were unable to estimate the fraction of cases that were elicited in bee-keepe
 ### Hypothesis: Wasp stings are more severe than bee stings
 We previously saw that refractory anaphylaxis cases come from bees. Here we see no difference in the severity of cases elicited by bees and wasps (in the RM). 
 
-```{r}
+```{r,fig.height=8}
+require(broom)
+
 ana_outcome_matched <- function(data = data4,
          outcome = "d_severity_rmr",
          matching_var = "q_340_insects",
@@ -607,9 +617,21 @@ gridExtra::grid.arrange(output_severity[[2]]$plot,
   geom_segment(x=0.5,xend=4.5,y=log10(0.05),yend=log10(0.05))+
   scale_y_log10()+
   geom_jitter()+
-  theme(axis.text.x = element_text(angle=40, hjust=1))
+  theme(axis.text.x = element_text(angle=40, hjust=1))+
+    annotate("text",x=4,y = c(log10(c(0.0001,0.00001,.000001,.0000001,.00000001))),
+             label = c(1776,1780,1206,234,1780))
   )#+
   #geom_line(aes(group=outcome))
+
+
+ggplot(temp,aes(.rownames,Pr...t.., color=outcome))+
+  geom_segment(x=0.5,xend=4.5,y=log10(0.05),yend=log10(0.05))+
+  scale_y_log10()+
+  geom_jitter(width = 0.2)+
+  theme(axis.text.x = element_text(angle=40, hjust=1))+
+    annotate("text",x=4,y = c(0.0001,0.00001,.000001,.0000001,.00000001)*10,
+             label = c("n=1776","n=1780","n=1206","n=234","n=1780"),size = 3)+
+  labs(x = "",y="p value")
 ```
 
 Based on the above graphs of patients matched according to sex and age we cannot say that the severity of their reaction differ between yellow-jackets and bees in any of the models except ANAscore - where yellow jacket were linked to  a slightly more severe reaction.
@@ -621,7 +643,7 @@ But in the ANAscore variable it shows up to be significant ! Yellowjackets sting
 
 
 
-```{r}
+```{r,fig.height=8}
 output_severity <- lapply(possible_outcomes,
                          function(x){
                          ana_outcome_matched(data = data4,
@@ -663,8 +685,8 @@ gridExtra::grid.arrange(output_severity[[2]]$plot,
   )
 ```
 
-Based on the above we see that the lower tryptase significantly decreased the severity of 
-
+Based on the above we see that the severity of anaphylaxis significantly depends on tryptase concentration (here under 8 µg/ml). Only in the VAS scale this did not sho as significant.
+There might be problems with the vas scale...
 
 ### Mastocytosis
 
