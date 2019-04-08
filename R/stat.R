@@ -170,7 +170,14 @@ other_insects <- c("horse fly",
 data4$d_insect_gr4 <- as.character(data4$q_340_insects)
 data4$d_insect_gr4[which(data4$q_340_insects%in%other_insects)] <- "other"
 data4$d_insect_gr4 %<>% factor
-
+data4%<>%
+  mutate(d_AAI_prescribed = ifelse(q_540_why_autoinj_v5 %in% c("prescribed, available, but not used",
+                                                               "prescribed, but not available"),
+                                   "yes",
+                                   ifelse(q_540_why_autoinj_v5 =="not prescribed",
+                                          "no",
+                                          NA)
+  ))
 
 ##### DIAGRAM ##############
 library(DiagrammeRsvg)
@@ -1342,18 +1349,25 @@ F3$plot
 #rdb$
 #ggplot(aes())
 
-####Propensity Score MAtching #####
+#### Propensity Score MAtching for Adrenaline use #####
 #' The functition to match samples based on the minimal set of predictors
 #' provide data, grouping variables and predictor variables as well as others..
 require(MatchIt)
 prop_fun <- function(data, grouping_var, predictor_vars, other_vars=NULL,
                      method = "optimal",
                      samplesize = 200) {
+  if(is.logical(grouping_var)){
+    temp <- data %>%
+      select(!!!predictor_vars,!!!other_vars) %>%
+      mutate(grouping = grouping_var) %>%
+      filter(complete.cases(.))
+  } else {
   temp <- data %>%
     select(!!!grouping_var,!!!predictor_vars,!!!other_vars) %>%
     filter(complete.cases(.)) %>%
     mutate(grouping = ifelse(get(grouping_var) == "insects", T,
                            F))
+  }
   match_stats <- matchit(formula = paste0(grouping_var,
                                           "~",
                                           paste0(predictor_vars,
@@ -1386,6 +1400,78 @@ rdb %>%
 
 ggplot(temp$post_data, aes(grouping, q_116_VAS_v7))+
   geom_boxplot()
+
+
+####3 Here is the adrenalin data analysis
+#temp <-
+rdb %>%
+  #filter(d_AAI_prescribed!="no") %>%
+  group_by(grouping, d_AAI_prescribed,d_522_adren_agg) %>%
+  summarize(n = n()) %>%
+  ggplot(aes(y=n, x = d_AAI_prescribed,fill=d_522_adren_agg))+
+  geom_bar(stat = "identity",position ="fill")+
+  facet_grid(.~grouping)
+
+
+#' MAtch patients
+#'
+#' Function match_patients takes a data frame from ANAreg and otuputs matched
+#' case_id according to a given matching variable. The various grouping variables
+#' have to still be implemented. Right now only the "grouping" variable is recognized
+#'
+#' @param grouping_var has to be a binomial var  of 1s and 0s
+#' @param data is a data frame derived from ANAreg
+#' @param matching_vars variable name to which we shouldmatch the two groups
+#' @return vector of case ids that can be used for further analysis
+#'
+#'
+#'
+match_patients <- function(data,grouping_var,matching_vars,df=F){
+  o <- data %>%
+    select(b_case_id,!!!grouping_var,!!!matching_vars) %>%
+    {filter(.,complete.cases(.))} %>%
+    mutate(grouping = ifelse(grouping=="insects",1,0)) %>%
+    matchit(formula = as.formula(paste0(grouping_var,
+                                        "~",
+                                        paste0(matching_vars,
+                                               collapse = "+"))
+                                 ),
+            method = "nearest",
+            ratio = 1) %>%
+    match.data() %>%
+    select(b_case_id) %>% pull()
+
+  if(df == T){
+    o <- data[data$b_case_id %in% o,]
+  }
+  return(o)
+}
+
+
+ANAscore_matched <-
+  match_patients(rdb %>%
+                   filter(d_522_adren_agg %in% c("yes", "no")),
+                 "grouping",
+                 "ANAscore",
+                 T)
+
+ANAscore_matched %>%
+  group_by(grouping,
+           #d_AAI_prescribed,
+           d_522_adren_agg) %>%
+  summarize(n = n()) %>%
+  ggplot(aes(y = n, x = grouping, fill =
+               d_522_adren_agg)) +
+  geom_bar(stat = "identity")#,position ="fill")+
+facet_grid(. ~ grouping)
+
+#filter(d_AAI_prescribed!="no") %>%
+  group_by(grouping, d_AAI_prescribed,d_522_adren_agg) %>%
+  summarize(n = n()) %>%
+  ggplot(aes(y=n, x = d_AAI_prescribed,fill=d_522_adren_agg))+
+  geom_bar(stat = "identity",position ="fill")+
+  facet_grid(.~grouping)
+
 
 
 ### route of administration severity ####
