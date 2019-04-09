@@ -5,6 +5,8 @@ require(ggplot2)
 require(forestplot)
 require(summarytools)
 require(vcd)
+require(MatchIt)
+
 
 #### GET THE DATA ########
 # Note the path that we need to use to access our data files when rendering this document
@@ -57,6 +59,39 @@ f3 <- function(x){
     lapply(function(x){(length(which(x=="yes"))/length(x)*100) %>% roP})
 }
 
+
+#' Match patients
+#'
+#' Function match_patients takes a data frame from ANAreg and otuputs matched
+#' case_id according to a given matching variable. The various grouping variables
+#' have to still be implemented. Right now only the "grouping" variable is recognized
+#'
+#' @param grouping_var has to be a binomial var  of 1s and 0s
+#' @param data is a data frame derived from ANAreg
+#' @param matching_vars variable name to which we shouldmatch the two groups
+#' @return vector of case ids that can be used for further analysis
+#'
+#'
+match_patients <- function(data,grouping_var,matching_vars,df=F){
+  o <- data %>%
+    select(b_case_id,!!!grouping_var,!!!matching_vars) %>%
+    {filter(.,complete.cases(.))} %>%
+    mutate(grouping = ifelse(grouping=="insects",1,0)) %>%
+    matchit(formula = as.formula(paste0(grouping_var,
+                                        "~",
+                                        paste0(matching_vars,
+                                               collapse = "+"))
+    ),
+    method = "nearest",
+    ratio = 1) %>%
+    match.data() %>%
+    select(b_case_id) %>% pull()
+
+  if(df == T){
+    o <- data[data$b_case_id %in% o,]
+  }
+  return(o)
+}
 
 
 #### cases selection ####
@@ -471,7 +506,8 @@ variableSelectionTab <- function(data){
 #' @param rdb database on which to perform the test (you can restrict it)
 #' @return Tbl
 #' @export
-makeTests <- function(grouping,rdb){
+makeTests <- function(groups,rdb){
+  grouping <- rdb[,groups]
   variableSelectionTab <- variableSelectionTab(rdb)
   variableSelectionTab %<>% # Make division for tests
     rowwise() %>%
@@ -565,23 +601,36 @@ makeTests <- function(grouping,rdb){
 }
 
 ### Binomial trigger either insects or other
-testInsectsbinomial <- makeTests(grouping,rdb=rdb) %>% arrange(pval)
+testInsectsbinomial <- makeTests(groups = "grouping",rdb=rdb) %>% arrange(pval)
 # ggplot(testInsectsbinomial,aes(variableName,pval))+
 #   geom_point()+
 #   scale_y_log10()
 
-testInsectsbinomialTab <- testInsectsbinomial %>% #filter(pval<1e-30) %>%
+testInsectsbinomialTab <- testInsectsbinomial %>% filter(pval<1e-30) %>%
   select(variableName,counts_1,counts_2,fraq_1,fraq_2,
          pval,
          section) %>%
          {split(.,.$section)}
 
+age_sex_matched <- rdb %>%
+  match_patients(grouping_var = "grouping",
+                 matching_vars = c("b_sex","d_age"),
+                 df=T)
+tests_matched <- makeTests(groups ="grouping",
+                           rdb =age_sex_matched)
+tests_matchedTab <- testInsectsbinomial %>% filter(pval<1e-30) %>%
+  select(variableName,counts_1,counts_2,fraq_1,fraq_2,
+         pval,
+         section) %>%
+         {split(.,.$section)}
 
-testYJ <- ifelse(rdb$d_insect_gr4 == "yellow jacket",
+testInsectsbinomialTab <- tests_matchedTab
+
+rdb$groupYJ <- ifelse(rdb$d_insect_gr4 == "yellow jacket",
        "y-j",
        "other")
 
-testsYJ <- makeTests(testYJ,rdb = rdb) %>%
+testsYJ <- makeTests("groupYJ",rdb = rdb) %>%
   arrange(pval) %>%
   select(variableName,counts_1,counts_2,fraq_1,fraq_2,
          pval,
@@ -1022,12 +1071,12 @@ plotSympt <- ggplot(testInsectsbinomialTab$symptoms %>%
 
 
 symptTabKids <- makeTests(rdb=rdb[rdb$d_age<13,],
-          grouping = rdb$grouping[rdb$d_age<13]) %>%
+          groups = "grouping") %>%
           {split(.,.$section)} %>%
   .$symptoms %>% mutate(subset = "children")
 
 symptTabAdults <- makeTests(rdb=rdb[rdb$d_age>13,],
-                                  grouping = rdb$grouping[rdb$d_age>13]) %>%
+                                  groups = "grouping") %>%
                                   {split(.,.$section)} %>%
                           .$symptoms %>% mutate(subset = "adults")
 ex <- full_join(symptTabKids,symptTabAdults)
@@ -1352,7 +1401,6 @@ F3$plot
 #### Propensity Score MAtching for Adrenaline use #####
 #' The functition to match samples based on the minimal set of predictors
 #' provide data, grouping variables and predictor variables as well as others..
-require(MatchIt)
 prop_fun <- function(data, grouping_var, predictor_vars, other_vars=NULL,
                      method = "optimal",
                      samplesize = 200) {
@@ -1413,65 +1461,85 @@ rdb %>%
   facet_grid(.~grouping)
 
 
-#' MAtch patients
-#'
-#' Function match_patients takes a data frame from ANAreg and otuputs matched
-#' case_id according to a given matching variable. The various grouping variables
-#' have to still be implemented. Right now only the "grouping" variable is recognized
-#'
-#' @param grouping_var has to be a binomial var  of 1s and 0s
-#' @param data is a data frame derived from ANAreg
-#' @param matching_vars variable name to which we shouldmatch the two groups
-#' @return vector of case ids that can be used for further analysis
-#'
-#'
-#'
-match_patients <- function(data,grouping_var,matching_vars,df=F){
-  o <- data %>%
-    select(b_case_id,!!!grouping_var,!!!matching_vars) %>%
-    {filter(.,complete.cases(.))} %>%
-    mutate(grouping = ifelse(grouping=="insects",1,0)) %>%
-    matchit(formula = as.formula(paste0(grouping_var,
-                                        "~",
-                                        paste0(matching_vars,
-                                               collapse = "+"))
-                                 ),
-            method = "nearest",
-            ratio = 1) %>%
-    match.data() %>%
-    select(b_case_id) %>% pull()
-
-  if(df == T){
-    o <- data[data$b_case_id %in% o,]
-  }
-  return(o)
-}
-
 
 ANAscore_matched <-
   match_patients(rdb %>%
                    filter(d_522_adren_agg %in% c("yes", "no")),
                  "grouping",
-                 "ANAscore",
+                 c("ANAscore","d_age"),
                  T)
 
-ANAscore_matched %>%
+fig_adrenuse1 <-
+  gridExtra::grid.arrange(
+    ANAscore_matched %>%
   group_by(grouping,
-           #d_AAI_prescribed,
+           d_AAI_prescribed,
            d_522_adren_agg) %>%
   summarize(n = n()) %>%
   ggplot(aes(y = n, x = grouping, fill =
                d_522_adren_agg)) +
-  geom_bar(stat = "identity")#,position ="fill")+
-facet_grid(. ~ grouping)
+  geom_bar(stat = "identity")+
+    theme_classic()+
+    theme(legend.position = "top")+
+    scale_fill_brewer(palette = "Greens")+
+    labs(y ="number of cases",x = "elicitor",fill = "adrenaline"),
 
-#filter(d_AAI_prescribed!="no") %>%
-  group_by(grouping, d_AAI_prescribed,d_522_adren_agg) %>%
+
+ANAscore_matched  %>%
+  ggplot(aes(y = ANAscore, x = grouping)) +
+  geom_boxplot()+
+  theme_classic()+
+  labs(x = "elicitor"),
+
+ANAscore_matched %>%
+  filter(!is.na(q_540_why_autoinj_v5)) %>%
+  group_by(grouping,
+           q_540_why_autoinj_v5) %>%
   summarize(n = n()) %>%
-  ggplot(aes(y=n, x = d_AAI_prescribed,fill=d_522_adren_agg))+
-  geom_bar(stat = "identity",position ="fill")+
-  facet_grid(.~grouping)
+  ggplot(aes(y = n, fill = grouping, x =
+               q_540_why_autoinj_v5,
+             label = n)) +
+  geom_bar(stat = "identity",position="fill")+
+  geom_text(aes(label=n),
+           position="fill",
+           size=4,
+           vjust=1.5)+
+  theme_classic()+
+  theme(legend.position = "top",
+        axis.text.x = element_text(angle=40, hjust = 1))+
+  scale_fill_brewer(palette = "Greens")+
+  labs(y ="proportion of cases",x = "Reason for\nnot administering Adrenialine",fill = "Elicitor"),
 
+ANAscore_matched  %>%
+  ggplot(aes(x = d_age, fill = grouping)) +
+  geom_density(alpha = 0.5)+
+  theme_classic()+
+  theme(legend.position = "top")+
+  labs(x = "Age [years]",fill = "elicitor")+
+  theme_classic()+
+  theme(legend.position = "bottom")+
+  scale_fill_brewer(palette = "Greens")+
+  labs(y ="density",x = "Age [years]",fill = ""),
+
+ANAscore_matched %>%
+  group_by(b_sex,grouping) %>%
+  ggplot(aes(grouping,fill=b_sex))+
+  geom_bar()+
+  theme_classic()+
+  theme(legend.position = "bottom")+
+  scale_fill_brewer(palette = "Greens")+
+  labs(y ="number of cases",x = "elicitor",fill = "sex"),
+layout_matrix=matrix(c(1,1,1,2,2,3,3,3,4,4,3,3,3,5,5),byrow=T,ncol=5)
+)
+
+png(res=300,filename = "adrenaline.png",pointsize = 6,width = 1600,height=1900)
+grid.draw(fig_adrenuse1)
+dev.off()
+
+test_adrenuse1<- ANAscore_matched %>%
+  group_by(grouping,d_522_adren_agg) %>%
+  summarize(n = n()) %>% {matrix(.$n,ncol = 2)} %>%
+  chisq.test()
 
 
 ### route of administration severity ####

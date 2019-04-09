@@ -494,6 +494,15 @@ testInsectsbinomialTab$management[,-7]%>%
   geom_text(aes(y=0.5,label=reorder(signif(pval,2),-Proportion)),angle=90)
 ```
 
+### Adrenaline use is lower in patients with IVA compared to other anaphylaxis cases
+
+```{r}
+grid.draw(fig_adrenuse1)
+```
+
+I matched patients with IVA to a group of similarly severe cases of non-IVA anaphylaxis and evaluated the use of Adrenaline in both of these groups. 
+
+
 ## Diagnostics 
 
 
@@ -636,7 +645,7 @@ ggplot(temp,aes(.rownames,Pr...t.., color=outcome))+
 
 Based on the above graphs of patients matched according to sex and age we cannot say that the severity of their reaction differ between yellow-jackets and bees in any of the models except ANAscore - where yellow jacket were linked to  a slightly more severe reaction.
 
-But in the ANAscore variable it shows up to be significant ! Yellowjackets stings are more severe than the bee stings. This is however very hard to compare to refractory cases. Maybe we can use the refractory case identifier to say in which group we see more refractory cases? 
+But in the ANAscore variable it shows up to be significant ! Yellow-jackets stings are more severe than the bee stings. This is however very hard to compare to refractory cases. Maybe we can use the refractory case identifier to say in which group we see more refractory cases? 
 
 
 ### Increased BTSC develops in the normal range <8
