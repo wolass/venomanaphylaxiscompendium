@@ -488,10 +488,26 @@ testInsectsbinomialTab$management[,-7]%>%
   tidyr::gather(value ="Proportion",
          key="Group",
          4:5) %>% 
+  filter(variableName %in% c("q_522_cortico_iv","q_522_antih_iv","q_522_adren_im",
+                             "q_522_adren_iv","q_522_antih_oral","q_522_beta2_inhal")) %>% 
+  mutate(variableName = car::recode(
+    variableName,recodes = "'q_522_cortico_iv'='corticoids iv.';
+    'q_522_antih_iv'='antihistamines iv.';
+    'q_522_adren_im'='adrenaline im.';
+    'q_522_adren_iv'='adrenaline iv.';
+    'q_522_antih_oral'='antihistamines po.';
+    'q_522_beta2_inhal'='beta-2 mimetics inh.'"),
+    Group = car::recode(Group,"'fraq_1'='IVA';
+                        'fraq_2'='non-IVA'")) %>% 
   ggplot(aes(reorder(variableName,-Proportion),Proportion,fill=Group))+
   geom_bar(stat="identity",position="dodge")+
-  theme(axis.text.x=element_text(angle=90))+
-  geom_text(aes(y=0.5,label=reorder(signif(pval,2),-Proportion)),angle=90)
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 30,hjust =1),
+        legend.position = c(1,1),
+        legend.justification = c(1,1))+
+  labs(x = "Symptoms",y = "Proportion of cases",fill="")+
+  scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32")))
+  #geom_text(aes(y=0.5,label=reorder(signif(pval,2),-Proportion)),angle=90)
 ```
 
 ### Adrenaline use is lower in patients with IVA compared to other anaphylaxis cases

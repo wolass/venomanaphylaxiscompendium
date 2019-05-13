@@ -279,8 +279,10 @@ create_graph() %>%
   add_global_graph_attrs(value="black",
                          attr = "fontcolor",
                          attr_type = "node") %>% #render_graph()
-  export_graph(file_name = "analysis/figures/flow.png", file_type = "png", title = NULL,
-               width = NULL, height = NULL)
+  export_graph(file_name = "analysis/figures/flow.png", file_type = "png",
+               title = NULL,
+               width = NULL,
+               height = NULL)
 
 
 ###Outcomes############
@@ -618,7 +620,7 @@ age_sex_matched <- rdb %>%
                  df=T)
 tests_matched <- makeTests(groups ="grouping",
                            rdb =age_sex_matched)
-tests_matchedTab <- testInsectsbinomial %>% filter(pval<1e-30) %>%
+tests_matchedTab <- tests_matched %>% filter(pval<1e-30) %>%
   select(variableName,counts_1,counts_2,fraq_1,fraq_2,
          pval,
          section) %>%
@@ -766,7 +768,7 @@ makeDF <- function(data,variables,grouping,outcome){
 
 #makeDF(rdb,"q_114",grouping,"severity_brown")
 makeTableText <- function(makeDF){
-  rbind(c("Symptoms","Elicitors","p"),
+  rbind(c("Cofactor","Elicitor","p"),
         makeDF[-c(1),c(1,6,2)])
 }
 
@@ -790,19 +792,20 @@ test1 <- makeDF(rdbp,
                    "q_410_masto_cur",
                    "q_410_cardio_cur",
                    "q_423_beta",
+                   "q_423_ace",
                    "q_4211_exercise",
                    "q_422_stress"),
                 "grouping",
                 "severity_brown")
 
 test1[1] <- c(NA,"Concomitant disease",NA,NA,"Asthma",NA,NA,"Mastocytosis",NA,NA,
-              "Cardiologic disese",NA,NA,"Beta-blockers",NA,NA,"Exercise",NA,NA,"Stress",NA,NA)
-test1 <- test1[-c(2:7,20:22),]
+              "Cardiologic disese",NA,NA,"Beta-blockers",NA,NA,"ACE-I",NA,NA,"Exercise",NA,NA,"Stress",NA,NA)
+test1 <- test1[-c(2:7,23:25),]
 png("analysis/figures/figForestfinal.png",
-    height = 400,
-    width = 700,
+    height = 800,
+    width = 1400,
     #res = 300,
-    pointsize = 22,
+    pointsize = 44,
     units="px")
 forestplot(labeltext = makeTableText(test1),
            mean = test1[,"mean"] %>% unlist,
@@ -812,7 +815,10 @@ forestplot(labeltext = makeTableText(test1),
            is.summary=c(T,rep(F,length(test1[,1])-1)),
            clip=c(0.2,4),
            xlog=TRUE,
-           col=fpColors(box="#92c442",line="gray", summary="royalblue"))
+           col=fpColors(box="#92c442",line="gray", summary="royalblue"),
+           lwd.xaxis = 5,
+           lwd.ci = 4,
+           lwd.zero = 4)
 dev.off()
 
 png("analysis/figures/figForest.png")
@@ -1065,6 +1071,34 @@ plotSympt <- ggplot(testInsectsbinomialTab$symptoms %>%
   geom_bar(stat = "identity", position = "dodge",na.rm = T)+
   theme_classic()+
   theme(axis.text.x = element_text(angle = 50,hjust =1))
+
+png(width = 400*2,height = 430*2,res = 300, filename = "symptomsG.png",pointsize = 7)
+testInsectsbinomialTab$symptoms %>%
+  tidyr::gather(key = "group",value = "Fraction", 4:5) %>%
+  arrange(pval) %>%
+  {.[c(3,4,11:12,7:8,9:10,13,14),]} %>%
+  mutate(variableName = car::recode(
+    variableName,recodes = "'q_114_dizziness'='dizziness';
+    'q_114_hypotension_collapse_v5'='collapse';
+    'q_114_loss_of_consciousness'='loss of consciousness';
+    'q_112_abdominal_pain'='abdominal pain';
+    'q_113_wheezing_expiratory_distress_v5'='expiratory distress'"),
+    group = car::recode(group,"'fraq_1'='IVA';
+                        'fraq_2'='non-IVA'")) %>%
+                        {mutate(.,variableName = factor(.$variableName,
+                                                        levels=unique(.$variableName)))} %>%
+
+ggplot(
+                    aes(variableName,Fraction, fill = group))+
+  geom_bar(stat = "identity", position = "dodge",na.rm = T)+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 30,hjust =1),
+        legend.position = c(1,1),
+        legend.justification = c(1,1))+
+  labs(x = "Symptoms",y = "Proportion of cases",fill="")+
+  scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32")))
+dev.off()
+
 
 # Split the plot into kids and grown ups AGE division - 12
 # Get the proper table
@@ -1469,6 +1503,8 @@ ANAscore_matched <-
                  c("ANAscore","d_age"),
                  T)
 
+
+
 fig_adrenuse1 <-
   gridExtra::grid.arrange(
     ANAscore_matched %>%
@@ -1480,16 +1516,21 @@ fig_adrenuse1 <-
                d_522_adren_agg)) +
   geom_bar(stat = "identity")+
     theme_classic()+
-    theme(legend.position = "top")+
+    theme(legend.position = "right")+
     scale_fill_brewer(palette = "Greens")+
     labs(y ="number of cases",x = "elicitor",fill = "adrenaline"),
 
 
 ANAscore_matched  %>%
-  ggplot(aes(y = ANAscore, x = grouping)) +
-  geom_boxplot()+
+  #select(grouping,d_severity_rm) %>%
+  group_by(grouping,d_severity_rm) %>%
+  summarize(n = n()) %>%
+  ggplot(aes(fill = as.factor(d_severity_rm),y=n, x = grouping)) +
+  geom_bar(stat="identity",position="fill")+
   theme_classic()+
-  labs(x = "elicitor"),
+  labs(x = "elicitor",fill = "R&M",y="proportion")+
+  theme(legend.position = "bottom")+
+  scale_fill_ordinal(),
 
 ANAscore_matched %>%
   filter(!is.na(q_540_why_autoinj_v5)) %>%
@@ -1505,16 +1546,16 @@ ANAscore_matched %>%
            size=4,
            vjust=1.5)+
   theme_classic()+
-  theme(legend.position = "top",
+  theme(legend.position = "right",
         axis.text.x = element_text(angle=40, hjust = 1))+
   scale_fill_brewer(palette = "Greens")+
-  labs(y ="proportion of cases",x = "Reason for\nnot administering Adrenialine",fill = "Elicitor"),
+  labs(y ="proportion of cases",x = "Reason for\nnot administering adrenaline",fill = "Elicitor"),
 
 ANAscore_matched  %>%
   ggplot(aes(x = d_age, fill = grouping)) +
   geom_density(alpha = 0.5)+
   theme_classic()+
-  theme(legend.position = "top")+
+  theme(legend.position = "right")+
   labs(x = "Age [years]",fill = "elicitor")+
   theme_classic()+
   theme(legend.position = "bottom")+
@@ -1526,13 +1567,38 @@ ANAscore_matched %>%
   ggplot(aes(grouping,fill=b_sex))+
   geom_bar()+
   theme_classic()+
-  theme(legend.position = "bottom")+
+  theme(legend.position = "right")+
   scale_fill_brewer(palette = "Greens")+
   labs(y ="number of cases",x = "elicitor",fill = "sex"),
-layout_matrix=matrix(c(1,1,1,2,2,3,3,3,4,4,3,3,3,5,5),byrow=T,ncol=5)
+
+testInsectsbinomialTab$management[,-7]%>%
+  tidyr::gather(value ="Proportion",
+                key="Group",
+                4:5) %>%
+  filter(variableName %in% c("q_522_cortico_iv","q_522_antih_iv","q_522_adren_im",
+                             "q_522_adren_iv","q_522_antih_oral","q_522_beta2_inhal")) %>%
+  mutate(variableName = car::recode(
+    variableName,recodes = "'q_522_cortico_iv'='corticoids iv.';
+    'q_522_antih_iv'='antihistamines iv.';
+    'q_522_adren_im'='adrenaline im.';
+    'q_522_adren_iv'='adrenaline iv.';
+    'q_522_antih_oral'='antihistamines po.';
+    'q_522_beta2_inhal'='beta-2 mimetics inh.'"),
+    Group = car::recode(Group,"'fraq_1'='IVA';
+                        'fraq_2'='non-IVA'")) %>%
+  ggplot(aes(reorder(variableName,-Proportion),Proportion,fill=Group))+
+  geom_bar(stat="identity",position="dodge")+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 30,hjust =1),
+        legend.position = c(1,1),
+        legend.justification = c(1,1))+
+  labs(x = "Symptoms",y = "Proportion of cases",fill="")+
+  scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32"))),
+layout_matrix=matrix(c(1,1,1,4,4,4,5,5,1,1,1,4,4,4,5,5,3,3,3,6,6,6,2,2,3,3,3,6,6,6,2,2,3,3,3,6,6,6,2,2),byrow=T,ncol=8)
+
 )
 
-png(res=300,filename = "adrenaline.png",pointsize = 6,width = 1600,height=1900)
+png(res=300,filename = "adrenaline.png",pointsize = 6,width = 3500,height=1900)
 grid.draw(fig_adrenuse1)
 dev.off()
 
@@ -1887,7 +1953,8 @@ rdbp %>%
   mutate(MOR = substr(b_reactiondate,4,5),
          q_340_insects = ifelse(is.na(q_340_insects),"non-IVA",as.character(q_340_insects)) %>%
            factor(levels=c("yellow jacket","bee","hornet","bumble-bee","horsefly","mosquito","other","non-IVA"))) %>%
-  filter(!is.na(q_340_insects),MOR!="00") %>%
+  filter(!is.na(q_340_insects),MOR!="00",
+         q_340_insects!="non-IVA") %>%
   ggplot(aes(MOR,fill=q_340_insects))+
   geom_bar()+
   theme_classic()+
@@ -1897,22 +1964,27 @@ rdbp %>%
         #axis.ticks.x = element_blank(),
         legend.position = c(0.01,.98),
         legend.justification = c(0,1),
-        panel.background = element_rect(fill = "#c9ccc5"),
+        #panel.background = element_rect(fill = "#c9ccc5"),
         legend.background = element_blank()
   )+
-  scale_fill_brewer(palette = 2,direction = -1)
+  #scale_fill_brewer(palette = 2,direction = -1)
+  scale_fill_manual(values = rev(c("#E5F5E0",
+                                   "#C7E9C0",
+                                   "#A1D99B",
+                                   "#74C476",
+                                   "#41AB5D",
+                                   "#238B45",
+                                   "#005A32")))
+
 dev.off()
 
 
-png(width =800*2,height = 630*2,res = 300, filename = "IVAonly.png",pointsize = 10)
+png(width =700*2,height = 630*2,res = 300, filename = "IVAonly.png",pointsize = 10)
 rdb %>%
   mutate(q_340_insects = as.character(q_340_insects) %>%
            factor(levels=c("yellow jacket",
                            "bee",
                            "hornet",
-                           "bumble-bee",
-                           "horsefly",
-                           "mosquito",
                            "other"))) %>%
   plot.proportions("d_centres_country","q_340_insects",5)+
   labs(x = "Country",
@@ -1923,5 +1995,43 @@ rdb %>%
 # library(RColorBrewer)
 # brewer.pal(8, "Greens")
 
+dev.off()
+
+png(width =500*2,height = 630*2,res = 300, filename = "IVAcomplete.png",pointsize = 10)
+gridExtra::grid.arrange(
+  #cowplot::plot_grid(
+  rdbp %>%
+    select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
+    mutate(MOR = substr(b_reactiondate,4,5)) %>%
+    filter(!is.na(q_340_insects),MOR!="00") %>%
+    ggplot(aes(MOR,fill=q_340_insects))+
+    geom_bar()+
+    theme_classic()+
+    labs(fill="Insect",x = "Month of the year")+
+    theme(axis.text.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          legend.position = c(0.01,.98),
+          legend.justification = c(0,1))+
+    scale_fill_manual(values = rev(c("#E5F5E0", "#C7E9C0", "#A1D99B", "#74C476", "#41AB5D", "#238B45","#005A32"))),
+  rdbp %>%
+    select(b_reactiondate,grouping,d_elicitor_gr5,d_centres_country) %>%
+    mutate(MOR = substr(b_reactiondate,4,5),
+           d_elicitor_gr5 = relevel(d_elicitor_gr5, "insects")) %>%
+    filter(!is.na(grouping),MOR!="00") %>%
+    group_by(MOR,grouping) %>%
+    summarize(n = n()) %>%
+    group_by(MOR) %>%
+    summarise(prop = n[1]/sum(n)) %>%
+    ggplot(aes(MOR,prop))+
+    geom_bar(stat="identity")+
+    theme_classic()+
+    labs(x = "Month of the year",y = "Fraction of IVA")+
+    scale_fill_manual(values = rev(c("#E5F5E0", "#C7E9C0", "#A1D99B", "#74C476", "#41AB5D", "#238B45","#005A32"))),
+  #theme(legend.position = c(0.01,.98),
+  #      legend.justification = c(0,1)),
+  heights = c(1,0.5),
+  ncol = 1
+)
 dev.off()
 
