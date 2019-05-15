@@ -6,6 +6,7 @@ require(forestplot)
 require(summarytools)
 require(vcd)
 require(MatchIt)
+require(tidyr)
 
 
 #### GET THE DATA ########
@@ -431,7 +432,6 @@ data4$atopy <- ifelse(data4$q_410_rhinitis_cur=="yes"|
                         data4$q_410_ad_prev_v5=="yes",
                       "yes",
                       "no") %>% factor()
-summary(data4$q_410_ad_cur)
 
 #### Cardiologic grouping var
 data4$cc_cardio <- ifelse(data4$q_410_cardio_cur=="yes"|
@@ -439,9 +439,6 @@ data4$cc_cardio <- ifelse(data4$q_410_cardio_cur=="yes"|
                         ,
                       "yes",
                       "no") %>% factor()
-data4$cc_cardio %>% summary()
-data4$q_410_cardio_cur %>% summary()
-data4$q_410_cardio_prev_v5 %>% summary()
 
 ### Add tryptase coategory based on RUEFF (cut off 8)
 data4 %<>%
@@ -1502,105 +1499,230 @@ ANAscore_matched <-
                  "grouping",
                  c("ANAscore","d_age"),
                  T)
+testANAscoreMatched <- makeTests(groups = "grouping",
+                                 rdb=ANAscore_matched) %>%
+  #arrange(pval) %>%
+  #filter(pval<1e-30) %>%
+  select(variableName,counts_1,counts_2,fraq_1,fraq_2,
+         pval,
+         section) %>%
+         {split(.,.$section)}
 
 
+countYesManagment <- function(var){
+  tbl <- ANAscore_matched %>%
+    group_by(grouping,!! sym(var))  %>%
+    summarize(n = n()) %>%
+    filter(!!sym(var) == "yes")
+  data.frame(variable = names(tbl)[2],
+             IVA = tbl[1,3],
+             nonIVA = tbl[2,3])
+}
 
-fig_adrenuse1 <-
-  gridExtra::grid.arrange(
-    ANAscore_matched %>%
-  group_by(grouping,
-           d_AAI_prescribed,
-           d_522_adren_agg) %>%
-  summarize(n = n()) %>%
-  ggplot(aes(y = n, x = grouping, fill =
-               d_522_adren_agg)) +
-  geom_bar(stat = "identity")+
-    theme_classic()+
-    theme(legend.position = "right")+
-    scale_fill_brewer(palette = "Greens")+
-    labs(y ="number of cases",x = "elicitor",fill = "adrenaline"),
+plotManagement <- testANAscoreMatched$management$variableName %>%
+  map(countYesManagment) %>%
+  do.call(what = rbind)  %>%
+  tidyr::gather(key = "grouping", value = "positive",2:3) %>%
+  filter(variable %in% c(
+    "d_522_adren_agg",
+    "q_522_antih_iv",
+    "q_522_cortico_iv",
+    "q_522_o2",
+    "q_522_volume",
+    "q_561_hospital_admission_v6",
+    "q_562_intensive_care_v6",
+    "q_522_beta2_inhal"
+  )) %>%
+  mutate(
+    variable = car::recode(
+      variable,
+      recodes = "'q_522_cortico_iv'='corticoids iv.';
+            'q_522_antih_iv'='antihistamines iv.';
+            'd_522_adren_agg'='adrenaline iv./im.';
+            'q_522_adren_iv'='adrenaline iv.';
+            'q_522_o2'='100% oxygen';
+            'q_522_beta2_inhal'='beta-2 mimetics inh.';
+      'q_522_volume'='volume iv.';
+      'q_561_hospital_admission_v6'='hospital admission';
+      'q_562_intensive_care_v6'='intensive care'"),
+    grouping = ifelse(grouping =="n", "IVA","non-IVA")
+    ) %>%
+  ggplot(aes(reorder(variable, -positive),positive,fill=grouping))+
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_classic() +
+  theme(
+    axis.text.x = element_text(angle = 20, hjust = 1),
+    legend.position = c(1, 1),
+    legend.justification = c(1, 1)
+  ) +
+  labs(x = "Therapy", y = "proportion", fill = "") +
+  scale_fill_manual(values = rev(c("#E5F5E0", "#74C476", "#005A32"))) +
+  theme(axis.title.x = element_blank())
+
+backup <- testANAscoreMatched$management[, -7] %>%
+  tidyr::gather(value = "Proportion",
+                key = "Group",
+                4:5) %>%
+  filter(
+    #counts_1>100|pval<0.05
+    variableName %in% c(
+      "q_521_autoinj_v5",
+      "q_521_beta2_v5",
+      "q_521_antih_v5",
+      "q_521_cortic_v5",
+      "d_522_adren_agg",
+      "q_522_adren_im",
+      "q_522_adren_iv")
+    #   "d_520_adren1",
+    #   "q_562_intensive_care_v6",
+    #   "q_522_adren_im",
+    #   "q_522_adren_iv",
+    #   "q_552_beta2_inhal",
+    #   "q_522_beta2_inhal",
+    #   "q_561_hospital_admission_v6",
+    #   "q_550_2nd_v5",
+    #   "q_552_volume_v5",
+    #   "q_552_cortico_iv_v5",
+    #   "q_552_antih_oral_v5"
+    # )
+  ) %>%
+  mutate(
+    variableName = car::recode(
+      variableName,
+      recodes = "'q_552_cortico_iv'='corticoids iv.';
+      'q_522_antih_iv'='antihistamines iv.';
+      'q_522_adren_im'='adrenaline im.';
+      'q_522_adren_iv'='adrenaline iv.';
+      'q_522_o2'='100% oxygen';
+      'q_522_beta2_inhal'='beta-2 mimetics inh.'"
+          ),
+          Group = car::recode(Group, "'fraq_1'='IVA';
+                              'fraq_2'='non-IVA'")
+          ) %>%
+        ggplot(aes(reorder(variableName, -Proportion), Proportion, fill =
+                     Group)) +
+        geom_bar(stat = "identity", position = "dodge") +
+        theme_classic() +
+        theme(
+          axis.text.x = element_text(angle = 20, hjust = 1),
+          legend.position = c(1, 1),
+          legend.justification = c(1, 1)
+        ) +
+        labs(x = "Therapy", y = "proportion", fill = "") +
+        scale_fill_manual(values = rev(c("#E5F5E0", "#74C476", "#005A32"))) +
+  theme(axis.title.x = element_blank())
 
 
-ANAscore_matched  %>%
-  #select(grouping,d_severity_rm) %>%
-  group_by(grouping,d_severity_rm) %>%
-  summarize(n = n()) %>%
-  ggplot(aes(fill = as.factor(d_severity_rm),y=n, x = grouping)) +
-  geom_bar(stat="identity",position="fill")+
-  theme_classic()+
-  labs(x = "elicitor",fill = "R&M",y="proportion")+
-  theme(legend.position = "bottom")+
-  scale_fill_ordinal(),
+upper_panel <-ggpubr::ggarrange(
+      # ANAscore_matched %>%
+      #   mutate(grouping = recode(grouping,
+      #                            'insects'='IVA',
+      #                            'other'='non-IVA'),
+      #          d_522_adren_agg = recode(d_522_adren_agg,
+      #                                  'no'='no adrenaline',
+      #                                  'yes'='adrenaline given') ) %>%
+      #                    group_by(grouping,
+      #                             #d_AAI_prescribed,
+      #                             d_522_adren_agg) %>%
+      #                    summarize(n = n()) %>%
+      #                    ggplot(aes(y = n, fill = grouping, x =
+      #                                 d_522_adren_agg)) +
+      #                    geom_bar(stat = "identity",position = "dodge")+
+      #                    theme_classic()+
+      #                    theme(legend.position = "right",
+      #                          axis.text.x = element_text(angle = 30,hjust = 1))+
+      #                    labs(y ="number of cases",
+      #                         x = "Treatment with adrenaline",
+      #                         fill = "Elicitor")+
+      #                    scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32")))+
+      #   theme(axis.title.x = element_blank()),
+
+      plotManagement,
 
 ANAscore_matched %>%
   filter(!is.na(q_540_why_autoinj_v5)) %>%
   group_by(grouping,
            q_540_why_autoinj_v5) %>%
   summarize(n = n()) %>%
-  ggplot(aes(y = n, fill = grouping, x =
+  group_by(grouping) %>%
+  nest() %>%
+  mutate(summed =
+  map(data,.f=function(tab){
+    rep(sum(tab$n),4)
+  })
+  ) %>% unnest() %>%
+  mutate(proportion = n/summed,
+         grouping = recode(grouping,
+                           'insects'='IVA',
+                            'other'='non-IVA'))  %>%
+  ggplot(aes(y = proportion, fill = grouping, x =
                q_540_why_autoinj_v5,
              label = n)) +
-  geom_bar(stat = "identity",position="fill")+
+  geom_bar(stat = "identity",position="dodge")+
   geom_text(aes(label=n),
-           position="fill",
+           position=position_dodge(width = 1),
            size=4,
-           vjust=1.5)+
+           vjust=0)+
   theme_classic()+
-  theme(legend.position = "right",
-        axis.text.x = element_text(angle=40, hjust = 1))+
-  scale_fill_brewer(palette = "Greens")+
-  labs(y ="proportion of cases",x = "Reason for\nnot administering adrenaline",fill = "Elicitor"),
+  theme(legend.position = c(0.1,0.9),
+        legend.justification = c(0,1),
+        axis.text.x = element_text(angle=20, hjust = 1))+
+  labs(y ="proportion",
+       x = "Reason for\nnot administering adrenaline",
+       fill = "Elicitor")+
+  scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32")))+
+  theme(axis.title.x = element_blank()),
+ncol = 2,
+common.legend = T,
+legend = "top",
+widths = c(1,0.7),
+align = "h",
+labels = c("A","B"))
 
-ANAscore_matched  %>%
-  ggplot(aes(x = d_age, fill = grouping)) +
-  geom_density(alpha = 0.5)+
-  theme_classic()+
-  theme(legend.position = "right")+
-  labs(x = "Age [years]",fill = "elicitor")+
-  theme_classic()+
-  theme(legend.position = "bottom")+
-  scale_fill_brewer(palette = "Greens")+
-  labs(y ="density",x = "Age [years]",fill = ""),
+lower_panel <- ggpubr::ggarrange(
+  ANAscore_matched  %>%
+    ggplot(aes(x = d_age, fill = grouping)) +
+    geom_density(alpha = 0.5)+
+    labs(x = "Age [years]",fill = "elicitor")+
+    theme_classic()+
+    theme(legend.position = "none")+
+    scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32")))+
+    labs(y ="density",x = "Age [years]",fill = ""),
 
 ANAscore_matched %>%
   group_by(b_sex,grouping) %>%
-  ggplot(aes(grouping,fill=b_sex))+
-  geom_bar()+
+  ggplot(aes(fill=grouping,x=b_sex))+
+  geom_bar(position = "fill")+
   theme_classic()+
-  theme(legend.position = "right")+
-  scale_fill_brewer(palette = "Greens")+
-  labs(y ="number of cases",x = "elicitor",fill = "sex"),
+  theme(legend.position = "none")+
+  scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32")))+
+  labs(y ="proportion",x = "Sex",fill = "elicitor"),
 
-testInsectsbinomialTab$management[,-7]%>%
-  tidyr::gather(value ="Proportion",
-                key="Group",
-                4:5) %>%
-  filter(variableName %in% c("q_522_cortico_iv","q_522_antih_iv","q_522_adren_im",
-                             "q_522_adren_iv","q_522_antih_oral","q_522_beta2_inhal")) %>%
-  mutate(variableName = car::recode(
-    variableName,recodes = "'q_522_cortico_iv'='corticoids iv.';
-    'q_522_antih_iv'='antihistamines iv.';
-    'q_522_adren_im'='adrenaline im.';
-    'q_522_adren_iv'='adrenaline iv.';
-    'q_522_antih_oral'='antihistamines po.';
-    'q_522_beta2_inhal'='beta-2 mimetics inh.'"),
-    Group = car::recode(Group,"'fraq_1'='IVA';
-                        'fraq_2'='non-IVA'")) %>%
-  ggplot(aes(reorder(variableName,-Proportion),Proportion,fill=Group))+
+ANAscore_matched  %>%
+  #select(grouping,d_severity_rm) %>%
+  group_by(grouping,d_severity_rm) %>%
+  summarize(n = n()) %>%
+  ggplot(aes(x = as.factor(d_severity_rm),y=n, fill = grouping)) +
   geom_bar(stat="identity",position="dodge")+
   theme_classic()+
-  theme(axis.text.x = element_text(angle = 30,hjust =1),
-        legend.position = c(1,1),
-        legend.justification = c(1,1))+
-  labs(x = "Symptoms",y = "Proportion of cases",fill="")+
+  labs(x = "Severity grade [R&M]",fill = "R&M",y="cases [n]")+
+  theme(legend.position = "none")+
   scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32"))),
-layout_matrix=matrix(c(1,1,1,4,4,4,5,5,1,1,1,4,4,4,5,5,3,3,3,6,6,6,2,2,3,3,3,6,6,6,2,2,3,3,3,6,6,6,2,2),byrow=T,ncol=8)
+common.legend = F,
+align = "h",
+ncol = 3,
+labels = c("C","D","E"))
 
+fig_adrenuse1 <- ggpubr::ggarrange(
+  upper_panel,
+  lower_panel,
+  nrow = 2,
+  heights = c(2,1)
 )
 
-png(res=300,filename = "adrenaline.png",pointsize = 6,width = 3500,height=1900)
-grid.draw(fig_adrenuse1)
-dev.off()
+# png(res=300,filename = "adrenaline.png",pointsize = 6,width = 3500,height=1900)
+# grid.draw(fig_adrenuse1)
+# dev.off()
 
 test_adrenuse1<- ANAscore_matched %>%
   group_by(grouping,d_522_adren_agg) %>%

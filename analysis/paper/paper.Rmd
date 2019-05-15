@@ -476,47 +476,37 @@ Here it is crucial to compare to even these reactions that had nearly no reactio
 ### Model the risk of severity of a severe reaction in IVA
 
 USe the model from our previous paper
-```
-```
 
 
 
 ## Managment
-```{r}
-testInsectsbinomialTab$management[,-7] %>% knitr::kable()
-testInsectsbinomialTab$management[,-7]%>%
-  tidyr::gather(value ="Proportion",
-         key="Group",
-         4:5) %>% 
-  filter(variableName %in% c("q_522_cortico_iv","q_522_antih_iv","q_522_adren_im",
-                             "q_522_adren_iv","q_522_antih_oral","q_522_beta2_inhal")) %>% 
-  mutate(variableName = car::recode(
-    variableName,recodes = "'q_522_cortico_iv'='corticoids iv.';
-    'q_522_antih_iv'='antihistamines iv.';
-    'q_522_adren_im'='adrenaline im.';
-    'q_522_adren_iv'='adrenaline iv.';
-    'q_522_antih_oral'='antihistamines po.';
-    'q_522_beta2_inhal'='beta-2 mimetics inh.'"),
-    Group = car::recode(Group,"'fraq_1'='IVA';
-                        'fraq_2'='non-IVA'")) %>% 
-  ggplot(aes(reorder(variableName,-Proportion),Proportion,fill=Group))+
-  geom_bar(stat="identity",position="dodge")+
-  theme_classic()+
-  theme(axis.text.x = element_text(angle = 30,hjust =1),
-        legend.position = c(1,1),
-        legend.justification = c(1,1))+
-  labs(x = "Symptoms",y = "Proportion of cases",fill="")+
-  scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32")))
-  #geom_text(aes(y=0.5,label=reorder(signif(pval,2),-Proportion)),angle=90)
-```
 
 ### Adrenaline use is lower in patients with IVA compared to other anaphylaxis cases
 
-```{r}
-grid.draw(fig_adrenuse1)
+```{r adrenuse, fig.cap="**Therapy of IVA cases.** A: General managment methods in IVA and non-IVA. B: Reasons for not administering adrenaline in both IVA and non-IVA cases. C,D,E: Age, sex and severity distribution was matched in cases in both groups to allow for comparable results between IVA and non_IVA cases"}
+fig_adrenuse1
 ```
 
-I matched patients with IVA to a group of similarly severe cases of non-IVA anaphylaxis and evaluated the use of Adrenaline in both of these groups. 
+Patients who underwent IVA significantly less often recived adrenaline treatment than in other adrenaline cases. After adjusting both groups for simmilar age, sex and severity distribution - the difference in adrenaline use was still significant irrespective of the route of administration. Antihistaminic drugs on the other had were given more often in cases of IVA when compared to non-IVA. 
+
+IVA was most often treated with corticosteroids and antihistamines (significantly more frequent than in other anaphylaxis cases). On the other hand adrenaline, beta-2 mimetics and oxygen were given more often in non-IVA. 
+
+```{r}
+ANAscore_matched %>%
+        mutate(grouping = recode(grouping,
+                                 'insects'='IVA',
+                                 'other'='non-IVA'),
+               d_522_adren_agg = recode(d_522_adren_agg,
+                                       'no'='no adrenaline',
+                                       'yes'='adrenaline given') ) %>%
+                         group_by(grouping,
+                                  #d_AAI_prescribed,
+                                  d_522_adren_agg) %>%
+                         summarize(n = n()) %>%
+  pull(n) %>% 
+  matrix(nrow=2) %>% 
+  chisq.test() %>% 
+```
 
 
 ## Diagnostics 
