@@ -86,20 +86,20 @@ The statistical analysis was performed in the R Statistical Package [@R]. Simple
 
 ## Temporal distribution of anaphylaxis cases by elicitor.
 
-```{r insectstime, fig.cap="A: Proportion of anaphylaxis cases elicited by specific insects according to the month in which the reaction occured. Less frequent insects were groupeped together as 'other'. B: The proportion of insect elicited cases to ceses elicited by other triggers considering patient's age. C: Geographical differences in the most common eliciotors of IVA. Countries which reported less than 10 cases of anaphylaxis due to insect venom were not illustrated in this figure."}
+```{r insectstime, fig.cap="Proportion of anaphylaxis cases elicited by specific insects according to the month in which the reaction occured (A). Less frequent insects were groupeped together as 'other'. Panel B shows the proportion of insect elicited cases to ceses elicited by other triggers considering patient's age. C: Geographical differences in the most common eliciotors of IVA."}
 fig_basic
 ```
 
-Insect venom elicited anaphylaxis in contrast to other elicitors showed a significant seasonal fluctuation and was most frequently reported from May till October. Their proportion to other cases during the summer seasons reached 60% and was as under 1% of cases during winter. Yellow-jacket was the most prominent IVA-causing insect reported in these cases followed by bees. The IVA causing insects differed in European countries with hornets being more prominient on the south of europe. IVA was more frequent in adults and seniors when compared to children and youg adults. (Fig \@ref(fig:insectstime)). 
-
-Cases of IVA were more frequent in older patients. Children suffered mainly from food elicited anaphylaxis. Therefore we adjusted the anlysis apropriately for age. 
-
-
+Insect venom elicited anaphylaxis in contrast to other elicitors showed a significant seasonal fluctuation and was most frequently reported from May till October. Their proportion to other cases during the summer seasons reached 60% and was as under 1% of cases during winter. Yellow-jacket was the most prominent IVA causing-insect reported in these cases followed by bees. The IVA causing insects differed in European countries with hornets being more prominient on the south of europe (i.e. Italy). IVA was more frequent in adults and seniors when compared to children and youg adults. In Brazil IVA was most frequently due to ants (Fig \@ref(fig:insectstime)). 
+Cases of IVA were more frequent in older patients as we previously showed that children suffered mainly form food elicited anaphylaxis. Therefore we adjusted the following analysis accordigly to age. 
 
 ## Symptoms
+```{r}
+testInsectsbinomialTab$symptoms[,-7] %>% knitr::kable()
+```
 
 ```{r}
-ggpubr::ggarrange(plot_radar,plotSympt)
+plotSympt
 ```
 
 Patients who underent anaphylaxis due to insect venom more often experienced 

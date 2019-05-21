@@ -48,6 +48,12 @@ roP<- function(x){
   )
 }
 
+pval<- function(x){
+  ifelse(x > 0.001,
+         paste0("p = ",round(x,3)),
+         "p < 0.001")
+}
+
 f1 <- function(x){
   names(x) <- NULL
   return(do.call(t.test,x)$p.value %>% roP)
@@ -93,6 +99,39 @@ match_patients <- function(data,grouping_var,matching_vars,df=F){
   }
   return(o)
 }
+
+
+unknown_to_na <- function(vect){
+  ifelse(vect == "unknown",
+         NA,
+         ifelse(grepl(vect,pattern = "no"),
+                0,
+                vect)
+  )
+}
+
+levels(data$d_114_sum) %>%
+  unknown_to_na() %>%
+  {which(!is.na(.)==T)}-1
+
+char_to_num_levels <- function(variable){
+  levels(variable) <-  levels(variable) %>%
+           car::recode("'one' = 1;
+                  'two' = 2;
+                  'three' = 3;
+                  'four' = 4;
+                  'five' = 5;
+                  'six' = 6;
+                  'seven' = 7;
+                  'eight' = 8;
+                  'nine' = 9") %>%
+           unknown_to_na()
+  return(variable %>%
+           as.character() %>%
+           as.numeric())
+}
+
+
 
 
 #### cases selection ####
@@ -392,6 +431,11 @@ ChiF <- function(variablesDF,grouping){
 
 ### Data Cleanin #####
 
+data4$d_111_sum_wf <- data$d_111_sum %>% char_to_num_levels()
+data4$d_112_sum_wf <- data$d_112_sum %>% char_to_num_levels()
+data4$d_113_sum_wf <- data$d_113_sum %>% char_to_num_levels()
+data4$d_114_sum_wf <- data$d_114_sum %>% char_to_num_levels()
+
 data4$q_200_height_v7 %<>% as.character %>% as.numeric
 data4$q_200_weight_v7 %<>% as.character %>% as.numeric
 
@@ -605,7 +649,7 @@ testInsectsbinomial <- makeTests(groups = "grouping",rdb=rdb) %>% arrange(pval)
 #   geom_point()+
 #   scale_y_log10()
 
-testInsectsbinomialTab <- testInsectsbinomial %>% filter(pval<1e-30) %>%
+testInsectsbinomialTab <- testInsectsbinomial %>% #filter(pval<1e-30) %>%
   select(variableName,counts_1,counts_2,fraq_1,fraq_2,
          pval,
          section) %>%
@@ -988,6 +1032,54 @@ demo_age_tab <- cbind(n = rdb$d_age_gr2[rdb$d_elicitor_gr5=="insects"] %>% summa
 )
 
 
+#### plot MOR#####
+plot_MOR <- gridExtra::grid.arrange(
+  #cowplot::plot_grid(
+  rdbp %>%
+    select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
+    mutate(MOR = substr(b_reactiondate,4,5)) %>%
+    filter(!is.na(q_340_insects),MOR!="00") %>%
+    ggplot(aes(MOR,fill=q_340_insects))+
+    geom_bar(position = "fill")+
+    theme_classic()+
+    theme(axis.text.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          legend.position = "none"
+    )+
+    ylab("Proportion"),
+  rdbp %>%
+    select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
+    mutate(MOR = substr(b_reactiondate,4,5)) %>%
+    filter(!is.na(q_340_insects),MOR!="00") %>%
+    ggplot(aes(MOR,fill=q_340_insects))+
+    geom_bar()+
+    theme_classic()+
+    labs(fill="Insect",x = "Month of the year")+
+    theme(axis.text.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          legend.position = c(0.01,.98),
+          legend.justification = c(0,1)),
+  rdbp %>%
+    select(b_reactiondate,grouping,d_elicitor_gr5,d_centres_country) %>%
+    mutate(MOR = substr(b_reactiondate,4,5),
+           d_elicitor_gr5 = relevel(d_elicitor_gr5, "insects")) %>%
+    filter(!is.na(grouping),MOR!="00") %>%
+    group_by(MOR,grouping) %>%
+    summarize(n = n()) %>%
+    group_by(MOR) %>%
+    summarise(prop = n[1]/sum(n)) %>%
+    ggplot(aes(MOR,prop))+
+    geom_bar(stat="identity")+
+    theme_classic()+
+    labs(x = "Month of the year",y = "Fraction of insect elicited ANA"),
+  #theme(legend.position = c(0.01,.98),
+  #      legend.justification = c(0,1)),
+  heights = c(0.4,1,0.5),
+  ncol = 1
+)
+
 #### Countries ####
 
 t1 <- table(rdb$d_centres_country,rdb$q_340_insects)
@@ -1070,7 +1162,7 @@ plotSympt <- ggplot(testInsectsbinomialTab$symptoms %>%
   theme(axis.text.x = element_text(angle = 50,hjust =1))
 
 png(width = 400*2,height = 430*2,res = 300, filename = "symptomsG.png",pointsize = 7)
-testInsectsbinomialTab$symptoms %>%
+tempplot <- testInsectsbinomialTab$symptoms %>%
   tidyr::gather(key = "group",value = "Fraction", 4:5) %>%
   arrange(pval) %>%
   {.[c(3,4,11:12,7:8,9:10,13,14),]} %>%
@@ -1096,6 +1188,125 @@ ggplot(
   scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32")))
 dev.off()
 
+##### RADAR CHART SPIDER ####
+
+require(fmsb)
+require(purrr)
+
+funtempspider <- function(var){
+  age_sex_matched %>%
+  group_by(grouping,!!var) %>%
+  summarize(n= n()) %>%
+    mutate(variable = deparse(var)) %>%
+  group_by(grouping) %>%
+nest() %>%
+  mutate(prop = map(data,function(x){
+    x$n/sum(x$n)
+  })
+  ) %>% unnest() %>%
+    as.matrix()
+}
+
+temp1 <- lapply(list(quo(q_111),
+            quo(q_112),
+            quo(q_113),
+            quo(q_114),
+            quo(atopy)),
+       funtempspider) %>%
+  do.call(what = rbind) %>%
+  as.data.frame()
+temp <- temp1 %>%
+  filter(grouping == "insects",
+         q_111 == "yes")
+
+temp2 <- temp1 %>%
+  filter(grouping == "other",
+         q_111 == "yes")
+
+temp <- temp %>% t()
+
+colnames(temp) <- temp[5,]
+
+tempdf <- temp %>% data.frame(stringsAsFactors = F) %>%
+{rbind(rep(1,length(.)),rep(0,length(.)),.[2,],temp2 %>% t() %>% {.[2,]})}
+tempdf<- tempdf %>%
+  mutate_if(is.character,as.numeric)
+tempdf <- age_sex_matched %>%
+  group_by(grouping) %>%
+  summarize(tryptase = mean(q_212_tryptase_value_v5,na.rm = T)) %>%
+    {rbind(11,0,.[,2])} %>%
+    cbind(tempdf,.)
+ radarchart(tempdf,
+             #axistype=1,
+           #seg=5, %>%
+           #plty=1,
+           #title="(axis=1, 5 segments, with specified vlabels)",
+           #vlcex=0.5
+           vlabels = c("skin",
+                      "gastrologic",
+                      "respiratory",
+                      "cardiac",
+                      "atopic",
+                      "tryptase"))
+
+  funtempspider2 <- function(var){
+    age_sex_matched %>%
+      group_by(grouping) %>%
+      summarize(n= mean(!!var, na.rm = T)) %>%
+      mutate(variable = deparse(var)) %>%
+      group_by(grouping) %>%
+      nest() %>%
+      mutate(prop = map(data,function(x){
+        x$n/sum(x$n)
+      })
+      ) %>% unnest() %>%
+      as.matrix()
+  }
+
+  age_sex_matched %>%
+    group_by(grouping) %>%
+    summarize(skin= median(d_111_sum_wf, na.rm = T),
+            gastro=median(d_112_sum_wf, na.rm = T),
+            respiratory= median(d_113_sum_wf, na.rm = T),
+            cardiologic=median(d_organ_sum, na.rm = T)) %>%
+    {rbind(c(0,0,0,0,0),
+           c(1,2,1,2,1),
+           .)} %>%
+    select(-1) %>%
+    radarchart()
+
+
+
+# devtools::install_github("ricardo-bion/ggradar",
+#                          dependencies=TRUE)
+
+library(ggradar)
+  library(tibble)
+   library(scales)
+  mtcars %>%
+    rownames_to_column( var = "group" ) %>%
+    mutate_at(vars(-group),funs(rescale)) %>%
+    tail(4) %>% select(1:10) -> mtcars_radar
+
+  ggradar(mtcars_radar)
+
+colnames(tempdf) <- c("skin",
+                      "gastrologic",
+                      "respiratory",
+                      "cardiac",
+                      "atopic",
+                      "tryptase")
+rownames(tempdf) <- c("max","min","IVA","non-IVA")
+tempdf  %>%
+  rownames_to_column( var = "group" ) %>%
+  mutate_at(vars(-group),funs(rescale)) %>%
+  filter(group%in%c("IVA","non-IVA")) %>%
+  ggradar(axis.label.size = 4,
+          group.point.size = 4,
+          legend.text.size = 10,
+          grid.label.size = 4)+
+  theme(legend.position = "top")+
+  scale_color_manual(values = manual_greens)-> plot_radar
 
 # Split the plot into kids and grown ups AGE division - 12
 # Get the proper table
@@ -1155,6 +1366,10 @@ chisq.test(x = matrix(checkVarTab(data = rdb,
                          ncol=2)
            )$p.value
 
+#### Mastocytose patienten  as a subroup #####
+
+
+
 #### MEasures of Association ############
 vcd::assocstats(table(rdb$q_114_hypotension_collapse_v5,
                       grouping)[1:2,])
@@ -1174,6 +1389,7 @@ crammerElicitorBinvsSympt <-
                 filter(section=="symptoms",level==3) %>%
                 pull(variableName))} %>%
   arrange(desc(CV))
+
 
 ### REmove the unknown group ####
 
@@ -1251,7 +1467,7 @@ plot.proportions <- function(data,varx,vary,minN){
     theme(axis.text.x = element_text(angle = 45,hjust=1))+
     annotate(geom = "text",
              x = 1:l,
-             y = rep(0.1,l),
+             y = rep(0.3,l),
              label = paste("n =",ns%>% {as.character(.$n)}),
              angle = 90)
 }
@@ -1555,7 +1771,7 @@ plotManagement <- testANAscoreMatched$management$variableName %>%
     legend.position = c(1, 1),
     legend.justification = c(1, 1)
   ) +
-  labs(x = "Therapy", y = "proportion", fill = "") +
+  labs(x = "Therapy", y = "cases [n]", fill = "") +
   scale_fill_manual(values = rev(c("#E5F5E0", "#74C476", "#005A32"))) +
   theme(axis.title.x = element_blank())
 
@@ -2067,27 +2283,30 @@ testInsectsbinomial %>%
 
 # Check the collinearity of different assessment scales intra
 
-#
-
-png(width = 400*2,height = 430*2,res = 300, filename = "elicitors_green.png",pointsize = 7)
-rdbp %>%
+##### Figure MOR2  eli_green####
+eli_green <-
+  rdbp %>%
   select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
   mutate(MOR = substr(b_reactiondate,4,5),
          q_340_insects = ifelse(is.na(q_340_insects),"non-IVA",as.character(q_340_insects)) %>%
            factor(levels=c("yellow jacket","bee","hornet","bumble-bee","horsefly","mosquito","other","non-IVA"))) %>%
   filter(!is.na(q_340_insects),MOR!="00",
          q_340_insects!="non-IVA") %>%
-  ggplot(aes(MOR,fill=q_340_insects))+
-  geom_bar()+
-  theme_classic()+
-  labs(fill="Insect",x = "Month of the year",y = "number of cases")+
+  group_by(MOR,q_340_insects) %>%
+  summarize(count = n()) %>%
+  ggpubr::ggbarplot(
+    x = "MOR",
+    y = "count",
+    fill = "q_340_insects"
+  )+
+  labs(fill="Insect",x = "Month of the year",y = "Cases [n]")+
   theme(#axis.text.x = element_blank(),
-        axis.title.x = element_blank(),
-        #axis.ticks.x = element_blank(),
-        legend.position = c(0.01,.98),
-        legend.justification = c(0,1),
-        #panel.background = element_rect(fill = "#c9ccc5"),
-        legend.background = element_blank()
+    #axis.title.x = element_blank(),
+    #axis.ticks.x = element_blank(),
+    legend.position = c(0.01,.98),
+    legend.justification = c(0,1),
+    #panel.background = element_rect(fill = "#c9ccc5"),
+    legend.background = element_blank()
   )+
   #scale_fill_brewer(palette = 2,direction = -1)
   scale_fill_manual(values = rev(c("#E5F5E0",
@@ -2097,27 +2316,66 @@ rdbp %>%
                                    "#41AB5D",
                                    "#238B45",
                                    "#005A32")))
+manual_greens <- rev(c("#E5F5E0",
+                       "#C7E9C0",
+                       "#A1D99B",
+                       "#74C476",
+                       "#41AB5D",
+                       "#238B45",
+                       "#005A32"))
 
-dev.off()
+age_dens <- ggpubr::ggdensity(rdbp %>%
+                    filter(!is.na(grouping)) %>%
+                    mutate(grouping = ifelse(grouping == "insects", "IVA","non-IVA")) %>%
+                    mutate(grouping = relevel(factor(grouping),"non-IVA")),
+                  x = "d_age",
+                  fill = "grouping",
+                  position = "fill",
+                  rug = T,
+                  color = "grouping",
+                  palette = manual_greens[c(4,1)])+
+  theme(legend.position = "right")+
+  labs(x = "Age [years]",fill = "", color = "")
+
+#png(width = 400*2,height = 430*2,res = 300, filename = "elicitors_green.png",pointsize = 7)
+#eli_green
+#dev.off()
 
 
-png(width =700*2,height = 630*2,res = 300, filename = "IVAonly.png",pointsize = 10)
-rdb %>%
+#png(width =700*2,height = 630*2,res = 300, filename = "IVAonly.png",pointsize = 10)
+IVAonly <- rdb %>%
   mutate(q_340_insects = as.character(q_340_insects) %>%
            factor(levels=c("yellow jacket",
                            "bee",
                            "hornet",
-                           "other"))) %>%
+                           "other")),
+         d_centres_country = car::recode(d_centres_country,
+                                        "'not EU' = 'Brazil'")) %>%
   plot.proportions("d_centres_country","q_340_insects",5)+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))+
   labs(x = "Country",
-       y="Proportion of IVA cases",
-       fill = "Species")+
+       y="Proportion",
+       fill = "Insect")+
   scale_fill_manual(values = rev(c("#E5F5E0", "#C7E9C0", "#A1D99B", "#74C476", "#41AB5D", "#238B45","#005A32")))
 
+
+right_panel <- ggpubr::ggarrange(age_dens,
+                  IVAonly,
+                  nrow = 2,
+                  ncol = 1,
+                  heights = c(1,2),
+                  labels = c("B","C"))
+fig_basic <- ggpubr::ggarrange(
+  eli_green,
+  right_panel,
+  labels = c("A",""),
+  widths = c(1,1.5)
+)
 # library(RColorBrewer)
 # brewer.pal(8, "Greens")
 
-dev.off()
+#dev.off()
 
 png(width =500*2,height = 630*2,res = 300, filename = "IVAcomplete.png",pointsize = 10)
 gridExtra::grid.arrange(
