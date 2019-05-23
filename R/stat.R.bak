@@ -7,9 +7,7 @@ require(summarytools)
 require(vcd)
 require(MatchIt)
 require(tidyr)
-library(ggradar)
-library(tibble)
-library(scales)
+
 
 #### GET THE DATA ########
 # Note the path that we need to use to access our data files when rendering this document
@@ -23,13 +21,6 @@ library(scales)
 load("data.R") # here the anascore is done using the severity_analysis R script
 data4 <-data
 
-manual_greens <- rev(c("#E5F5E0",
-                       "#C7E9C0",
-                       "#A1D99B",
-                       "#74C476",
-                       "#41AB5D",
-                       "#238B45",
-                       "#005A32"))
 
 ####### Functions #############
 rcalc <- function(var,level="yes"){
@@ -676,7 +667,6 @@ tests_matchedTab <- tests_matched %>% filter(pval<1e-30) %>%
          section) %>%
          {split(.,.$section)}
 
-testInsectsbinomialTab2 <- testInsectsbinomialTab
 testInsectsbinomialTab <- tests_matchedTab
 
 rdb$groupYJ <- ifelse(rdb$d_insect_gr4 == "yellow jacket",
@@ -1201,7 +1191,6 @@ dev.off()
 ##### RADAR CHART SPIDER ####
 
 require(fmsb)
-require(purrr)
 
 funtempspider <- function(var){
   age_sex_matched %>%
@@ -1221,7 +1210,7 @@ temp1 <- lapply(list(quo(q_111),
             quo(q_112),
             quo(q_113),
             quo(q_114),
-            quo(atopy)),
+            quo(q_140_fatal)),
        funtempspider) %>%
   do.call(what = rbind) %>%
   as.data.frame()
@@ -1241,23 +1230,12 @@ tempdf <- temp %>% data.frame(stringsAsFactors = F) %>%
 {rbind(rep(1,length(.)),rep(0,length(.)),.[2,],temp2 %>% t() %>% {.[2,]})}
 tempdf<- tempdf %>%
   mutate_if(is.character,as.numeric)
-tempdf <- age_sex_matched %>%
-  group_by(grouping) %>%
-  summarize(tryptase = mean(q_212_tryptase_value_v5,na.rm = T)) %>%
-    {rbind(11,0,.[,2])} %>%
-    cbind(tempdf,.)
- radarchart(tempdf,
-             #axistype=1,
-           #seg=5, %>%
+  radarchart(tempdf,#axistype=1,
+           #seg=5,
            #plty=1,
            #title="(axis=1, 5 segments, with specified vlabels)",
            #vlcex=0.5
-           vlabels = c("skin",
-                      "gastrologic",
-                      "respiratory",
-                      "cardiac",
-                      "atopic",
-                      "tryptase"))
+           )
 
   funtempspider2 <- function(var){
     age_sex_matched %>%
@@ -1275,20 +1253,11 @@ tempdf <- age_sex_matched %>%
 
   age_sex_matched %>%
     group_by(grouping) %>%
-    summarize(skin= median(d_111_sum_wf, na.rm = T),
-            gastro=median(d_112_sum_wf, na.rm = T),
-            respiratory= median(d_113_sum_wf, na.rm = T),
-            cardiologic=median(d_organ_sum, na.rm = T)) %>%
-    {rbind(c(0,0,0,0,0),
-           c(1,2,1,2,1),
-           .)} %>%
-    select(-1) %>%
-    radarchart()
-
-
-
-# devtools::install_github("ricardo-bion/ggradar",
-#                          dependencies=TRUE)
+    summarize(skin= mean(d_111_sum_wf, na.rm = T),
+            gastro=mean(d_112_sum_wf, na.rm = T),
+            respiratory= mean(d_111_sum_wf, na.rm = T),
+            cardiologic=mean(d_112_sum_wf, na.rm = T)) %>%
+    rbind(0,0,0,0)
 
 # Split the plot into kids and grown ups AGE division - 12
 # Get the proper table
@@ -1348,7 +1317,6 @@ chisq.test(x = matrix(checkVarTab(data = rdb,
                          ncol=2)
            )$p.value
 
-#### Mastocytose patienten  as a subroup #####
 
 
 
@@ -1406,18 +1374,14 @@ AssociatedVars <- testInsectsbinomial %>%
 #                            "q_114_hypotension_collapse_v5",
 #                            "q_112_abdominal_pain",
 #                            "q_112_vomiting"))
-# ggplot(ex %>%
-#          tidyr::gather(key = "group",value = "Fraction", c("fraq_1","fraq_2")) %>%
-#          arrange(pval),
-#        aes(reorder(variableName,pval),Fraction, fill = group))+
-#   geom_bar(stat = "identity", position = "dodge",na.rm = T)+
-#   facet_grid(.~subset)+
-#   theme_classic()+
-#   theme(axis.text.x = element_text(angle = 50,hjust =1))
-
-
-
-
+ggplot(ex %>%
+         tidyr::gather(key = "group",value = "Fraction", c("fraq_1","fraq_2")) %>%
+         arrange(pval),
+       aes(reorder(variableName,pval),Fraction, fill = group))+
+  geom_bar(stat = "identity", position = "dodge",na.rm = T)+
+  facet_grid(.~subset)+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 50,hjust =1))
 
 cramerPlot <-
   ex %>%
@@ -2302,6 +2266,13 @@ eli_green <-
                                    "#41AB5D",
                                    "#238B45",
                                    "#005A32")))
+manual_greens <- rev(c("#E5F5E0",
+                       "#C7E9C0",
+                       "#A1D99B",
+                       "#74C476",
+                       "#41AB5D",
+                       "#238B45",
+                       "#005A32"))
 
 age_dens <- ggpubr::ggdensity(rdbp %>%
                     filter(!is.na(grouping)) %>%
@@ -2394,198 +2365,3 @@ gridExtra::grid.arrange(
 )
 dev.off()
 
-require(ggpubr)
-
-#### Figure Symptoms #####
-severity_joined <- full_join(
-  rdb %>%
-    mutate(d_severity_rm = d_severity_rm %>% factor(),
-           grouping = car::recode(grouping,
-                                  "'insects'='IVA';
-                                  'other'='non-IVA'")
-           ) %>%
-    filter(!is.na(d_severity_rm),
-           !is.na(grouping)) %>%
-    group_by(d_severity_rm,
-             grouping) %>%
-    summarize(n =n()),
-  rdb %>%
-    mutate(d_severity_rm = d_severity_rm %>% factor()) %>%
-    mutate(grouping = ifelse(d_insect_gr4 == "yellow jacket",
-                                 "yellow jacket",
-                                 "other")) %>%
-    filter(!is.na(d_severity_rm),
-           !is.na(d_insect_gr4)) %>%
-    group_by(d_severity_rm,
-             grouping) %>%
-    summarize(n = n()),
-
-  by = c("d_severity_rm","grouping","n")
-) %>% full_join(
-  rdb %>%
-    mutate(d_severity_rm = d_severity_rm %>% factor(),
-           grouping = d_age_gr2) %>%
-    filter(!is.na(d_severity_rm)
-    ) %>%
-    group_by(d_severity_rm,
-             grouping) %>%
-    summarize(n = n()),
-  by = c("d_severity_rm","grouping","n")
-) %>%
-  data.frame(subset = c(rep("Elicitor",8),
-                    rep("Species",8),
-                    rep("Age group",8)))
-
-
-check <- rbind(severity_joined %>%
-  filter(grouping %in% c("IVA","non-IVA")) %>%
-  spread(grouping,n) %>%
-  {matrix(data = cbind(.$IVA,.$`non-IVA`),
-          nrow = 4,ncol=2, byrow = F)} %>%
-  t() %>%
-  chisq.test() %>%
-  broom::tidy(),
-
-
-severity_joined %>%
-  filter(subset == "Species") %>%
-  spread(grouping,n) %>%
-  {matrix(data = cbind(.[,3],.[,4]),
-          nrow = 4,ncol=2, byrow = F)} %>%
-  t() %>%
-  chisq.test()%>%
-  broom::tidy(),
-
-severity_joined %>%
-  filter(subset == "Age group") %>%
-  spread(grouping,n) %>%
-  {matrix(data = cbind(.[,3],.[,4]),
-          nrow = 4,ncol=2, byrow = F)} %>%
-  t() %>%
-  chisq.test()%>%
-  broom::tidy()
-) %>%
-  mutate(subset = c("Elicitor","Species","Age group"))
-
-
-colnames(tempdf) <- c("skin",
-                      "gastrologic",
-                      "respiratory",
-                      "cardiac",
-                      "atopic",
-                      "tryptase")
-rownames(tempdf) <- c("max","min","IVA","non-IVA")
-
-########## FIGURE GOES HERE #######
-fig_symptoms <- ggarrange(
-  # Symtoms
-  ggplot(tests_matched %>%
-           tidyr::gather(key = "group",
-                         value = "Fraction",
-                         c("fraq_1","fraq_2")) %>%
-           filter(!is.na(Fraction),
-                  section =="symptoms",
-                  counts_1<2000,
-                  pval < 1e-9
-           ) %>%
-           mutate(variableName = car::recode(variableName,
-                                             "'q_112_nausea' = 'nausea';
-                                             'q_114_loss_of_consciousness' = 'unconsciousness';
-                                             'q_113_throat_tightness_v5' = 'throat tightness';
-                                             'q_114_reductions_of_alertness' = 'reduced allertness';
-                                             'q_112_incontinence' = 'incontinence';
-                                             'q_112_abdominal_pain' = 'abdominal pain';
-                                             'q_112_diarrhoea' = 'diarrhoea';
-                                             'q_113_wheezing_expiratory_distress_v5' = 'expiratory distress';
-                                             'q_113_rhinitis_v5' = 'rhinitis';
-                                             'q_114_dizziness' = 'dizziness';
-                                             'q_114_hypotension_collapse_v5' = 'hypotension'"
-           ),
-           group = car::recode(
-             group,
-             "'fraq_1' = 'IVA';
-             'fraq_2' = 'non-IVA'"
-           )),
-         aes(reorder(variableName,desc(counts_1)),Fraction, fill = group))+
-    geom_bar(stat = "identity", position = "dodge",na.rm = T)+
-    theme_classic()+
-    theme(axis.text.x = element_text(angle = 30,hjust =1, size = 15),
-          legend.position = c(0.99,0.99),
-          legend.justification = c(1,1),
-          axis.title.x.bottom = element_blank())+
-    labs(x = "symptom",y = "proportion", fill = "elicitor")+
-    scale_fill_manual(values = manual_greens[c(1,3)]),
-  # Crammers V
-  tests_matched %>%
-    mutate(organ = factor(ifelse(grepl(variableName,pattern = "111"),"skin",
-                          ifelse(grepl(variableName,pattern = "112"),"gastro",
-                                 ifelse(grepl(variableName,pattern = "113"),"respiratory",
-                                        ifelse(grepl(variableName,pattern = "114"),"cardio",NA)))),
-                          levels = c("respiratory","cardio","gastro","skin"))
-           ) %>%
-    filter(!is.na(Cramer),
-           section == "symptoms",
-           Cramer > 0.1,
-           !(variableName %in% c("q_114","q_143_fatal_adre_v5")))%>%
-    mutate(variableName = car::recode(variableName,
-                                      "'q_112_nausea' = 'nausea';
-                                      'q_114_loss_of_consciousness' = 'unconscious';
-                                      'q_113_throat_tightness_v5' = 'throat tightness';
-                                      'q_114_reductions_of_alertness' = 'reduced allertness';
-                                      'q_112_incontinence' = 'incontinence';
-                                      'q_112_abdominal_pain' = 'abdominal pain';
-                                      'q_112_diarrhoea' = 'diarrhoea';
-                                      'q_113_wheezing_expiratory_distress_v5' = 'expiratory distress';
-                                      'q_113_rhinitis_v5' = 'rhinitis';
-                                      'q_114_dizziness' = 'dizziness';
-                                      'q_114_hypotension_collapse_v5' = 'hypotension'"
-    )) %>%
-    ggdotchart(x = "variableName",
-               y = "Cramer",
-               color = "organ",
-               palette = "lancet",
-               sorting = "descending",
-               add = "segments",
-               add.params = list(color = "organ"),
-               rotate = T,
-               #group = "organ",
-               dot.size = 5,
-               size = 2,
-               #label = "Cramer"
-               ggtheme = theme_pubr())+
-    labs(x = "",y = "Cramer's V",color = "")+
-    theme(legend.justification = c(-1,0)),
-
-  tempdf  %>%
-  {.[,c(2,1,5,3,4,6)]} %>%
-    rownames_to_column( var = "group" ) %>%
-    mutate_at(vars(-group),funs(rescale)) %>%
-    filter(group%in%c("IVA","non-IVA")) %>%
-    ggradar(axis.label.offset = c(1.1),
-            axis.label.size = 5,
-            group.point.size = 3,
-            legend.text.size = 7,
-            grid.label.size = 0)+
-    theme(legend.position = "none")+
-    scale_color_manual(values = manual_greens),
-
-  severity_joined %>%
-    ggbarplot(x = "grouping",
-              y = "n",
-              fill = "d_severity_rm",
-              position = position_fill(reverse = T),
-              color = "d_severity_rm",
-              palette = "lancet")+
-    facet_grid(.~subset,scale = "free_x",space = "free_x")+
-    labs(fill = "Severity\n[R&M]")+
-    theme(axis.title.x =  element_blank(),
-          axis.text.x = element_text(angle=20,hjust = 1),
-          legend.position = "right"
-    )+
-    annotate("text",x = 1.5, y = 0.5, label = c("*","*",""),
-             size =12)+
-    guides(color = F),
-  common.legend = F,
-  labels = c("A","B","C","D"),
-  nrow = 2, ncol =2,
-  widths = c(1,0.9))

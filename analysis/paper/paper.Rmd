@@ -98,9 +98,6 @@ Cases of IVA were more frequent in older patients. Children suffered mainly from
 
 ## Symptoms
 
-```{r}
-ggpubr::ggarrange(plot_radar,plotSympt)
-```
 
 Patients who underent anaphylaxis due to insect venom more often experienced 
 cardiologic symptoms. Especially collapsing due to hypotension was prominently 
@@ -367,7 +364,7 @@ USe the model from our previous paper
 
 ## Managment
 
-### Adrenaline use is lower in patients with IVA compared to other anaphylaxis cases
+### Adrenaline is less often used in patients with IVA compared to other anaphylaxis cases
 
 ```{r adrenuse, fig.cap="**Therapy of IVA cases.** A: General managment methods in IVA and non-IVA. B: Reasons for not administering adrenaline in both IVA and non-IVA cases. C,D,E: Age, sex and severity distribution was matched in cases in both groups to allow for comparable results between IVA and non_IVA cases"}
 fig_adrenuse1
@@ -376,24 +373,6 @@ fig_adrenuse1
 Patients who underwent IVA significantly less often recived adrenaline treatment than in other adrenaline cases (`r test_adrenuse1$observed %>% prop.table()`, `r test_adrenuse1$p.value %>% pval()`). After adjusting both groups for simmilar age, sex and severity distribution - the difference in adrenaline use was still significant irrespective of the route of administration. Antihistaminic drugs on the other had were given more often in cases of IVA when compared to non-IVA. 
 
 IVA was most often treated with corticosteroids and antihistamines (significantly more frequent than in other anaphylaxis cases). On the other hand adrenaline, beta-2 mimetics and oxygen were given more often in non-IVA. 
-
-```{r}
-ANAscore_matched %>%
-        mutate(grouping = recode(grouping,
-                                 'insects'='IVA',
-                                 'other'='non-IVA'),
-               d_522_adren_agg = recode(d_522_adren_agg,
-                                       'no'='no adrenaline',
-                                       'yes'='adrenaline given') ) %>%
-                         group_by(grouping,
-                                  #d_AAI_prescribed,
-                                  d_522_adren_agg) %>%
-                         summarize(n = n()) %>%
-  pull(n) %>% 
-  matrix(nrow=2) %>% 
-  chisq.test() %>% 
-```
-
 
 ## Diagnostics 
 
@@ -712,5 +691,9 @@ plot_MOR
 ```
 
 ```{R adrenalineuse, fig.cap = "The proportion of insect venom elicited anaphylaxis cases that were treated with adrenaline in comparison to other elicitors."}
-F2$plot2
+fig_adrenuse1
+```
+
+```{r figsymptoms, fig.cap="Symptoms of insect venom anaphylaxis (IVA) compared to other elicitors",fig.width=8}
+fig_symptoms
 ```
