@@ -9,8 +9,8 @@ author:
   - Margitta Worm^1^
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
-    bookdown::html_document2:
-    #bookdown::word_document2:
+    #bookdown::html_document2:
+    bookdown::word_document2:
       fig_caption: yes
       reference_docx: "../templates/template.docx" # Insert path for the DOCX file
 bibliography: references.bib
@@ -55,6 +55,7 @@ devtools::load_all('.',quiet = T) # Or use devtools::load_all('.', quiet = T) if
 
 ```
 
+
 # Abstract
 Insect-venom elicited anaphylaxis is a common hypersensitivity reaction which may be life-threatening. Using the data from the European Anaphylaxis Registry (`r nrow(data)` cases in total) we identified insect-venom elicited anaphylaxis cases (n = `r {data$d_elicitor_gr5=="insects"} %>% sum()`) and analyzed these in comparison to anaphylaxis elicited by other elicitors (n = `r {data$d_elicitor_gr5!="insects"} %>% sum()`).
 
@@ -86,10 +87,6 @@ The statistical analysis was performed in the R Statistical Package [@R]. Simple
 
 ## Temporal distribution of anaphylaxis cases by elicitor.
 
-```{r insectstime, fig.cap="A: Proportion of anaphylaxis cases elicited by specific insects according to the month in which the reaction occured. Less frequent insects were groupeped together as 'other'. B: The proportion of insect elicited cases to ceses elicited by other triggers considering patient's age. C: Geographical differences in the most common eliciotors of IVA. Countries which reported less than 10 cases of anaphylaxis due to insect venom were not illustrated in this figure."}
-fig_basic
-```
-
 Insect venom elicited anaphylaxis in contrast to other elicitors showed a significant seasonal fluctuation and was most frequently reported from May till October. Their proportion to other cases during the summer seasons reached 60% and was as under 1% of cases during winter. Yellow-jacket was the most prominent IVA-causing insect reported in these cases followed by bees. The IVA causing insects differed in European countries with hornets being more prominient on the south of europe. IVA was more frequent in adults and seniors when compared to children and youg adults. (Fig \@ref(fig:insectstime)). 
 
 Cases of IVA were more frequent in older patients. Children suffered mainly from food elicited anaphylaxis. Therefore we adjusted the anlysis apropriately for age. 
@@ -105,24 +102,11 @@ more often seen in patient who underwent venom anaphylaxis. This difference was 
 We saw prominent differences in association of specific symptoms with eliocitor in cerain age groups. Children under 13 yoears of age showed association with IVIA and vomiting - whereas adults did not. Hypotension collapse was more prominently associated with IVIA in children whereas loss of consciousness in adults. 
 
 
-```{r}
-crammerElicitorBinvsSympt[1:15,] %>% arrange(desc(CV)) %>% knitr::kable()
-
-crammerElicitorBinvsSympt[1:15,] %>% arrange(desc(CV)) %>%
-  filter(CV<0.3,
-         CV>0.15) %>% 
-  ggplot(aes(reorder(var,-CV),CV))+
-  geom_col()+
-  theme(axis.text.x = element_text(angle=90))
-```
-
-
-
 Patients with Insect Venom Allergy had a lot more cardiologic symptoms than anaphylaxis cases that were elicited through other triggers.  
-Dizziness, Loss of consciousness hypotension, collapse, Throat tightness and nausea were a lot more often associated with the insect cases. 
+Dizziness, Loss of consciousness hypotension, collapse, Throat tightness and nausea were more often associated with the insect cases.
 
 
-Forest plot ! Risk that the symptom will occure given that the reaction was elicited by Insects or not 
+<!-- Forest plot ! Risk that the symptom will occure given that the reaction was elicited by Insects or not -->
 
 
 
@@ -610,90 +594,34 @@ Cardiologic symptoms and hypotensive collapse might be associated with vanom ana
 
 # Figures
 
-```{r flow}
+
+
+
+```{r flow,fig.width=6,fig.height=4}
 knitr::include_graphics("../figures/flow.png")
 ```
 
-```{r figforestcofactors}
-knitr::include_graphics("../figures/figForest.png")
+##### pagebreak
+
+```{r insectstime, fig.cap="A: Proportion of anaphylaxis cases elicited by specific insects according to the month in which the reaction occured. Less frequent insects were groupeped together as 'other'. B: The proportion of insect elicited cases to ceses elicited by other triggers considering patient's age. C: Geographical differences in the most common eliciotors of IVA. Countries which reported less than 10 cases of anaphylaxis due to insect venom were not illustrated in this figure.",fig.height=4,fig.width = 7}
+fig_basic
 ```
 
-```{r figforestcofactorskids}
-knitr::include_graphics("../figures/kidsForest.png")
-```
+##### pagebreak
 
-```{r figforestcofactorsadults}
-knitr::include_graphics("../figures/adultsForest.png")
-```
-
-```{r}
-mosaic(d_organ_sum~d_elicitor_gr5,data=rdb)
-```
-
-```{r}
-mosaic(d_severity_rm~d_elicitor_gr5,data=rdb)
-```
-
-```{r}
-hypotensionPlot
-```
-
-```{r}
-cramerPlot
-```
-
-```{r}
-plot.Cramer(supraCramerFun(data =rdbp,
-               vars =c( "q_114",
-               "q_112_incontinence",
-               "q_114_dizziness",
-               "q_112_abdominal_pain",
-               "q_114_loss_of_consciousness",
-               "q_114_hypotension_collapse_v5",
-               "q_114_reductions_of_alertness",
-               "q_111_angioedema",
-               "q_113_wheezing_expiratory_distress_v5"),
-               grouping = "grouping",
-               subset = "d_age_gr2"))
-
-
-```
-
-
-```{r}
-plot.Cramer(cramerFun(data =rdbp,
-               vars=c("q_114",
-               "q_112_incontinence",
-               "q_114_dizziness",
-               "q_112_abdominal_pain",
-               "q_114_loss_of_consciousness",
-               "q_114_hypotension_collapse_v5",
-               "q_114_reductions_of_alertness",
-               "q_111_angioedema",
-               "q_113_wheezing_expiratory_distress_v5"),
-               grouping = "grouping"))
-```
-
-```{r}
-tryptase_plot(rdb)+
-  scale_x_log10()+
-  facet_grid(~d_age_gr2)
-
-```
-
-```{r reactionmonthincountries, fig.cap="Proportional insect venom induced anaphylaxis to specific insects during a year according to countries.", fig.height=8,fig.width=5}
-plot_MOR+
-  facet_grid(d_centres_country~.)
-```
-
-```{r}
-plot_MOR
-```
-
-```{R adrenalineuse, fig.cap = "The proportion of insect venom elicited anaphylaxis cases that were treated with adrenaline in comparison to other elicitors."}
+```{R adrenalineuse, fig.cap = "The proportion of insect venom elicited anaphylaxis cases that were treated with adrenaline in comparison to other elicitors.",fig.height=4,fig.width = 6}
 fig_adrenuse1
 ```
 
-```{r figsymptoms, fig.cap="Symptoms of insect venom anaphylaxis (IVA) compared to other elicitors",fig.width=8}
+##### pagebreak
+
+```{r figsymptoms, fig.cap="Symptoms of insect venom anaphylaxis (IVA) compared to other elicitors",fig.width=9.5,fig.height = 6}
 fig_symptoms
+```
+
+
+##### pagebreak
+
+```{r figcofactors, fig.cap="Cofactors of insect venom anaphylaxis ad their relationship to severity of a reaction",fig.width=4.2,fig.height = 6}
+cof_fig
 ```

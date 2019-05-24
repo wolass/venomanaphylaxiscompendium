@@ -836,8 +836,51 @@ makeForestPlot <- function(data,variables,grouping,outcome,cLow=0.2,cHigh = 4){
              col=fpColors(box="royalblue",line="darkblue", summary="royalblue"))
 }
 
+library(forcats)
+or_plot <- function(my_result){
+  my_result %>%
+    mutate_all(unlist) %>%
+    mutate(variable = forcats::fct_inorder(V)) %>% #make variable into factor (otherwise ggplot will make alphabetically)
+    ##start ggplot()
+    ggplot(aes(x = forcats::fct_rev(V),
+               y = mean))+
+    geom_hline(yintercept = 1,
+               colour = 'grey')+ #1.0 reference line
+    geom_errorbar(aes(ymin = lower, ymax = upper),
+                  width  = 0.2,
+                  colour = '#41ae76',
+                  size   = 0.9) + #OR lower-upper errorbars
+    ##geom_linerange(aes(ymin=or_lower, ymax=or_upper), width=0.2, colour='#41ae76', size=0.9) + #alternative to errorbars
+    geom_point(shape  = 18,
+               size   = 2.5,
+               colour = '#41ae76') +
+    ##explanatory labels
+    geom_text(aes(label = S),
+              vjust = -0.5) +
+    ##reference level labels
+    #geom_text(data = my_result %>%
+    #            filter(is.na(or)) %>%
+    #            mutate(or_reference = 1.0),
+    #          aes(label = value, x = variable, y = or_reference), angle = 90, vjust = -0.2, colour = '#737373') +
+    coord_flip() +
+    scale_y_log10() + #log scale breaks=c(0.2, 0.5, 1, 1.5, 2.0, 3.0), breaks=c(0.01, 0.1, 0.5, 1, 2.0)
+    theme_bw() +                          #theme
+    theme(axis.text.y  = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.title   = element_blank(),
+          #panel.border = element_blank(),
+          axis.text.x  = element_text(size=12, colour='black')
+          #,panel.grid.major.y = element_blank() #optinally only remove horizontal grid lines (keeping odds ratio ones)
+          ,panel.grid.major = element_blank() #these remove all grid lines
+          ,panel.grid.minor = element_blank()
+    )
+
+  #or_plot
+
+}
+
 ### testing
-test1 <- makeDF(rdbp,
+test1 <- makeDF(age_sex_matched,
                 c( "q_410_cur",
                    "q_410_asthma_cur",
                    "q_410_masto_cur",
@@ -845,18 +888,60 @@ test1 <- makeDF(rdbp,
                    "q_423_beta",
                    "q_423_ace",
                    "q_4211_exercise",
-                   "q_422_stress"),
+                   "q_422_stress",
+                   "q_423_asa"),
                 "grouping",
                 "severity_brown")
 
-test1[1] <- c(NA,"Concomitant disease",NA,NA,"Asthma",NA,NA,"Mastocytosis",NA,NA,
-              "Cardiologic disese",NA,NA,"Beta-blockers",NA,NA,"ACE-I",NA,NA,"Exercise",NA,NA,"Stress",NA,NA)
-test1 <- test1[-c(2:7,23:25),]
+test1[1] <- c(NA,"Concomitant disease",
+              NA,NA,"Asthma",
+              NA,NA,"Mastocytosis",
+              NA,NA,"Cardiologic disese",
+              NA,NA,"Beta-blockers",
+              NA,NA,"ACE-I",
+              NA,NA,"Exercise",
+              NA,NA,"Stress",
+              NA,NA,"ASA",NA,NA)
+test1 <- test1[-c(2:4,20:25),]
+
+
+test2 <- makeDF(age_sex_matched,
+                c( "q_410_cur",
+                   "q_410_masto_cur",
+                   "q_410_asthma_cur",
+                   "q_410_cardio_cur",
+                   "q_423_beta",
+                   "q_423_ace",
+                   "q_4211_exercise",
+                   "q_422_stress",
+                   "q_423_asa"),
+                "grouping",
+                "d_severity_rmr")
+
+test2[1] <- c(NA,"Concomitant disease",
+              NA,NA,"Mastocytosis",
+              NA,NA,"Asthma",
+              NA,NA,"Cardiologic disese",
+              NA,NA,"Beta-blockers",
+              NA,NA,"ACE-I",
+              NA,NA,"Exercise",
+              NA,NA,"Stress",
+              NA,NA,"ASA",NA,NA)
+test2 <- test2[-c(2:4,20:25),]
+
+
+
+
+
+
+or_plot(test1)
+
+
 png("analysis/figures/figForestfinal.png",
     height = 800,
-    width = 1400,
+    width = 1000,
     #res = 300,
-    pointsize = 44,
+    pointsize = 40,
     units="px")
 forestplot(labeltext = makeTableText(test1),
            mean = test1[,"mean"] %>% unlist,
@@ -872,18 +957,60 @@ forestplot(labeltext = makeTableText(test1),
            lwd.zero = 4)
 dev.off()
 
+png("analysis/figures/figForestfinal.png",
+    height = 675,
+    width = 795,
+    #res = 300,
+    pointsize = 30,
+    #units="px"
+    )
+forestplot(labeltext = makeTableText(test2)[,1:2],
+           mean = test2[,"mean"] %>% unlist,
+           lower = test2[,"lower"] %>% unlist,
+           upper = test2[,"upper"] %>% unlist,
+           new_page = TRUE,
+           is.summary=c(T,rep(F,length(test2[,1])-1)),
+           clip=c(0.2,4),
+           xlog=TRUE,
+           col=fpColors(box="#92c442",line="gray", summary="royalblue"),
+           lwd.xaxis = 5,
+           lwd.ci = 4,
+           lwd.zero = 4,
+           hrzl_lines = T,
+           grid = T,
+           txt_gp = fpTxtGp(ticks = gpar(cex = 0.8)))
+dev.off()
+
+
+
+
 png("analysis/figures/figForest.png")
-makeForestPlot(rdbp,
-               c( "q_410_cur",
+makeForestPlot(age_sex_matched,
+               c( "q_410_masto_cur",
                   "q_410_asthma_cur",
-                  "q_410_masto_cur",
                   "q_410_cardio_cur",
-                    "q_423_beta",
-                  "q_4211_exercise",
-                    "q_422_stress"),
+                  "q_423_beta",
+                  "q_423_ace",
+                  "q_423_asa"),
                "grouping",
                "d_severity_rmr")
 dev.off()
+
+makeForestPlot(age_sex_matched %>%
+                 mutate(tryp_cat %>% factor),
+               c( "q_410_masto_cur",
+                  "q_410_asthma_cur",
+                  "q_410_cardio_cur",
+                  "q_423_beta",
+                  "q_423_ace",
+                  #"tryp_cat",
+                  "q_423_asa"
+                  ),
+               "grouping",
+               "severity_brown"
+               )
+
+
 
 png("analysis/figures/kidsForest.png")
 makeForestPlot(rdbp[rdbp$d_age<18,],
@@ -1866,17 +1993,16 @@ ANAscore_matched %>%
            size=4,
            vjust=0)+
   theme_classic()+
-  theme(legend.position = c(0.1,0.9),
-        legend.justification = c(0,1),
+  theme(legend.position = "none",
         axis.text.x = element_text(angle=20, hjust = 1))+
   labs(y ="proportion",
        x = "Reason for\nnot administering adrenaline",
        fill = "Elicitor")+
   scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32")))+
-  theme(axis.title.x = element_blank()),
+  theme(axis.title.x = element_blank())+
+  ylim(0,.99),
 ncol = 2,
-common.legend = T,
-legend = "top",
+common.legend = F,
 widths = c(1,0.7),
 align = "h",
 labels = c("A","B"))
@@ -1930,6 +2056,22 @@ test_adrenuse1<- ANAscore_matched %>%
   group_by(grouping,d_522_adren_agg) %>%
   summarize(n = n()) %>% {matrix(.$n,ncol = 2)} %>%
   chisq.test()
+
+###### Test if me see less skin symptoms in mastocytosis patients #####
+df <- data4 %>%
+  filter(d_elicitor_gr5=="insects") %>%
+  group_by(q_111,q_410_masto_cur) %>%
+  summarize(n()) %>%
+  spread(key = q_410_masto_cur,value = `n()`) %>%
+  as.data.frame()
+
+o <- prop.table(as.matrix(df[1:2,2:3]),2)*100
+o <- as.matrix(df[1:2,2:3])
+chisq.test(o)
+rownames(o) <- c("no skin symptoms", "skin symptoms present")
+colnames(o) <- c("no masto","masto present")
+
+
 
 
 ### route of administration severity ####
@@ -2349,7 +2491,7 @@ fig_basic <- ggpubr::ggarrange(
   eli_green,
   right_panel,
   labels = c("A",""),
-  widths = c(1,1.5)
+  widths = c(1,1.2)
 )
 # library(RColorBrewer)
 # brewer.pal(8, "Greens")
@@ -2435,6 +2577,46 @@ severity_joined <- full_join(
   data.frame(subset = c(rep("Elicitor",8),
                     rep("Species",8),
                     rep("Age group",8)))
+
+severity_joined_brown <- full_join(
+  rdb %>%
+    mutate(d_severity_rm = severity_brown %>% factor(),
+           grouping = car::recode(grouping,
+                                  "'insects'='IVA';
+                                  'other'='non-IVA'")
+           ) %>%
+    filter(!is.na(d_severity_rm),
+           !is.na(grouping)) %>%
+    group_by(d_severity_rm,
+             grouping) %>%
+    summarize(n =n()),
+  rdb %>%
+    mutate(d_severity_rm = severity_brown %>% factor()) %>%
+    mutate(grouping = ifelse(d_insect_gr4 == "yellow jacket",
+                             "yellow jacket",
+                             "other")) %>%
+    filter(!is.na(d_severity_rm),
+           !is.na(d_insect_gr4)) %>%
+    group_by(d_severity_rm,
+             grouping) %>%
+    summarize(n = n()),
+
+  by = c("d_severity_rm","grouping","n")
+    ) %>% full_join(
+      rdb %>%
+        mutate(d_severity_rm = severity_brown %>% factor(),
+               grouping = d_age_gr2) %>%
+        filter(!is.na(d_severity_rm)
+        ) %>%
+        group_by(d_severity_rm,
+                 grouping) %>%
+        summarize(n = n()),
+      by = c("d_severity_rm","grouping","n")
+    ) %>%
+  data.frame(subset = c(rep("Elicitor",4),
+                        rep("Species",4),
+                        rep("Age group",4)))
+
 
 
 check <- rbind(severity_joined %>%
@@ -2554,7 +2736,7 @@ fig_symptoms <- ggarrange(
                #label = "Cramer"
                ggtheme = theme_pubr())+
     labs(x = "",y = "Cramer's V",color = "")+
-    theme(legend.justification = c(-1,0)),
+    theme(legend.justification = c(-3,0)),
 
   tempdf  %>%
   {.[,c(2,1,5,3,4,6)]} %>%
@@ -2569,7 +2751,7 @@ fig_symptoms <- ggarrange(
     theme(legend.position = "none")+
     scale_color_manual(values = manual_greens),
 
-  severity_joined %>%
+  severity_joined_brown %>%
     ggbarplot(x = "grouping",
               y = "n",
               fill = "d_severity_rm",
@@ -2577,7 +2759,7 @@ fig_symptoms <- ggarrange(
               color = "d_severity_rm",
               palette = "lancet")+
     facet_grid(.~subset,scale = "free_x",space = "free_x")+
-    labs(fill = "Severity\n[R&M]")+
+    labs(fill = "Severity")+
     theme(axis.title.x =  element_blank(),
           axis.text.x = element_text(angle=20,hjust = 1),
           legend.position = "right"
@@ -2589,3 +2771,72 @@ fig_symptoms <- ggarrange(
   labels = c("A","B","C","D"),
   nrow = 2, ncol =2,
   widths = c(1,0.9))
+
+#### Cramer Plot just for reference ####
+plot.Cramer(cramerFun(data =rdbp,
+                      vars=c("q_114",
+                             "q_112_incontinence",
+                             "q_114_dizziness",
+                             "q_112_abdominal_pain",
+                             "q_114_loss_of_consciousness",
+                             "q_114_hypotension_collapse_v5",
+                             "q_114_reductions_of_alertness",
+                             "q_111_angioedema",
+                             "q_113_wheezing_expiratory_distress_v5"),
+                      grouping = "grouping"))
+
+plot.Cramer(supraCramerFun(data =rdbp,
+               vars =c( "q_114",
+               "q_112_incontinence",
+               "q_114_dizziness",
+               "q_112_abdominal_pain",
+               "q_114_loss_of_consciousness",
+               "q_114_hypotension_collapse_v5",
+               "q_114_reductions_of_alertness",
+               "q_111_angioedema",
+               "q_113_wheezing_expiratory_distress_v5"),
+               grouping = "grouping",
+               subset = "d_age_gr2"))
+
+##### COFACTORS FIGURE!!!! ####
+
+require(ggpubr)
+cof_fig<- ggarrange(
+  ggplot()+
+    background_image(png::readPNG("analysis/figures/figForestfinal.png")),
+  ggarrange(
+    age_sex_matched %>%
+    filter(!is.na(d_severity_rm),
+           !is.na(tryp_cat)) %>%
+    mutate(d_severity_rm = d_severity_rm %>% factor()) %>%
+    group_by(grouping,d_severity_rm,tryp_cat) %>%
+    summarize(n = n()) %>%
+    ggbarplot(x= "tryp_cat",
+              fill = "d_severity_rm",
+              y = "n",
+              facet.by = "grouping",
+              position = position_fill(reverse = T),
+              palette = "lancet")+
+    labs(y = "proportion",x = "Tryptase levels",fill = "severity grade"),
+
+  age_sex_matched %>%
+    filter(!is.na(d_severity_rm),
+           !is.na(q_410_masto_cur),
+           q_410_masto_cur != "unknown") %>%
+    mutate(d_severity_rm = d_severity_rm %>% factor()) %>%
+    group_by(grouping,d_severity_rm,q_410_masto_cur) %>%
+    summarize(n = n()) %>%
+    ggbarplot(x= "q_410_masto_cur",
+              fill = "d_severity_rm",
+              y = "n",
+              facet.by = "grouping",
+              position = position_fill(reverse = T),
+              palette = "lancet")+
+    labs(fill = "severity",x = "Concomitant mastocytosis",y="proportion"),
+  labels = c("B","C"),
+  common.legend = T),
+nrow = 2,
+ncol=1,
+heights = c(1,0.7),
+labels = c("A","")
+)
