@@ -2840,3 +2840,349 @@ ncol=1,
 heights = c(1,0.7),
 labels = c("A","")
 )
+
+#### Heatmap Symptom+Therapy ####
+#### For all cases
+require(gplots)
+# x <- rdb %>%
+#   select(starts_with("q_1"),
+#          starts_with("q_5")
+#          ) %>%
+#   map(function(x){
+#     ifelse(is.na(x), 0,ifelse(x=="yes",1,0))
+#   }) %>%
+#   do.call(what = cbind) %>% as.matrix()
+# x <- x[,which(apply(x,2,sum)>0)]
+
+# dendr <- x %>% dist(method = "binary") %>%
+#   hclust(method = "ward.D2") %>%
+#   as.dendrogram #%>%
+#   #ladderize %>%
+#   #color_branches(k=4)
+#
+# heatmap.2(x,
+#           density.info = "none",
+#             trace = "none",
+#           Rowv = dendr,
+#           RowSideColors = rdb %>%
+#             mutate(group = ifelse(grouping=="insects",
+#                                   "yellow",
+#                                   ifelse(grouping =="other",
+#                                          "brown",
+#                                          "green"))) %>%
+#             select(group) %>% pull()
+#             )
+#
+#
+# heatmap.2(x,
+#           density.info = "none",
+#           trace = "none",
+#           Rowv = dendr,
+#           RowSideColors = rdb %>%
+#             mutate(group = car::recode(d_elicitor_gr5,
+#                                        "'insects'='yellow';
+#                                        'food' = 'brown';
+#                                        'drugs' = 'green';
+#                                        'other' = 'blue';
+#                                        'unknown' = 'grey';
+#                                        'unkown' = 'grey'")) %>%
+#             select(group) %>% pull() %>% as.character()
+# )
+#
+#
+x <- age_sex_matched %>%
+  select(#starts_with("q_1"),
+         #-q_112,
+         #-q_113,
+         #-q_114,
+         #-starts_with("q_16"),
+        starts_with("q_5"),
+         -"q_522_unknown"
+  ) %>%
+  map(function(x){
+    ifelse(is.na(x), 0,ifelse(x=="yes",1,0))
+  }) %>%
+  do.call(what = cbind) %>% as.matrix()
+
+library(randomForest)
+fit_rf=randomForest(grouping~., data=data.frame(x,grouping = age_sex_matched$grouping ))
+varImpPlot(fit_rf)
+vars <- importance(fit_rf) %>%
+  broom::tidy() %>%
+  arrange(desc(MeanDecreaseGini)) %>%
+  filter(MeanDecreaseGini > 20)
+
+x <- age_sex_matched %>%
+  select(vars$.rownames) %>%
+  map(function(x){
+    ifelse(is.na(x), 0,ifelse(x=="yes",1,0))
+  }) %>%
+  do.call(what = cbind) %>% as.matrix()
+
+#x <- x[,which(apply(x,2,sum)>5)]
+
+
+
+
+#
+# heatmap.2(t(x),
+#           density.info = "none",
+#           trace = "none",
+#           #Rowv = dendr,
+#           ColSideColors = age_sex_matched %>%
+#             mutate(group = car::recode(d_elicitor_gr5,
+#                                        "'insects'='yellow';
+#                                        'food' = 'brown';
+#                                        'drugs' = 'green';
+#                                        'other' = 'blue';
+#                                        'unknown' = 'grey';
+#                                        'unkown' = 'grey'")) %>%
+#             select(group) %>% pull() %>% as.character(),
+#           distfun= function(x) dist(x, method="binary"),
+#           hclustfun=function(x) hclust(x, method="ward.D2")
+# )
+
+
+heatmap.2(t(x),
+          density.info = "none",
+          trace = "none",
+          #Rowv = dendr,
+          ColSideColors = age_sex_matched %>%
+            mutate(group = ifelse(grouping=="insects",
+                                  "green",
+                                  ifelse(grouping =="other",
+                                         "white",
+                                         "gray"))) %>%
+            select(group) %>% pull() %>% as.character(),
+          distfun= function(x) dist(x, method="binary"),
+          hclustfun=function(x) hclust(x, method="ward.D")
+)
+
+# require(heatmap.plus)
+# heatmap.plus(t(x),
+#           density.info = "none",
+#           trace = "none",
+#           ColSideColors = age_sex_matched %>%
+#             mutate(group = ifelse(grouping=="insects",
+#                                  "green",
+#                                  ifelse(grouping =="other",
+#                                         "white",
+#                                         "gray")),
+#                    severity = car::recode(
+#                      d_severity_rm %>% as.factor(),
+#                      "'1' = 'white';
+#                      '2' = 'yellow';
+#                      '3' = 'orange';
+#                      '4' = 'red'"
+#                    )) %>%
+#             select(group,severity)  %>% as.matrix(),
+#           distfun= function(x) dist(x, method="canberra"),
+#           hclustfun=function(x) hclust(x, method="ward.D2")
+# )
+
+
+#### Tryptase and cardio symptoms ####
+
+age_sex_matched %>%
+  ggplot(aes(fill=q_114,q_212_tryptase_value_v5,x = grouping))+
+  geom_boxplot()+
+  scale_y_log10()
+
+age_sex_matched %>%
+  ggplot(aes(x=q_114,q_212_tryptase_value_v5))+
+  geom_boxplot()+
+  scale_y_log10()
+
+tryp1 <- age_sex_matched %>%
+  filter(!is.na(tryp_cat),
+         q_114 != "unknown") %>%
+  group_by(tryp_cat,q_114) %>%
+  summarize(n=n())
+tryp1 %>%
+  ggplot(aes(x=q_114,fill = tryp_cat,y = n))+
+  geom_bar(position = "fill",stat = "identity")
+
+tryp1 %>% spread(key=q_114,value = n) %>% {chisq.test(.[,2:3])}
+
+
+tryp2 <- age_sex_matched %>%
+  filter(!is.na(tryp_cat),
+         q_114 != "unknown",
+         !is.na(grouping)) %>%
+  group_by(tryp_cat,q_114,grouping) %>%
+  summarize(n=n())
+
+tryp2 %>%
+  ggplot(aes(x=q_114,fill = tryp_cat,y = n))+
+  geom_bar(position = "fill",stat = "identity")+
+  facet_grid(.~grouping)
+
+tryp2 %>% spread(key=q_114,value = n) %>%
+  group_by(grouping) %>%
+  nest() %>%
+  {map(.$data,function(x){
+    x[,2:3] %>% chisq.test
+  })}
+{chisq.test(.[,2:3])}
+
+
+
+fit <- glm(q_114 ~ tryp_cat+grouping, data = age_sex_matched %>%
+      filter(!is.na(tryp_cat),
+             q_114 != "unknown",
+             !is.na(grouping)) %>%
+      dplyr::select(q_114,tryp_cat,grouping),
+  family = binomial)
+summary(fit)
+
+
+
+# Put the above into the paper as it is a nice find
+#(but lest do that for other cardio symptoms)
+
+tryp_dizzy <- age_sex_matched %>%
+  filter(!is.na(tryp_cat),
+         q_114_dizziness != "unknown",
+         !is.na(grouping)) %>%
+  group_by(tryp_cat,q_114_dizziness,grouping) %>%
+  summarize(n=n())
+
+tryp_dizzy %>%
+  ggplot(aes(x=q_114_dizziness,fill = tryp_cat,y = n))+
+  geom_bar(position = "fill",stat = "identity")+
+  facet_grid(.~grouping)
+
+tryp_dizzy %>% spread(key=q_114_dizziness,value = n) %>%
+  group_by(grouping) %>%
+  nest() %>%
+  {map(.$data,function(x){
+    x[,2:3] %>% chisq.test
+  })}
+{chisq.test(.[,2:3])}
+
+
+#### Hypotension
+
+tryp_hypo <- age_sex_matched %>%
+  filter(!is.na(tryp_cat),
+         q_114_hypotension_collapse_v5 != "unknown",
+         !is.na(grouping)) %>%
+  group_by(tryp_cat,q_114_hypotension_collapse_v5,grouping) %>%
+  summarize(n=n())
+
+tryp_hypo %>%
+  ggplot(aes(x=q_114_hypotension_collapse_v5,fill = tryp_cat,y = n))+
+  geom_bar(position = "fill",stat = "identity")+
+  facet_grid(.~grouping)
+
+tryp_hypo %>% spread(key=q_114_hypotension_collapse_v5,value = n) %>%
+  group_by(grouping) %>%
+  nest() %>%
+  {map(.$data,function(x){
+    x[,2:3] %>% chisq.test
+  })}
+{chisq.test(.[,2:3])}
+
+# Hypotension is important! and has the same effect as cardoilogic altogether
+
+# Now lets see LOC
+tryp_LOC <- age_sex_matched %>%
+  filter(!is.na(tryp_cat),
+         q_114_loss_of_consciousness != "unknown",
+         !is.na(grouping)) %>%
+  group_by(tryp_cat,q_114_loss_of_consciousness,grouping) %>%
+  summarize(n=n())
+
+tryp_LOC %>%
+  ggplot(aes(x=q_114_loss_of_consciousness,fill = tryp_cat,y = n))+
+  geom_bar(position = "fill",stat = "identity")+
+  facet_grid(.~grouping)
+
+tryp_LOC %>% spread(key=q_114_loss_of_consciousness,value = n) %>%
+  group_by(grouping) %>%
+  nest() %>%
+  {map(.$data,function(x){
+    x[,2:3] %>% chisq.test
+  })}
+{chisq.test(.[,2:3])}
+
+# THIS HAS TO BE INCLUDED!!!!
+
+# Now lets see LOC
+tryp_assoc <- function(symptom){
+  quo(symptom)
+  tryp_ROA <- age_sex_matched %>%
+    filter(!is.na(tryp_cat),
+           !!symptom != "unknown",
+           !is.na(grouping)) %>%
+    mutate(tryp_cat = tryp_cat %>% factor(levels=c("low","high"))) %>%
+    group_by(tryp_cat,!!symptom,
+             grouping) %>%
+    summarize(n=n())
+
+  tab <- tryp_ROA
+  plot <- tryp_ROA %>%
+    ggbarplot(x=as_name(symptom),
+              fill = "tryp_cat",
+              y = "n",
+              facet.by = "grouping",
+              position = position_fill(),
+              palette = "lancet")+
+    labs(y = "proportion",
+         fill = "tryptase")
+
+  test <- tryp_ROA %>% spread(key=!!symptom,value = n) %>%
+    group_by(grouping) %>%
+    nest() %>%
+    {map(.$data,function(x){
+      x[,2:3] %>% chisq.test
+    })}
+  return(list(tab,plot,test))
+}
+
+cardiac_typtase_effect <- names(data) %>% broom::tidy() %>%
+  filter(grepl(x,pattern = "q_114")) %>% pull() %>%
+  map(function(x){
+    tryp_assoc(as.name(x))
+  })
+
+output_plot_tryp <- ggarrange(
+  cardiac_typtase_effect[[6]][[2]]+
+    theme_classic()+
+    labs(x = "cardiac arrest")+
+    theme(legend.position = "none"#,
+          #axis.title.x = element_text(angle= 10,hjust = 0.5,vjust = 1)
+),
+  cardiac_typtase_effect[[2]][[2]]+
+    theme_classic()+
+    labs(y = "proportion",
+         x = "loss of consciousness",
+         fill = "tryptase")+
+    theme(axis.text.y = element_blank(),
+          axis.title.y = element_blank(),
+          axis.line.y = element_blank(),
+          axis.ticks.y = element_blank()#,
+          #axis.title.x = element_text(angle= 5,hjust = 1)
+          ),
+  widths = c(1,1.1),
+  align = "hv"
+)
+fit <- glm(q_114_cardiac_arrest ~ tryp_cat+grouping, data = age_sex_matched %>%
+             filter(!is.na(tryp_cat),
+                    q_114_cardiac_arrest != "unknown",
+                    !is.na(grouping)) %>%
+             dplyr::select(q_114_cardiac_arrest,tryp_cat,grouping),
+           family = binomial)
+summary(fit)
+
+cardiac_typtase_effect[[6]][[1]] %>% spread(key = "q_114_cardiac_arrest",value = "n")
+
+#### Bradykinin effects ####
+##We may suspect the effect of bradykinin due
+#to the action on both cardiologic and gastrointestinal organs
+
+# measures of associacian
+vcd::assocstats(table(age_sex_matched$q_114_hypotension_collapse_v5,
+                      grouping)[1:2,])
+
+symptom <-
