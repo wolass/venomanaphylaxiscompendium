@@ -597,17 +597,24 @@ Cardiologic symptoms and hypotensive collapse might be associated with vanom ana
 
 
 
-```{r flow,fig.width=6,fig.height=4}
-knitr::include_graphics("../figures/flow.png")
+```{r flow,fig.width=6,fig.height=6}
+ggarrange(ggplot()+
+            background_image(png::readPNG("../figures/flow.png")),
+          lower_panel,
+          ncol = 1,
+          nrow = 2,
+          heights = c(1,0.4),
+          labels = c("A","")
+)
 ```
 
-##### pagebreak
+##### 
 
 ```{r insectstime, fig.cap="A: Proportion of anaphylaxis cases elicited by specific insects according to the month in which the reaction occured. Less frequent insects were groupeped together as 'other'. B: The proportion of insect elicited cases to ceses elicited by other triggers considering patient's age. C: Geographical differences in the most common eliciotors of IVA. Countries which reported less than 10 cases of anaphylaxis due to insect venom were not illustrated in this figure.",fig.height=4,fig.width = 7}
 fig_basic
 ```
 
-##### pagebreak
+##### 
 
 ```{R adrenalineuse, fig.cap = "The proportion of insect venom elicited anaphylaxis cases that were treated with adrenaline in comparison to other elicitors.",fig.height=4,fig.width = 6}
 fig_adrenuse1

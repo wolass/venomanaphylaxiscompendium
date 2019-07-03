@@ -1,0 +1,67 @@
+---
+output:
+  word_document: default
+  html_document: default
+---
+# Expert opinion on the severity of individual symptoms in anaphylaxis
+
+
+```{r init,include=FALSE}
+knitr::opts_chunk$set(echo = F, warning = F)
+#library(plyr)
+require(tidyverse,quietly = T)
+```
+
+```{r fig.height=6}
+d <- readxl::read_xlsx("../analysis/data/raw_data/NORA Konferenz Auswertung Fragebogen.xlsx")
+#d %>% str()
+#names(d)
+clean <- d %>%
+  select(1:44) %>%
+  tidyr::gather(key = "symptom",value = "VAS",6:44) %>%
+  mutate(VAS = as.numeric(VAS),
+         experience = as.numeric(`Erfahrung in jahren`)#,
+         #symptom = factor(symptom)
+         )
+clean$VAS[667] <- 55.6
+#clean[which(clean$symptom == "death"&clean$VAS <70),]
+clean <- clean %>%
+  filter(ID != 23)
+clean$symptom[clean$symptom == "pruritus/ ich"] <- "pruritus / itch"
+
+
+MEAN <- clean %>%
+  filter(complete.cases(.)) %>%
+  #split(.$symptom)
+  group_by(symptom) %>%
+  #summarize()
+  summarise(mean_VAS = mean(VAS,na.rm = T),
+            weighted_mean_VAS = weighted.mean(x = VAS, w=experience,na.rm = T),
+            sd_VAS = sd(VAS, na.rm=T))
+MEAN %>%
+  ggplot(aes(reorder(symptom,weighted_mean_VAS),weighted_mean_VAS))+
+           geom_point()+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 70,hjust = 1))+
+  geom_errorbar(aes(ymin = weighted_mean_VAS-sd_VAS, ymax =weighted_mean_VAS+ sd_VAS))+
+  labs(x = "Symptoms", y = "severity according to weighted mean VAS")
+```
+
+
+We recived answers from `r clean$ID %>% factor()%>% levels() %>% length()` experts with a mean experience of `r clean$experience %>% mean(na.rm = T) %>% round (2)` years (SD = `r clean$experience %>% sd(na.rm = T) %>% round (2)`) from `r clean$Land %>% factor() %>% levels() %>% length()` countries. 
+
+The table below summarizes the expert group.
+
+```{r}
+clean %>% 
+  mutate(Country = Land) %>% 
+  group_by(Country) %>% 
+  summarize(n = n()/39,
+            `mean experience [y]` = mean(experience, na.rm = T),
+            `mean VAS across all questions` = mean(VAS, na.rm = T), 
+            `SD VAS` = sd(VAS, na.rm = T)) %>% 
+  knitr::kable(digits = 2,caption = "Summary statistics for the expert panel according to country of origin" )
+```
+
+
+

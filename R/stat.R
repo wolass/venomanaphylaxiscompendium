@@ -10,6 +10,8 @@ require(tidyr)
 library(ggradar)
 library(tibble)
 library(scales)
+require(ggpubr)
+require(rlang)
 
 #### GET THE DATA ########
 # Note the path that we need to use to access our data files when rendering this document
@@ -88,11 +90,16 @@ f3 <- function(x){
 #' @return vector of case ids that can be used for further analysis
 #'
 #'
-match_patients <- function(data,grouping_var,matching_vars,df=F){
+match_patients <- function(data,
+                           grouping_var,
+                           matching_vars,
+                           df=F,
+                           grouping_var_level = "insects"
+){
   o <- data %>%
     select(b_case_id,!!!grouping_var,!!!matching_vars) %>%
     {filter(.,complete.cases(.))} %>%
-    mutate(grouping = ifelse(grouping=="insects",1,0)) %>%
+    mutate(grouping = ifelse(grouping==grouping_var_level,1,0)) %>%
     matchit(formula = as.formula(paste0(grouping_var,
                                         "~",
                                         paste0(matching_vars,
@@ -996,19 +1003,19 @@ makeForestPlot(age_sex_matched,
                "d_severity_rmr")
 dev.off()
 
-makeForestPlot(age_sex_matched %>%
-                 mutate(tryp_cat %>% factor),
-               c( "q_410_masto_cur",
-                  "q_410_asthma_cur",
-                  "q_410_cardio_cur",
-                  "q_423_beta",
-                  "q_423_ace",
-                  #"tryp_cat",
-                  "q_423_asa"
-                  ),
-               "grouping",
-               "severity_brown"
-               )
+# makeForestPlot(age_sex_matched %>%
+#                  mutate(tryp_cat %>% factor),
+#                c( "q_410_masto_cur",
+#                   "q_410_asthma_cur",
+#                   "q_410_cardio_cur",
+#                   "q_423_beta",
+#                   "q_423_ace",
+#                   #"tryp_cat",
+#                   "q_423_asa"
+#                   ),
+#                "grouping",
+#                "severity_brown"
+#                )
 
 
 
@@ -1827,6 +1834,7 @@ ANAscore_matched <-
                    filter(d_522_adren_agg %in% c("yes", "no")),
                  "grouping",
                  c("ANAscore","d_age"),
+                 grouping_var_level = "insects",
                  T)
 testANAscoreMatched <- makeTests(groups = "grouping",
                                  rdb=ANAscore_matched) %>%
@@ -2039,7 +2047,7 @@ ANAscore_matched  %>%
 common.legend = F,
 align = "h",
 ncol = 3,
-labels = c("C","D","E"))
+labels = c("B","C","D"))
 
 fig_adrenuse1 <- ggpubr::ggarrange(
   upper_panel,
@@ -2483,8 +2491,86 @@ fit_try_cardiac <- glm(q_114_cardiac_arrest ~ tryp_cat+grouping, data = age_sex_
                        family = binomial)
 summary(fit_try_cardiac)
 
+#### Tryptase+cardio+insect ####
+
+# function
+tryp_assoc_insect <- function(symptom){
+  tryp_ROA <- age_sex_matched %>%
+    filter(!is.na(tryp_cat),
+           !!symptom != "unknown",
+           !is.na(d_insect_gr4),
+           d_insect_gr4!="other") %>%
+    mutate(tryp_cat = tryp_cat %>% factor(levels=c("low","high"))) %>%
+    group_by(tryp_cat,!!symptom,
+             d_insect_gr4) %>%
+    summarize(n=n())
+
+  tab <- tryp_ROA
+  plot <- tryp_ROA %>%
+    ggbarplot(x=as_name(symptom),
+              fill = "tryp_cat",
+              y = "n",
+              facet.by = "d_insect_gr4",
+              position = position_fill(),
+              palette = "lancet")+
+    labs(y = "proportion",
+         fill = "tryptase")
+
+  test <- tryp_ROA %>% spread(key=!!symptom,value = n) %>%
+    group_by(d_insect_gr4) %>%
+    nest()# %>%
+    #{map(.$data,function(x){
+    #  x[,2:3] %>% chisq.test
+    #})}
+  return(list(tab,plot,test))
+}
+
+cardiac_typtase_insect_effect <- names(data) %>% broom::tidy() %>%
+  filter(grepl(x,pattern = "q_114")) %>% pull() %>%
+  map(function(x){
+    tryp_assoc_insect(as.name(x))
+  })
+
+cardiac_typtase_insect_effect[[6]][[2]]
+# this shows thatthere was no effect between different insects
+# especially between wasps and yellow jackets
+
+#### ACE Inhibitors and insects-tryptase-axis ####
 
 
+cardiac_ace <- function(s){
+  age_sex_matched %>%
+    filter(!is.na(q_423_ace),
+           q_423!="unknown",
+           !!s != "unknown",
+           !is.na(grouping)) %>%
+    group_by(q_423_ace,
+             !!s,
+             grouping) %>%
+    summarize(n=n()) %>%
+    ggbarplot(x = as_name(s),
+              fill = "q_423_ace",
+              y = "n",
+              facet.by = "grouping",
+              position = position_fill(),
+              palette = "lancet")+
+    labs(y = "proportion",
+         fill = "ACE-Inhibitors")
+}
+
+cardiac_ace_plots<- names(data) %>% broom::tidy() %>%
+  filter(grepl(x,pattern = "q_114")) %>% pull() %>%
+  map(function(x){
+    cardiac_ace(as.name(x))
+  })
+
+plot_ace_cardiacs <-
+  ggarrange(cardiac_ace_plots[[1]],
+            cardiac_ace_plots[[6]])
+
+
+#### Very important!!!! above!
+# This has to do with the cascade of
 
 ##### Figure MOR2  eli_green####
 eli_green <-
@@ -2985,7 +3071,7 @@ varImpPlot(fit_rf)
 vars <- importance(fit_rf) %>%
   broom::tidy() %>%
   arrange(desc(MeanDecreaseGini)) %>%
-  filter(MeanDecreaseGini > 20)
+  filter(MeanDecreaseGini > 10)
 
 x <- age_sex_matched %>%
   select(vars$.rownames) %>%
@@ -3057,12 +3143,349 @@ heatmap.2(t(x),
 
 
 
+age_sex_matched %>%
+  select(starts_with("q_1")
+    # #-q_112,
+    # #-q_113,
+    # #-q_114,
+    # #-starts_with("q_16"),
+    # starts_with("q_5"),
+    # -"q_522_unknown"
+  ) %>%
+  map(function(x){
+    ifelse(is.na(x), 0,ifelse(x=="yes",1,0))
+  }) %>%
+  do.call(what = cbind) %>% as.matrix()
+
+
+pca1 <- age_sex_matched %>%
+  select(#starts_with("q_1"),
+         starts_with("q_5")) %>%
+  map(function(x){
+    ifelse(is.na(x), 0,ifelse(x=="yes",1,0))
+  }) %>%
+  do.call(what = cbind) %>%
+  as.data.frame() %>%
+
+  {prcomp(.,center =T, scale. =F)}
+
+# devtools::install_github("vqv/ggbiplot")
+# require(ggbiplot)
+# pca1 %>%
+#   ggbiplot(pca1,
+#            choices = 1:2)
+
+# install.packages("ggfortify")
+require(ggfortify)
+autoplot(pca1, data=age_sex_matched, colour = "grouping" )
+
+autoplot(prcomp(x, center = F,scale. = T),
+         data=age_sex_matched,
+         colour = "grouping")
+
 #### Bradykinin effects ####
 ##We may suspect the effect of bradykinin due
 #to the action on both cardiologic and gastrointestinal organs
 
 # measures of associacian
-vcd::assocstats(table(age_sex_matched$q_114_hypotension_collapse_v5,
-                      grouping)[1:2,])
+# vcd::assocstats(table(age_sex_matched$q_,
+#                       age_sex_matched$q_112_incontinence)[1:2,1:2])
 
-symptom <-
+#### Atopic and insect stings #####
+
+o <-  rdb %>%
+  filter(grouping=="insects") %>%
+  select(b_case_id,atopy,d_age,b_sex) %>%
+  {filter(.,complete.cases(.))} %>%
+  mutate(grouping = ifelse(atopy=="yes",1,0)) %>%
+  matchit(formula = as.formula("grouping~d_age+b_sex"),
+  method = "nearest",
+  ratio = 1) %>%
+  match.data() %>%
+  select(b_case_id) %>%
+  pull() %>%
+  {rdb[rdb$b_case_id %in% .,]}
+
+o %>%
+  group_by(atopy) %>%
+  summarize(unconscious = sum(q_114_loss_of_consciousness=="yes",na.rm=T)) %>%
+  ggbarplot(x = "atopy",
+            #fill = "tryp_cat",
+            y = "unconscious")
+
+table(o$atopy,o$q_114_loss_of_consciousness)[,1:2] %>% chisq.test()
+
+o %>%
+  group_by(atopy) %>%
+  summarize(cardiologic = sum(q_114=="yes",na.rm=T)) %>%
+  ggbarplot(x = "atopy",
+            #fill = "tryp_cat",
+            y = "cardiologic")
+
+
+
+##### Heatmap of therapy and symptoms ####
+require(rlang)
+phi_f <- function(data,
+         grouping_var,
+         grouping_var_val,
+         var1,
+         var2){
+         data %>% #age_sex_matched %>%
+  filter(!!sym(grouping_var)==grouping_var_val) %>%  #filter(grouping =="insects") %>%
+  select(!!sym(var1),!!sym(var2)) %>%  #select(d_520_adren1,q_111) %>%
+  #mutate(!!sym(var1) =
+  #          ifelse(is.na(d_520_adren1),NA,
+  #                 ifelse(d_520_adren1=="yes","yes",
+  #                   ifelse(d_520_adren1=="no","no",NA)))) %>%
+  {.[complete.cases(.),]} %>%
+  {table(.[,1],.[,2])[1:2,1:2]} %>%
+  assocstats() %>%
+  .$phi
+}
+
+phi_f(data = age_sex_matched,
+      grouping_var = "grouping",
+      grouping_var_val = "insects",
+      var1 = "d_520_adren1",
+      var2 = "q_111")
+multiphi_f <- function(data,
+                       grouping_var,
+                       grouping_var_val,
+                       vars1,
+                       vars2){
+  o <- map(vars2,function(treat){
+    map(vars1,function(sympt){
+      phi_f(data,
+            grouping_var,
+            grouping_var_val,
+            var1 = sympt,
+            var2 = treat)
+    }) %>%
+      do.call(what = rbind)
+  }) %>% do.call(what = cbind)
+  colnames(o) <- vars2
+  rownames(o) <- vars1
+  return(o)
+}
+# multiphi_f(
+#   data = age_sex_matched,
+#   grouping_var = "grouping",
+#   grouping_var_val = "insects",
+#   vars1 = c("q_111","q_112"),
+#   vars2 = c("d_520_adren1")
+# )
+#
+# matrix_treat_sympt<- multiphi_f(
+#   data = age_sex_matched,
+#   grouping_var = "grouping",
+#   grouping_var_val = "insects",
+#   vars1 = age_sex_matched %>%
+# {names(.)[grepl(pattern = "q_11",x = names(.))]} %>%
+#   .[c(1:8,10:40)],
+# vars2 = c(age_sex_matched %>%
+# {names(.)[grepl(pattern = "q_52",x = names(.))]} %>%
+#   .[c(1:5,7:16,18:20,22:23,25:26)],
+# age_sex_matched %>%
+# {names(.)[grepl(pattern = "q_55",x = names(.))]} %>%
+#   .[c(4:9,10,12,14:16,18,21)]
+# ))
+#
+# h_insects <- heatmap.2(matrix_treat_sympt,
+#           density.info = "none",
+#           trace = "none",
+#           distfun= function(x) dist(x, method="euclidean"),
+#           hclustfun=function(x) hclust(x, method="ward.D"))
+#
+# h_insects$carpet %>% apply(MARGIN = 1,sum,na.rm = T) %>% {which(.>1.4)} %>% names()
+
+matrix_treat_sympt<- multiphi_f(
+  data = age_sex_matched,
+  grouping_var = "grouping",
+  grouping_var_val = "insects",
+  vars1 = age_sex_matched %>%
+  {names(.)[grepl(pattern = "q_11",x = names(.))]} %>%
+    .[c(1:8,10:40)],
+  vars2 = c("q_521_autoinj_v5",
+            "q_522_adren_iv",
+            "q_552_adren_iv_v5",
+            "q_521_other_v5",
+            "q_521_antih_v5"  ,
+            "q_522_adren_im",
+            "q_522_antih_oral",
+            "q_552_adren_im_v5",
+            "q_552_beta2_inhal_v5",
+            "q_521_cortic_v5",
+            "q_552_antih_oral_v5",
+            "q_552_cortico_oral_v5",
+            "q_552_volume_v5",
+            "q_552_adren_inhal_v5",
+            "q_552_beta2_iv_v5",
+            "q_552_o2_v5",
+            "q_522_o2",
+            "q_522_beta2_inhal",
+            "q_521_beta2_v5",
+            "q_552_cortico_iv_v5",
+            "q_552_antih_iv_v5" )
+  )
+
+matrix_treat_sympt_other<- multiphi_f(
+  data = age_sex_matched,
+  grouping_var = "grouping",
+  grouping_var_val = "other",
+  vars1 = age_sex_matched %>%
+  {names(.)[grepl(pattern = "q_11",x = names(.))]} %>%
+    .[c(1:8,10:40)],
+  vars2 = c("q_521_autoinj_v5",
+            "q_522_adren_iv",
+            "q_552_adren_iv_v5",
+            "q_521_other_v5",
+            "q_521_antih_v5"  ,
+            "q_522_adren_im",
+            "q_522_antih_oral",
+            "q_552_adren_im_v5",
+            "q_552_beta2_inhal_v5",
+            "q_521_cortic_v5",
+            "q_552_antih_oral_v5",
+            "q_552_cortico_oral_v5",
+            "q_552_volume_v5",
+            "q_552_adren_inhal_v5",
+            "q_552_beta2_iv_v5",
+            "q_552_o2_v5",
+            "q_522_o2",
+            "q_522_beta2_inhal",
+            "q_521_beta2_v5",
+            "q_552_cortico_iv_v5",
+            "q_552_antih_iv_v5" )
+)
+
+# require(grid)
+# require(gridG)
+# grab.grob <- function(){
+#   grid.echo()
+#   grid.grab()
+# }
+#
+#
+# gl <- heatmap.2(matrix_treat_sympt,
+#           density.info = "none",
+#           trace = "none",
+#           distfun= function(x) dist(x, method="euclidean"),
+#           hclustfun=function(x) hclust(x, method="ward.D"),
+#           dendrogram = "row",
+#           key = F,keysize = 0.5)
+# grab.grob()
+#
+# gridExtra::grid.arrange(
+#   ncol = 2, nrow = 1,
+#   heatmap.2(matrix_treat_sympt,
+#             density.info = "none",
+#             trace = "none",
+#             distfun= function(x) dist(x, method="euclidean"),
+#             hclustfun=function(x) hclust(x, method="ward.D"),
+#             dendrogram = "row",
+#             key = F,keysize = 0.5),
+# heatmap.2(matrix_treat_sympt_other,
+#           density.info = "none",
+#           trace = "none",
+#           distfun= function(x) dist(x, method="euclidean"),
+#           hclustfun=function(x) hclust(x, method="ward.D"),
+#           dendrogram = "row",
+#           margins = c(9,12),key = F,keysize = 0.5
+#           )
+# )
+#
+# drawGridHeatmap  <- function(hm) {
+#   plot(hm)
+#   grab.grob()
+# }
+#
+# gl <- lapply(list(heatmap.2(matrix_treat_sympt,
+#                             density.info = "none",
+#                             trace = "none",
+#                             distfun= function(x) dist(x, method="euclidean"),
+#                             hclustfun=function(x) hclust(x, method="ward.D"),
+#                             dendrogram = "row",
+#                             key = F,keysize = 0.5),
+#                   heatmap.2(matrix_treat_sympt_other,
+#                             density.info = "none",
+#                             trace = "none",
+#                             distfun= function(x) dist(x, method="euclidean"),
+#                             hclustfun=function(x) hclust(x, method="ward.D"),
+#                             dendrogram = "row",
+#                             margins = c(9,12),key = F,keysize = 0.5
+#                   )), drawGridHeatmap)
+#
+#
+# library(gridGraphics)
+# grab_grob <- function(){
+#   grid.echo()
+#   grid.grab()
+# }
+# heatmap.2(matrix_treat_sympt,
+#            density.info = "none",
+#            trace = "none",
+#            distfun= function(x) dist(x, method="euclidean"),
+#            hclustfun=function(x) hclust(x, method="ward.D"),
+#            dendrogram = "row",
+#            key = F,keysize = 0.5)
+# g <- grab_grob()
+# grid.newpage()
+# heatmap.2(matrix_treat_sympt_other,
+#           density.info = "none",
+#           trace = "none",
+#           distfun= function(x) dist(x, method="euclidean"),
+#           hclustfun=function(x) hclust(x, method="ward.D"),
+#           dendrogram = "row",
+#           margins = c(9,12),key = F,keysize = 0.5
+# )
+# g2 <- grab_grob()
+# grid.newpage()
+#
+# lay <- grid.layout(nrow = 1, ncol=2)
+# pushViewport(viewport(layout = lay))
+# grid.draw(editGrob(g, vp=viewport(layout.pos.row = 1,
+#                                   layout.pos.col = 1, clip=F)))
+# grid.draw(editGrob(g2, vp=viewport(layout.pos.row = 1,
+#                                   layout.pos.col = 2, clip=F)))
+# upViewport(1)
+
+# ord <- hclust( dist(matrix_treat_sympt, method = "euclidean"), method = "ward.D" )$order
+# ord
+#
+# matrix_treat_sympt %>%
+#   as_tibble(rownames = "symptoms") %>%
+#   gather(key="treatment",value = "phi",2:23) %>%
+# ggplot(aes(treatment,symptoms,fill=phi))+
+#   geom_tile()
+rownames(matrix_treat_sympt) %<>% recode_variables()
+colnames(matrix_treat_sympt) %<>% recode_variables()
+
+rownames(matrix_treat_sympt_other) %<>% recode_variables()
+colnames(matrix_treat_sympt_other) %<>% recode_variables()
+
+
+require(heatmaply)
+matrix_treat_sympt %>%
+  scale() %>%
+  heatmaply(hclust_method = "ward.D",
+            dist_method = "euclidean",
+            #Colv = "none",
+            k_row = 2,
+            k_col =2,
+            colors = c("#FFFFFF","#000066"),
+            plot_metod = "ggplot"
+            #return_ppxpy=TRUE
+            )
+matrix_treat_sympt_other %>%
+  scale() %>%
+  heatmaply(hclust_method = "ward.D",
+            dist_method = "euclidean",
+            #Colv = "none",
+            k_row = 2,
+            k_col = 2,
+            colors = c("#FFFFFF","#000066"),
+            plot_metod = "ggplot"
+            #return_ppxpy=TRUE
+  )
+
