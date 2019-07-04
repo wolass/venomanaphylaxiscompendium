@@ -344,14 +344,12 @@ Here it is crucial to compare to even these reactions that had nearly no reactio
 
 USe the model from our previous paper
 
-
-
 ## Managment
 
 ### Adrenaline is less often used in patients with IVA compared to other anaphylaxis cases
 
-```{r adrenuse, fig.cap="**Therapy of IVA cases.** A: General managment methods in IVA and non-IVA. B: Reasons for not administering adrenaline in both IVA and non-IVA cases. C,D,E: Age, sex and severity distribution was matched in cases in both groups to allow for comparable results between IVA and non_IVA cases"}
-fig_adrenuse1
+```{r adrenuse, fig.cap="**Therapy of IVA cases.** A: General managment methods in IVA and non-IVA. B: Reasons for not administering adrenaline in both IVA and non-IVA cases. C,D,E: "}
+#fig_adrenuse1
 ```
 
 Patients who underwent IVA significantly less often recived adrenaline treatment than in other adrenaline cases (`r test_adrenuse1$observed %>% prop.table()`, `r test_adrenuse1$p.value %>% pval()`). After adjusting both groups for simmilar age, sex and severity distribution - the difference in adrenaline use was still significant irrespective of the route of administration. Antihistaminic drugs on the other had were given more often in cases of IVA when compared to non-IVA. 
@@ -584,20 +582,20 @@ Cardiologic symptoms and hypotensive collapse might be associated with vanom ana
 # Acknowledgements
 
 <!-- The following line inserts a page break when the output is MS Word. For page breaks in PDF, use \newpage on its own line.  -->
-##### pagebreak
+##### 
 
 # References 
 <!-- The following line ensures the references appear here for the MS Word or HTML output files, rather than right at the end of the document (this will not work for PDF files):  -->
 <div id="refs"></div>
 
-##### pagebreak
+##### 
 
 # Figures
 
 
 
 
-```{r flow,fig.width=6,fig.height=6}
+```{r flow,fig.width=6,fig.height=6, fig.cap=" A) Flow-diagram illustrating the rationale to include cases in our analysis. B,C,D: Sex, age, and severity distribution was matched in cases in both groups to allow for comparable results between IVA and non_IVA cases"}
 ggarrange(ggplot()+
             background_image(png::readPNG("../figures/flow.png")),
           lower_panel,
@@ -614,21 +612,51 @@ ggarrange(ggplot()+
 fig_basic
 ```
 
+
 ##### 
 
-```{R adrenalineuse, fig.cap = "The proportion of insect venom elicited anaphylaxis cases that were treated with adrenaline in comparison to other elicitors.",fig.height=4,fig.width = 6}
-fig_adrenuse1
-```
-
-##### pagebreak
-
-```{r figsymptoms, fig.cap="Symptoms of insect venom anaphylaxis (IVA) compared to other elicitors",fig.width=9.5,fig.height = 6}
+```{r figsymptoms, fig.cap="Symptoms of insect venom anaphylaxis (IVA) compared to other elicitors",fig.width=9.5,fig.height = 8}
 fig_symptoms
 ```
 
+##### 
 
-##### pagebreak
+```{r adrenalineuse, fig.cap = "Therapy modes in patients with IVA compared to oter elicitors. A)  B)",fig.height=10,fig.width = 7}
 
-```{r figcofactors, fig.cap="Cofactors of insect venom anaphylaxis ad their relationship to severity of a reaction",fig.width=4.2,fig.height = 6}
+ggpubr::ggarrange(
+  ggarrange(
+    plotManagement,
+    rf_ggplot_treatment,
+    labels = c("A","B")
+  ),
+  #lower_panel,
+  matrix_venom$p+
+    labs (x = "", y = "")+
+    geom_segment(aes(x = c(8.5),
+                     xend = c(8.5), 
+                     y = c(0.5),
+                     yend = c(39.5)),color = "red")+
+    geom_segment(aes(x = c(0.5),
+                     xend = c(21.5), 
+                     y = c(28.5),
+                     yend = c(28.5)), color = "red" ),
+  nrow = 2,
+  heights = c(1.5,3),
+  labels = c("","C")
+)
+```
+
+
+##### 
+
+```{r figcofactors, fig.cap="Cofactors of insect venom anaphylaxis ad their relationship to severity of a reaction",fig.width=5,fig.height = 8}
 cof_fig
 ```
+
+
+# Supplementrary Figures
+
+```{r treatmentmatrixother}
+#matrix_other
+```
+

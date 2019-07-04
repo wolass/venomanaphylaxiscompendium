@@ -147,6 +147,83 @@ char_to_num_levels <- function(variable){
            as.numeric())
 }
 
+recode_variables <- function(x){
+  car::recode(x,
+              recodes =
+                "'q_111'='cutaneous symptoms';
+              'q_111_angioedema'= 'angioedema';
+              'q_111_erythema_flush_v5' = 'flush';
+              'q_111_pruritus' = 'pruritus';
+              'q_111_urticaria' = 'urticaria';
+              'q_111_conjunctivitis_v5' = 'cojunctivitis';
+              'q_112' = 'gastrointestinal symptoms';
+              'q_114_dizziness'='dizziness';
+              'q_114_loss_of_consciousness'='loss of consciousness';
+              'q_112_abdominal_pain'='abdominal pain';
+              'q_113_wheezing_expiratory_distress_v5'='expiratory distress';
+              'q_522_volume'='volume iv.';
+              'q_561_hospital_admission_v6'='hospital admission';
+              'q_562_intensive_care_v6'='intensive care';
+              'q_112_nausea' = 'nausea';
+              'q_113_throat_tightness_v5' = 'throat tightness';
+              'q_114_reductions_of_alertness' = 'reduced allertness';
+              'q_112_incontinence' = 'incontinence';
+              'q_112_abdominal_pain' = 'abdominal pain';
+              'q_112_diarrhoea' = 'diarrhoea';
+              'q_113_wheezing_expiratory_distress_v5' = 'expiratory distress';
+              'q_113_rhinitis_v5' = 'rhinitis';
+              'q_114_dizziness' = 'dizziness';
+              'q_114_hypotension_collapse_v5' = 'hypotension';
+              'q_112_dysphagia_v5' = 'dysphagia';
+              'q_112_vomiting' = 'vomiting';
+              'q_113' = 'respiratory symptoms';
+              'q_113_respiratory_arrest' = 'respiratory arrest';
+              'q_113_dyspnea' = 'dyspnea';
+              'q_113_chest_tightness_v5' = 'chest tightness';
+              'q_113_cough_v5' = 'cough';
+              'q_113_change_in_voice_v5' = 'change in voice';
+              'q_113_stridor_inspiratory' = 'inspiratory stridor';
+              'q_114' = 'cardiologic symptoms';
+              'q_114_chest_pain_angina_v5' = 'chest pain';
+              'q_114_palpitations_cardiac_arrythmia_v5' = 'cardiac arrythmia';
+              'q_114_cardiac_arrest' = 'cardiac arrest';
+              'q_114_tachycardia' = 'tachycardia';
+              'q_115_dysarthria_v6' = 'dysarthria';
+              'q_115_dysphonia_v6' = 'dysphonia';
+              'q_115_hot_sweat_tremble_v6' = 'hot sweat';
+              'q_115_tingle_hands_feet_paresthesia_v6' = 'paresthesia';
+              'q_115_sight_disorder_v6' = 'sight diorder';
+              'q_115_agony_v6' = 'agonizing pain';
+              'q_115_cyanosis_pallor_v6' = 'cyanosis';
+              'q_521_autoinj_v5' = 'adrenaline autoinjector';
+              'q_522_adren_iv'   = 'adrenaline i.v. 1st';
+              'q_552_adren_iv_v5'   = 'adrenaline i.v. 2nd';
+              'q_521_other_v5'   = 'other drugs 1st';
+              'q_521_antih_v5'   = 'antihistmines 1st';
+              'q_522_adren_im'   = 'adrenaline i.m. 1st';
+              'q_522_antih_oral'   = 'antihistamines p.o. 1st';
+              'q_552_adren_im_v5'   = 'adrenaline i.m. 2nd';
+              'q_552_beta2_inhal_v5'   = 'β2-agonists inh. 2nd';
+              'q_521_cortic_v5'   = 'corticosteroids 1st';
+              'q_552_antih_oral_v5'   = 'antihistamines p.o. 2nd';
+              'q_552_cortico_oral_v5'   = 'corticosteroids p.o. 2nd';
+              'q_552_volume_v5'   = 'volume i.v. 2nd';
+              'q_552_adren_inhal_v5'   = 'adrenaline inh. 2nd';
+              'q_552_beta2_iv_v5'   = 'β2-agonists i.v. 2nd';
+              'q_552_o2_v5'   = '100% oxygen 2nd';
+              'q_522_o2'   = '100% oxygen 1st';
+              'q_522_beta2_inhal'   = 'β2-agonists inh. 1st';
+              'q_521_beta2_v5'   = 'β2-agonists 1st';
+              'q_552_cortico_iv_v5'   = 'corticosteroids i.v. 2nd';
+              'q_552_antih_iv_v5'   = 'antihistamines i.v. 2nd';
+              'q_522_antih_iv' = 'antihistamines i.v. 1st';
+              'q_522_cortico_iv' = 'corticosteroids i.v. 1st';
+              'q_522_other_v5' = 'other meds 1st';
+              'q_522_cortico_oral' = 'corticosteroids p.o. 1st';
+              'q_550_2nd_v5' = '2nd adrenaline dose';
+              "
+  )
+}
 
 
 
@@ -315,8 +392,8 @@ nodes <-
     #          "grey", "blue"),
     #value = c(3.5, 2.6, 9.4, 2.7),
     shape= "rectangle",
-    width = c(2.5,3,1.5,1.5,1.8,1.2,1.2),
-    x = c(2, 2, 0.9, 3.1,1.1,4.7,3.1),
+    width = c(2.5,3,1.8,1.2,1.8,1.2,1.2),
+    x = c(2, 2, 1.1, 3.1,1.1,4.7,3.1),
     y = c(0,-1,-2,-2,-3,-2,-3),
     height = c(rep(0.6,4),1,0.6,0.6))
 
@@ -337,8 +414,8 @@ create_graph() %>%
                          attr_type = "node") %>% #render_graph()
   export_graph(file_name = "analysis/figures/flow.png", file_type = "png",
                title = NULL,
-               width = NULL,
-               height = NULL)
+               width = 1300,
+               height = 1000)
 
 
 ###Outcomes############
@@ -903,8 +980,8 @@ test1 <- makeDF(age_sex_matched,
 test1[1] <- c(NA,"Concomitant disease",
               NA,NA,"Asthma",
               NA,NA,"Mastocytosis",
-              NA,NA,"Cardiologic disese",
-              NA,NA,"Beta-blockers",
+              NA,NA,"Cardiologic disease",
+              NA,NA,"β-blockers",
               NA,NA,"ACE-I",
               NA,NA,"Exercise",
               NA,NA,"Stress",
@@ -928,8 +1005,8 @@ test2 <- makeDF(age_sex_matched,
 test2[1] <- c(NA,"Concomitant disease",
               NA,NA,"Mastocytosis",
               NA,NA,"Asthma",
-              NA,NA,"Cardiologic disese",
-              NA,NA,"Beta-blockers",
+              NA,NA,"Cardiologic disease",
+              NA,NA,"β-blockers",
               NA,NA,"ACE-I",
               NA,NA,"Exercise",
               NA,NA,"Stress",
@@ -965,10 +1042,10 @@ forestplot(labeltext = makeTableText(test1),
 dev.off()
 
 png("analysis/figures/figForestfinal.png",
-    height = 675,
-    width = 795,
+    height = 640,
+    width = 860,
     #res = 300,
-    pointsize = 30,
+    pointsize = 30
     #units="px"
     )
 forestplot(labeltext = makeTableText(test2)[,1:2],
@@ -1884,7 +1961,7 @@ plotManagement <- testANAscoreMatched$management$variableName %>%
       'q_562_intensive_care_v6'='intensive care'"),
     grouping = ifelse(grouping =="n", "IVA","non-IVA")
     ) %>%
-  ggplot(aes(reorder(variable, -positive),positive,fill=grouping))+
+  ggplot(aes(reorder(variable, -positive),positive/1976,fill=grouping))+
   geom_bar(stat = "identity", position = "dodge") +
   theme_classic() +
   theme(
@@ -1892,9 +1969,10 @@ plotManagement <- testANAscoreMatched$management$variableName %>%
     legend.position = c(1, 1),
     legend.justification = c(1, 1)
   ) +
-  labs(x = "Therapy", y = "cases [n]", fill = "") +
+  labs(x = "Therapy", y = "proportion", fill = "") +
   scale_fill_manual(values = rev(c("#E5F5E0", "#74C476", "#005A32"))) +
-  theme(axis.title.x = element_blank())
+  theme(axis.title.x = element_blank())+ scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+
 
 backup <- testANAscoreMatched$management[, -7] %>%
   tidyr::gather(value = "Proportion",
@@ -2016,14 +2094,6 @@ align = "h",
 labels = c("A","B"))
 
 lower_panel <- ggpubr::ggarrange(
-  ANAscore_matched  %>%
-    ggplot(aes(x = d_age, fill = grouping)) +
-    geom_density(alpha = 0.5)+
-    labs(x = "Age [years]",fill = "elicitor")+
-    theme_classic()+
-    theme(legend.position = "none")+
-    scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32")))+
-    labs(y ="density",x = "Age [years]",fill = ""),
 
 ANAscore_matched %>%
   group_by(b_sex,grouping) %>%
@@ -2035,6 +2105,14 @@ ANAscore_matched %>%
   labs(y ="proportion",x = "Sex",fill = "elicitor"),
 
 ANAscore_matched  %>%
+  ggplot(aes(x = d_age, fill = grouping)) +
+  geom_density(alpha = 0.5)+
+  labs(x = "Age [years]",fill = "elicitor")+
+  theme_classic()+
+  theme(legend.position = "none")+
+  scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32")))+
+  labs(y ="density",x = "Age [years]",fill = ""),
+ANAscore_matched  %>%
   #select(grouping,d_severity_rm) %>%
   group_by(grouping,d_severity_rm) %>%
   summarize(n = n()) %>%
@@ -2044,17 +2122,12 @@ ANAscore_matched  %>%
   labs(x = "Severity grade [R&M]",fill = "R&M",y="cases [n]")+
   theme(legend.position = "none")+
   scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32"))),
-common.legend = F,
+common.legend = T,
+legend = "right",
 align = "h",
 ncol = 3,
 labels = c("B","C","D"))
 
-fig_adrenuse1 <- ggpubr::ggarrange(
-  upper_panel,
-  lower_panel,
-  nrow = 2,
-  heights = c(2,1)
-)
 
 # png(res=300,filename = "adrenaline.png",pointsize = 6,width = 3500,height=1900)
 # grid.draw(fig_adrenuse1)
@@ -2430,7 +2503,7 @@ tryp_assoc <- function(symptom){
     filter(!is.na(tryp_cat),
            !!symptom != "unknown",
            !is.na(grouping)) %>%
-    mutate(tryp_cat = tryp_cat %>% factor(levels=c("low","high"))) %>%
+    mutate(tryp_cat = tryp_cat %>% factor(levels=c("low","high"),labels = c("< 8","> 8"))) %>%
     group_by(tryp_cat,!!symptom,
              grouping) %>%
     summarize(n=n())
@@ -2479,7 +2552,7 @@ output_plot_tryp <- ggarrange(
           axis.ticks.y = element_blank()#,
           #axis.title.x = element_text(angle= 5,hjust = 1)
     ),
-  widths = c(1,1.1),
+  widths = c(1,1.2),
   align = "hv"
 )
 
@@ -2558,15 +2631,18 @@ cardiac_ace <- function(s){
          fill = "ACE-Inhibitors")
 }
 
-cardiac_ace_plots<- names(data) %>% broom::tidy() %>%
+cardiac_ace_plots <- names(data) %>% broom::tidy() %>%
   filter(grepl(x,pattern = "q_114")) %>% pull() %>%
   map(function(x){
     cardiac_ace(as.name(x))
   })
 
 plot_ace_cardiacs <-
-  ggarrange(cardiac_ace_plots[[1]],
-            cardiac_ace_plots[[6]])
+  ggarrange(cardiac_ace_plots[[1]]+
+              labs(x = "cardiologic symptoms"),
+            cardiac_ace_plots[[6]]+
+              labs(x = "cardiac arrest"),
+            common.legend = T)
 
 
 #### Very important!!!! above!
@@ -2856,8 +2932,9 @@ fig_symptoms <- ggarrange(
           legend.position = c(0.99,0.99),
           legend.justification = c(1,1),
           axis.title.x.bottom = element_blank())+
-    labs(x = "symptom",y = "proportion", fill = "elicitor")+
-    scale_fill_manual(values = manual_greens[c(1,3)]),
+    labs(x = "symptom",y = "proportion [%]", fill = "elicitor")+
+    scale_fill_manual(values = manual_greens[c(1,3)])+
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)),
   # Crammers V
   tests_matched %>%
     mutate(organ = factor(ifelse(grepl(variableName,pattern = "111"),"skin",
@@ -2868,11 +2945,11 @@ fig_symptoms <- ggarrange(
            ) %>%
     filter(!is.na(Cramer),
            section == "symptoms",
-           Cramer > 0.1,
-           !(variableName %in% c("q_114","q_143_fatal_adre_v5")))%>%
+           Cramer > 0.07,
+           !(variableName %in% c("q_114","q_143_fatal_adre_v5", "q_112_abdominal_pain")))%>%
     mutate(variableName = car::recode(variableName,
                                       "'q_112_nausea' = 'nausea';
-                                      'q_114_loss_of_consciousness' = 'unconscious';
+                                      'q_114_loss_of_consciousness' = 'unconsciousness';
                                       'q_113_throat_tightness_v5' = 'throat tightness';
                                       'q_114_reductions_of_alertness' = 'reduced allertness';
                                       'q_112_incontinence' = 'incontinence';
@@ -2881,8 +2958,9 @@ fig_symptoms <- ggarrange(
                                       'q_113_wheezing_expiratory_distress_v5' = 'expiratory distress';
                                       'q_113_rhinitis_v5' = 'rhinitis';
                                       'q_114_dizziness' = 'dizziness';
-                                      'q_114_hypotension_collapse_v5' = 'hypotension'"
-    )) %>%
+                                      'q_114_hypotension_collapse_v5' = 'hypotension';
+                                      'q_111' = 'any skin symptoms'"
+    )) %>% #{.[,1]}
     ggdotchart(x = "variableName",
                y = "Cramer",
                color = "organ",
@@ -2898,6 +2976,9 @@ fig_symptoms <- ggarrange(
                ggtheme = theme_pubr())+
     labs(x = "",y = "Cramer's V",color = "")+
     theme(legend.justification = c(-3,0)),
+
+
+
 
   tempdf  %>%
   {.[,c(2,1,5,3,4,6)]} %>%
@@ -2993,13 +3074,20 @@ cof_fig<- ggarrange(
               facet.by = "grouping",
               position = position_fill(reverse = T),
               palette = "lancet")+
-    labs(fill = "severity",x = "Concomitant mastocytosis",y="proportion"),
-  labels = c("B","C"),
-  common.legend = T),
-nrow = 2,
+    labs(fill = "severity",x = "Concomitant mastocytosis",y="proportion")+
+    theme(axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.title.y = element_blank()),
+  labels = c("B",""),
+  widths = c(1,0.8),
+  common.legend = T
+  ),
+  output_plot_tryp+
+    labs(fill = "tryptase [ng/ml]"),
+nrow = 3,
 ncol=1,
-heights = c(1,0.7),
-labels = c("A","")
+heights = c(1,0.7,0.7),
+labels = c("A","","C")
 )
 
 #### Heatmap Symptom+Therapy ####
@@ -3067,7 +3155,25 @@ x <- age_sex_matched %>%
 
 library(randomForest)
 fit_rf=randomForest(grouping~., data=data.frame(x,grouping = age_sex_matched$grouping ))
-varImpPlot(fit_rf)
+rf_plot_treatment <- varImpPlot(fit_rf)
+rf_ggplot_treatment <- rf_plot_treatment %>% data.frame(treatment = rownames(.),.) %>%
+  filter(MeanDecreaseGini >10) %>%
+  mutate(treatment = treatment %>% recode_variables()) %>%
+  ggdotchart(x = "treatment",
+             y = "MeanDecreaseGini",
+             #color = "organ",
+             palette = "lancet",
+             sorting = "descending",
+             add = "segments",
+             #add.params = list(color = "organ"),
+             rotate = T,
+             #group = "organ",
+             dot.size = 4,
+             size = 1.5,
+             font.label = list(size = 8, color = "black"),
+             #label = "Cramer"
+             ggtheme = theme_pubr())
+
 vars <- importance(fit_rf) %>%
   broom::tidy() %>%
   arrange(desc(MeanDecreaseGini)) %>%
@@ -3208,10 +3314,10 @@ o <-  rdb %>%
 
 o %>%
   group_by(atopy) %>%
-  summarize(unconscious = sum(q_114_loss_of_consciousness=="yes",na.rm=T)) %>%
+  summarize(unconsciousness = sum(q_114_loss_of_consciousness=="yes",na.rm=T)) %>%
   ggbarplot(x = "atopy",
             #fill = "tryp_cat",
-            y = "unconscious")
+            y = "unconsciousness")
 
 table(o$atopy,o$q_114_loss_of_consciousness)[,1:2] %>% chisq.test()
 
@@ -3244,11 +3350,11 @@ phi_f <- function(data,
   .$phi
 }
 
-phi_f(data = age_sex_matched,
-      grouping_var = "grouping",
-      grouping_var_val = "insects",
-      var1 = "d_520_adren1",
-      var2 = "q_111")
+# phi_f(data = age_sex_matched,
+#       grouping_var = "grouping",
+#       grouping_var_val = "insects",
+#       var1 = "d_520_adren1",
+#       var2 = "q_111")
 multiphi_f <- function(data,
                        grouping_var,
                        grouping_var_val,
@@ -3458,6 +3564,9 @@ matrix_treat_sympt_other<- multiphi_f(
 #   gather(key="treatment",value = "phi",2:23) %>%
 # ggplot(aes(treatment,symptoms,fill=phi))+
 #   geom_tile()
+
+
+
 rownames(matrix_treat_sympt) %<>% recode_variables()
 colnames(matrix_treat_sympt) %<>% recode_variables()
 
@@ -3466,7 +3575,7 @@ colnames(matrix_treat_sympt_other) %<>% recode_variables()
 
 
 require(heatmaply)
-matrix_treat_sympt %>%
+matrix_venom <- matrix_treat_sympt %>%
   scale() %>%
   heatmaply(hclust_method = "ward.D",
             dist_method = "euclidean",
@@ -3474,10 +3583,10 @@ matrix_treat_sympt %>%
             k_row = 2,
             k_col =2,
             colors = c("#FFFFFF","#000066"),
-            plot_metod = "ggplot"
-            #return_ppxpy=TRUE
+            plot_metod = "ggplot",
+            return_ppxpy=TRUE
             )
-matrix_treat_sympt_other %>%
+matrix_other <- matrix_treat_sympt_other %>%
   scale() %>%
   heatmaply(hclust_method = "ward.D",
             dist_method = "euclidean",
@@ -3489,3 +3598,21 @@ matrix_treat_sympt_other %>%
             #return_ppxpy=TRUE
   )
 
+### refractory cases
+
+yj_bee <- rdb %>%
+  mutate(d_severity_rm = d_severity_rm %>% factor()) %>%
+  mutate(grouping = ifelse(d_insect_gr4 == "yellow jacket",
+                           "yellow jacket",
+                           ifelse(d_insect_gr4 =="bee", "bee","other"))) %>%
+  filter(!is.na(d_severity_rm),
+         !is.na(d_insect_gr4)) %>%
+  group_by(d_severity_rm,
+           grouping) %>%
+  summarize(n = n())
+
+yj_bee %>%
+  ggbarplot(x = "grouping",
+            y = "n",
+            fill = "d_severity_rm",
+            position = position_fill())
