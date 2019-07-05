@@ -61,7 +61,7 @@ Insect-venom elicited anaphylaxis is a common hypersensitivity reaction which ma
 
 The data show that `r {{rdb$q_340_insects=="yellow jacket"} %>% sum(na.rm=T)/sum({!is.na(rdb$q_340_insects)})*100} %>% {round(.,1)}`% of all insect elicited cases were elicited by yellow jackets, followed by bees (`r {{rdb$q_340_insects=="bee"} %>% sum(na.rm=T)/sum({!is.na(rdb$q_340_insects)})*100} %>% {round(.,1)}`%). The insect venom elicited cases occurred mostly in outdoor places (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(q_152_location) %>% summarize(n=n()) %>% {.[c(4),2] %>% sum()/(.[,2] %>% sum)*100} %>% round(1)`%) patients' homes (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(q_152_location) %>% summarize(n=n()) %>% {.[c(8),2] %>% sum()/(.[,2] %>% sum)*100} %>% round(1)`%) or urban places (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(q_152_location) %>% summarize(n=n()) %>% {.[c(5),2] %>% sum()/(.[,2] %>% sum)*100} %>% round(1)`%). 
 
-Skin, gastrointestinal and respiratory symptoms occurred less frequently in insect elicited cases of anaphylaxis, whereas cardiologic symptoms (with hypotension, collapse, and loss of consciousness) were more frequent.  Intramuscular adrenaline (as a first-line therapy) was administered significantly less often in insect venom elicited cases (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(d_522_adren_agg) %>% summarize(n=n()) %>% {.[2,2]/(.[1,2])*100} %>% round(1)`% vs `r rdb %>% filter(is.na(q_340_insects)) %>% group_by(d_522_adren_agg) %>% summarize(n=n()) %>% {.[2,2]/(.[1,2])*100} %>% round(1)`, p < 0.0001). The mortality rate in insect anaphylaxis was comparable (`r `%) to other cases (0.295%, p = 0.174).
+Skin, gastrointestinal and respiratory symptoms occurred less frequently in insect elicited cases of anaphylaxis, whereas cardiologic symptoms (with hypotension, collapse, and loss of consciousness) were more frequent.  Intramuscular adrenaline (as a first-line therapy) was administered significantly less often in insect venom elicited cases (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(d_522_adren_agg) %>% summarize(n=n()) %>% {.[2,2]/(.[1,2])*100} %>% round(1)`% vs `r rdb %>% filter(is.na(q_340_insects)) %>% group_by(d_522_adren_agg) %>% summarize(n=n()) %>% {.[2,2]/(.[1,2])*100} %>% round(1)`, p < 0.0001). The mortality rate in insect anaphylaxis was comparable to other cases (0.295%, p = 0.174).
 
 Patients who experienced insect-venom anaphylaxis were older (p < 0.0001), more often had concomitant mastocytosis (p < 0.0001) and cardiologic conditions (p < 0.0001) and females more often had concomitant thyroid diseases and less often suffered from a food allergy or atopic dermatitis. 
 
@@ -87,7 +87,7 @@ The statistical analysis was performed in the R Statistical Package [@R]. A simp
 
 ## Temporal distribution of anaphylaxis cases by elicitor.
 
-Insect venom elicited anaphylaxis in contrast to other elicitors showed a significant seasonal fluctuation and was most frequently reported from May till October. Their proportion to other cases during the summer seasons reached 60% and was as under 1% of cases during winter. Yellow-jacket was the most prominent IVA-causing insect reported in these cases followed by bees. The IVA causing insects differed in European countries with hornets being more prominent in the south of Europe. IVA was more frequent in adults and seniors when compared to children and young adults. (Fig \@ref(fig:insectstime)). 
+Insect venom elicited anaphylaxis in contrast to other elicitors showed a significant seasonal fluctuation and was most frequently reported from May till October. Their proportion to other cases during the summer seasons reached 60% and was as under 1% of cases during winter. Yellow-jacket was the most prominent IVA-causing insect reported in these cases followed by bees. The IVA causing insects differed in European countries with hornets being more prominent in the south of Europe. IVA was more frequent in adults and seniors when compared to children and young adults. (Fig \@ref(fig:insectstime)B). 
 
 ## Symptoms
 
@@ -104,17 +104,17 @@ treact <- table(rdb$grouping,rdb$q_160_ever_react)[,1:2] %>% prop.table(1)*100
 p <- table(rdb$grouping,rdb$q_160_ever_react)[,1:2] %>% summary() %>% {.$p.value}
 ```
 
-In general `r treact[1,2]`% patient with insect allergy had experienced anaphylaxis in the past which is less than if the reaction is elicited by other elcitors (`r treact[2,2]`%, p = `r p`).  We documented `r sum(repeated_reaction_in_Reg)` patients with two documented reactions in our registry. Out of these `r sum(greater_same[,2])` (`r sum(greater_same[,2])/sum(repeated_reaction_in_Reg)*100`%) had Insect elicited anaphylaxis and in `r greater_same[1,2]` (`r greater_same[1,2]/sum(greater_same[,2])*100`) The following reaction was more severe than before. In `r greater_same[3,2]` (`r (greater_same[3,2]/sum(greater_same[,2])*100) %>% round(1)`%) cases the reaction was graded exactly as before.
+In general `r treact[1,2] %>% round(1)`% patient with insect allergy had experienced anaphylaxis in the past which is less than if the reaction is elicited by other elcitors (`r treact[2,2]%>% round(1)`%, `r p %>% pval()`).  We documented `r sum(repeated_reaction_in_Reg)` patients with two documented reactions in our registry. Out of these `r sum(greater_same[,2])` (`r (sum(greater_same[,2])/sum(repeated_reaction_in_Reg)*100)%>% round(1)`%) had Insect elicited anaphylaxis and in `r greater_same[1,2]` (`r greater_same[1,2]/sum(greater_same[,2])*100`) The following reaction was more severe than before. In `r greater_same[3,2]` (`r (greater_same[3,2]/sum(greater_same[,2])*100) %>% round(1)`%) cases the reaction was graded exactly as before.
 
 
 
 ## Management
 
-Patients who underwent IVA significantly less often received adrenaline treatment than in other adrenaline cases (`r test_adrenuse1$observed %>% prop.table()`, `r test_adrenuse1$p.value %>% pval()`). After adjusting both groups for similar age, sex and severity distribution - the difference in adrenaline use was still significant irrespective of the route of administration. Antihistaminic drugs, on the other hand, were given more often in cases of IVA when compared to non-IVA. 
+Patients who underwent IVA significantly less often received adrenaline treatment than in other adrenaline cases (26.9% vs 34.6%, `r test_adrenuse1$p.value %>% pval()`). After adjusting both groups for similar age, sex and severity distribution - the difference in adrenaline use was still significant irrespective of the route of administration. Antihistaminic drugs, on the other hand, were given more often in cases of IVA when compared to non-IVA. 
 
 IVA was most often treated with corticosteroids and antihistamines (significantly more frequent than in other anaphylaxis cases). On the other hand adrenaline, beta-2 mimetics and oxygen were given more often in non-IVA. 
 
-We discovered clusters of symptoms and therapy modes. In IVA patients urticaria, and cardiologic symptoms (cardiac arrest, hypotension, loss of consciousness), as well as respiratory distress, were treated more similarly than gastroenterologic symptoms (Fig. \@ref(fig:adrenalineuse)C).  Therapy that was usually used together was dependent on the symptom profile and consisted of AAI, i.v. adrenaline in multiple doses, pure oxygen inhalation, an initial dose of antihistamines, and beta 2 agonists. 
+We discovered clusters of symptoms and therapy modes. In IVA patients urticaria, and cardiologic symptoms (cardiac arrest, hypotension, loss of consciousness), as well as respiratory distress, were treated more similarly than gastroenterologic symptoms (Fig. \@ref(fig:adrenalineuse)C).  Therapy was dependent on the symptom profile and consisted of AAI, i.v. adrenaline in multiple doses, pure oxygen inhalation, an initial dose of antihistamines, and beta 2 agonists. 
 Corticosteroids, volume replacement and i.v. beta2 agonists formed another therapy mode. 
 
 The most differences in the therapy of IVA vs. other forms of anaphylaxis was observed in the frequency of inhaled beta2-agonists and antihistamines (probably because these are not available for the IVA patients, but atopic patients use them regularly) (Fig. \@ref(fig:adrenalineuse)B).
@@ -280,7 +280,7 @@ yj_bee %>%
 
 ```
 
-```{r acei}
+```{r acei, fig.cap="Ace inhibitors and cardiologic symptoms"}
 
 ggarrange(
   plot_ace_cardiacs,
@@ -299,7 +299,7 @@ ncol = 1
 
 ```
 
-```{r betas}
+```{r betas, fig.cap = "Beta blockers and cardiologic symptoms"}
 rdb_temp <- rdb
 rdb_temp$q_423_beta <- yesonly(rdb_temp$q_423_beta)
 
@@ -349,8 +349,8 @@ ncol = 1
 
 ```
 
-```{r cardiacmasto}
-cardiac_beta_plots[[6]]+
+```{r cardiacmasto, fig.cap = "MAsotcytosis and cardiologic symptoms" }
+cardiac_masto_plots[[6]]+
               labs(x = "cardiac arrest")
 ```
 
@@ -541,7 +541,7 @@ ggplot(temp,aes(.rownames,Pr...t.., color=outcome))+
   labs(x = "",y="p value")
 ```
 
-```{r tryp2,fig.height=8, fig.cap = "tryptase cut off value plot"}
+```{r tryp2,fig.height=8, fig.width = 7, fig.cap = "tryptase cut off value plot"}
 output_severity <- lapply(possible_outcomes,
                          function(x){
                          ana_outcome_matched(data = data4,

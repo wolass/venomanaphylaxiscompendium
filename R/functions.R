@@ -163,7 +163,7 @@ recode_variables <- function(x){
               'q_522_adren_iv'   = 'adrenaline i.v. 1st';
               'q_552_adren_iv_v5'   = 'adrenaline i.v. 2nd';
               'q_521_other_v5'   = 'other drugs 1st';
-              'q_521_antih_v5'   = 'antihistmines 1st';
+              'q_521_antih_v5'   = 'antihistamines 1st';
               'q_522_adren_im'   = 'adrenaline i.m. 1st';
               'q_522_antih_oral'   = 'antihistamines p.o. 1st';
               'q_552_adren_im_v5'   = 'adrenaline i.m. 2nd';
