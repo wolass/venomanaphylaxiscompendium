@@ -17,7 +17,7 @@ bibliography: references.bib
 csl: "../templates/journal-of-archaeological-science.csl" # Insert path for the bib-style
 ---
 
-^1^ Department of Dermatology, Venerology and Allergology, Charité – Universitätsmedizin Berlin, corporate member of Freie Universität Berlin, Humboldt-Universität zu Berlin, and Berlin Institute of Health, Charitéplatz 1, 10117 Berlin,
+^1^ Department of Dermatology, Venerology, and Allergology, Charité – Universitätsmedizin Berlin, corporate member of Freie Universität Berlin, Humboldt-Universität zu Berlin, and Berlin Institute of Health, Charitéplatz 1, 10117 Berlin,
 
 ^2^ Department of Dermatology and Allergology, Klinikum der Universität München, Germany 
 
@@ -27,7 +27,7 @@ csl: "../templates/journal-of-archaeological-science.csl" # Insert path for the 
 
 **Corresponding author: **
   Prof. Dr. med. M. Worm margitta.worm@charite.de
-Phone: +49 30 450 529 005;	  Fax: +49 30 450 529 902
+Phone: +49 30 450 529 005;      Fax: +49 30 450 529 902
 
 **Keywords:**
   anaphylaxis, adrenaline (epinephrine), beta-blockers, insect venom allergy, yellow-jacket
@@ -73,45 +73,193 @@ Symptoms of insect venom anaphylaxis are distinctively different from other reac
 
 # Methods
 
-The European Anaphylaxis Registry [@Grabenhenrich2016] database from March 2018 was searched for anaphylaxis cases elicited by insect's venom. The flowchart in figure \@ref(fig:flowchart) represents the detailed case-selection process. 
+The European Anaphylaxis Registry [@Grabenhenrich2016] database from March 2019 was searched for anaphylaxis cases elicited by insect's venom. The flowchart in figure \@ref(fig:flowchart) represents the detailed case-selection process. 
 
-The final database consisted of `r countries %>% summarise(sum(n))` cases of insect elicited anaphylaxis from `r countries %>% summarize(length(n))` countries. Severe reactions were identified based on the definition by NIAID/FAAN [@Sampson2006] and presented with significant hypoxia, hypotension, confusion, collapse and loss of consciousness, or incontinence. 
-We compared the frequency of various elicitors, symptoms, and factors known to increase the risk of severe anaphylaxis [@Worm2018] in both groups. We evaluated symptoms, managment and risk factors of insect elicited cases in comparison to other known triggers of anaphylaxis.
+The final database consisted of `r countries %>% summarise(sum(n))` cases of insect elicited anaphylaxis from `r countries %>% summarize(length(n))` countries. Severe reactions were identified based on the definition by NIAID/FAAN [@Sampson2006] or as Ring and Messmer Scale - grades III and IV) and presented with significant hypoxia, hypotension, confusion, collapse and loss of consciousness, or incontinence. 
+We compared the frequency of various elicitors, symptoms, and factors known to increase the risk of severe anaphylaxis [@Worm2018] in both groups. We evaluated symptoms, management and risk factors of insect elicited cases in comparison to other known triggers of anaphylaxis.
 
-We saw a significant difference in the clinical features of insect anaphylaxis in children and adults. The younger popoulation significantly less often had concomitant conditions (i.e. DM, HT, malignant diseases and mastocytosis), and more often presented with atopic dermatitis, rhinitis and asthma. Therefore, we decided to adjust the analysis for age and sex to reduce the comparison bias. When comparing the management of both types of anaphylaxis we also matched the control group according to severity.  
+We observed a significant difference in the clinical features of insect anaphylaxis in children and adults. The younger population significantly less often had concomitant conditions (i.e. DM, HT, malignant diseases and mastocytosis), and more often presented with atopic dermatitis, rhinitis, and asthma. Therefore, we decided to adjust the analysis for age and sex to reduce the comparison bias. When comparing the management of both types of anaphylaxis we also matched the control group according to severity.  
 
 <!-- ## Data handling and statisitcs -->
-The statistical analysis was performed in the R Statistical Package [@R]. Simple comparison of categorical variables was performed using either Chi^2^ test or Fisher's exact test (where the number of observation in a bin was less then 10), continuous variables were analyzed using Mann-Whitney U test. We defined statistical significance as α = 0.05. Data along with the analysis script can be accessed at online at https://github.com/wolass/venomanaphylaxiscompendium.
+The statistical analysis was performed in the R Statistical Package [@R]. A simple comparison of categorical variables was performed using either Chi^2^ test or Fisher's exact test (where the number of observation in a bin was less than 10), continuous variables were analyzed using Mann-Whitney U test. We defined statistical significance as α = 0.05. Data along with the analysis script can be accessed online at https://github.com/wolass/venomanaphylaxiscompendium.
 
 # Results
 
 ## Temporal distribution of anaphylaxis cases by elicitor.
 
-Insect venom elicited anaphylaxis in contrast to other elicitors showed a significant seasonal fluctuation and was most frequently reported from May till October. Their proportion to other cases during the summer seasons reached 60% and was as under 1% of cases during winter. Yellow-jacket was the most prominent IVA-causing insect reported in these cases followed by bees. The IVA causing insects differed in European countries with hornets being more prominient on the south of europe. IVA was more frequent in adults and seniors when compared to children and youg adults. (Fig \@ref(fig:insectstime)). 
-
-Cases of IVA were more frequent in older patients. Children suffered mainly from food elicited anaphylaxis. Therefore we adjusted the anlysis apropriately for age. 
-
-
+Insect venom elicited anaphylaxis in contrast to other elicitors showed a significant seasonal fluctuation and was most frequently reported from May till October. Their proportion to other cases during the summer seasons reached 60% and was as under 1% of cases during winter. Yellow-jacket was the most prominent IVA-causing insect reported in these cases followed by bees. The IVA causing insects differed in European countries with hornets being more prominent in the south of Europe. IVA was more frequent in adults and seniors when compared to children and young adults. (Fig \@ref(fig:insectstime)). 
 
 ## Symptoms
 
+IVA had a specific symptom pattern. Patients, who underwent IVA, more often experienced cardiologic symptoms (dizziness, reduced alertness, unconsciousness) than in other elicitors of anaphylaxis and less often showed gastrointestinal symptoms  (association measured with Cramer's V, Fig \@ref(fig:figsymptoms)). The difference in severe hypotension frequency was especially prominent in children under 13 (Fig. S\@ref(fig:hypotensionkids)). 
 
-Patients who underent anaphylaxis due to insect venom more often experienced 
-cardiologic symptoms. Especially collapsing due to hypotension was prominently 
-more often seen in patient who underwent venom anaphylaxis. This difference was especially visible in children under the age of 18 years. (See the ade adapted symptoms plot). 
-We saw prominent differences in association of specific symptoms with eliocitor in cerain age groups. Children under 13 yoears of age showed association with IVIA and vomiting - whereas adults did not. Hypotension collapse was more prominently associated with IVIA in children whereas loss of consciousness in adults. 
+The pattern of organ involvement showed similarities in gastrologic, skin and respiratory symptoms, and did not differ in the fraction of elevated baseline serum tryptase. Although, less atopic diseases were seen in patients undergoing IVA (Fig \@ref(fig:figsymptoms)C).
+
+Severe reactions were more prevalent in adults in comparison to children under 18, and in IVA cases vs other elicitors (Fig. \@ref(fig:figsymptoms)D). There were no differences in severity between insect species. 
+
+## Repeated reactions
+
+```{r repreactvars}
+treact <- table(rdb$grouping,rdb$q_160_ever_react)[,1:2] %>% prop.table(1)*100
+p <- table(rdb$grouping,rdb$q_160_ever_react)[,1:2] %>% summary() %>% {.$p.value}
+```
+
+In general `r treact[1,2]`% patient with insect allergy had experienced anaphylaxis in the past which is less than if the reaction is elicited by other elcitors (`r treact[2,2]`%, p = `r p`).  We documented `r sum(repeated_reaction_in_Reg)` patients with two documented reactions in our registry. Out of these `r sum(greater_same[,2])` (`r sum(greater_same[,2])/sum(repeated_reaction_in_Reg)*100`%) had Insect elicited anaphylaxis and in `r greater_same[1,2]` (`r greater_same[1,2]/sum(greater_same[,2])*100`) The following reaction was more severe than before. In `r greater_same[3,2]` (`r (greater_same[3,2]/sum(greater_same[,2])*100) %>% round(1)`%) cases the reaction was graded exactly as before.
 
 
-Patients with Insect Venom Allergy had a lot more cardiologic symptoms than anaphylaxis cases that were elicited through other triggers.  
-Dizziness, Loss of consciousness hypotension, collapse, Throat tightness and nausea were more often associated with the insect cases.
 
+## Management
 
-<!-- Forest plot ! Risk that the symptom will occure given that the reaction was elicited by Insects or not -->
+Patients who underwent IVA significantly less often received adrenaline treatment than in other adrenaline cases (`r test_adrenuse1$observed %>% prop.table()`, `r test_adrenuse1$p.value %>% pval()`). After adjusting both groups for similar age, sex and severity distribution - the difference in adrenaline use was still significant irrespective of the route of administration. Antihistaminic drugs, on the other hand, were given more often in cases of IVA when compared to non-IVA. 
 
+IVA was most often treated with corticosteroids and antihistamines (significantly more frequent than in other anaphylaxis cases). On the other hand adrenaline, beta-2 mimetics and oxygen were given more often in non-IVA. 
+
+We discovered clusters of symptoms and therapy modes. In IVA patients urticaria, and cardiologic symptoms (cardiac arrest, hypotension, loss of consciousness), as well as respiratory distress, were treated more similarly than gastroenterologic symptoms (Fig. \@ref(fig:adrenalineuse)C).  Therapy that was usually used together was dependent on the symptom profile and consisted of AAI, i.v. adrenaline in multiple doses, pure oxygen inhalation, an initial dose of antihistamines, and beta 2 agonists. 
+Corticosteroids, volume replacement and i.v. beta2 agonists formed another therapy mode. 
+
+The most differences in the therapy of IVA vs. other forms of anaphylaxis was observed in the frequency of inhaled beta2-agonists and antihistamines (probably because these are not available for the IVA patients, but atopic patients use them regularly) (Fig. \@ref(fig:adrenalineuse)B).
 
 
 ## Co-factors
+
+Although the physical exercise was more often related to IVA than other triggers of anaphylaxis - it was not predictive of the severity of a reaction in these patients. 
+
+Concomitant use of ACE-I did not correlate with reaction severity measured in ANAscore and VAS scales. It was however more often associated with cardiac arrests in both IVA and other-triggers anaphylaxis (Fig. S\@ref(fig:acei)).  
+
+Beta-blockers use was associated with higher severity scores in VAS and ANAscore and with cardiac arrest, chest pain. Especially arrhythmia was more frequently reported in patients undergoing IVA with concomitant beta-blockers.
+
+Mastocytosis was increasing the risk of cardiac arrest in patients undergoing IVA significantly more in patients undergoing anaphylaxis due to other triggers (Fig S\@ref(fig:cardiacmasto)). 
+
+Baseline serum tryptase correlated with the severity of reactions and especially in the Ring and Messmer scale was more prominently increasing risk of severe anaphylaxis in IVA patients than in other cases (Fig. \@ref(fig:figcofactors)B and S\@ref(fig:tryp)).
+In the VAS scale, this did not show as significant, but it did in all the other severity scales. We decided to use Tryptase cut off value of 8 ng/ml (Fig. S\@ref(fig:tryp2)). We saw that cases with cardiac arrest were associated with increased tryptase over 8 ng/ml and this proportion was higher in IVA when compared to other elicitors. Loss of consciousness was also associated with increased tryptase levels but only in patients with IVA (Fig. \@ref(fig:figcofactors)C).
+
+We compared the Hymenoptera species which was responsible for triggering IVA according to the severity of the reaction. Patients matched according to sex and age has similar reactions to bees and yellow-jackets (in Brown and Ring and Messmer scales). In ANAscore - yellow jacket stings were linked to a slightly more severe reaction. This data, however, is not comparable to the refractory anaphylaxis cases as refractory anaphylaxis seems to be a distinct phenotype. 
+
+
+
+<!-- ### Mastocytosis -->
+
+<!-- ### Older Age -->
+
+<!-- ### ACE - I -->
+
+<!-- ### previous reactions (severe) -->
+
+<!-- ### Male sex -->
+
+<!-- ### Beta blockers and CARDIOSELECTIVE BLOCKERS -->
+
+<!-- ### Evaluate the pediatric population separately -->
+
+<!-- ### Number of SAR during VIT compare to other hypos -->
+<!-- #### Compare bee sit to wasp sit for AEs -->
+<!-- #### correlate the tryptase value with SIT types and severity -->
+
+
+# Discussion
+
+Cardiologic symptoms and hypotensive collapse might be associated with venom anaphylaxis due to the vaso-vagal reflex. As seen in patients undergoing blood sampling needles (and probably also insect stings) may elicit a hypotensive response due to extreme emotional distress with bradycardia, limiting the blood flow to the brain and causing syncope. This mechanism may contribute to the ongoing histamine-induced vasodilatation and may worsen the symptoms of an allergic reaction.
+
+
+
+# Conclusion
+
+# Acknowledgements
+
+<!-- The following line inserts a page break when the output is MS Word. For page breaks in PDF, use \newpage on its own line.  -->
+##### 
+
+# References 
+<!-- The following line ensures the references appear here for the MS Word or HTML output files, rather than right at the end of the document (this will not work for PDF files):  -->
+<div id="refs"></div>
+
+##### 
+
+# Figures
+
+
+
+
+```{r flow,fig.width=6,fig.height=6, fig.cap=" A) Flow-diagram illustrating the rationale to include cases in our analysis. B,C,D: Sex, age, and severity distribution was matched in cases in both groups to allow for comparable results between IVA and non_IVA cases"}
+ggarrange(ggplot()+
+            background_image(png::readPNG("../figures/flow.png")),
+          lower_panel,
+          ncol = 1,
+          nrow = 2,
+          heights = c(1,0.4),
+          labels = c("A","")
+)
+```
+
+##### 
+
+```{r insectstime, fig.cap="A: Proportion of anaphylaxis cases elicited by specific insects according to the month in which the reaction occurred. Less frequent insects were grouped together as 'other'. B: The proportion of insect elicited cases to cases elicited by other triggers considering the patient's age. C: Geographical differences in the most common elicitors of IVA. Countries which reported less than 10 cases of anaphylaxis due to insect venom were not illustrated in this figure.",fig.height=4,fig.width = 7}
+fig_basic
+```
+
+
+##### 
+
+```{r figsymptoms, fig.cap="Symptoms of insect venom anaphylaxis (IVA) compared to other elicitors",fig.width=9.5,fig.height = 8}
+fig_symptoms
+```
+
+##### 
+
+```{r adrenalineuse, fig.cap = "Therapy modes in patients with IVA compared to oter elicitors. A)  B)",fig.height=10,fig.width = 7}
+
+ggpubr::ggarrange(
+  ggarrange(
+    plotManagement,
+    rf_ggplot_treatment,
+    labels = c("A","B")
+  ),
+  #lower_panel,
+  matrix_venom$p+
+    labs (x = "", y = "")+
+    geom_segment(aes(x = c(8.5),
+                     xend = c(8.5), 
+                     y = c(0.5),
+                     yend = c(39.5)),color = "red")+
+    geom_segment(aes(x = c(0.5),
+                     xend = c(21.5), 
+                     y = c(28.5),
+                     yend = c(28.5)), color = "red" ),
+  nrow = 2,
+  heights = c(1.5,3),
+  labels = c("","C")
+)
+```
+
+
+##### 
+
+```{r figcofactors, fig.cap="Cofactors of insect venom anaphylaxis ad their relationship to severity of a reaction",fig.width=5,fig.height = 8}
+cof_fig
+```
+
+
+# Supplementary Figures
+
+```{r treatmentmatrixother}
+#matrix_other
+```
+
+```{r hypotensionkids, fig.cap="Hypotension in IVA of kids"}
+hypotensionPlot
+```
+
 ```{r}
+ggarrange(dt,
+          dt3 %>%
+ggbarplot(x = "q_610_sit_prior_v5",
+          y = "n",
+          fill = "severity_brown",
+          position = position_fill())+
+  labs(fill="FAAN"))
+```
+
+```{r cofactorscomparison}
 testInsectsbinomialTab$cofactors[,-7] %>% knitr::kable()
 
 testInsectsbinomialTab$cofactors[,-7] %>%
@@ -123,163 +271,92 @@ testInsectsbinomialTab$cofactors[,-7] %>%
   theme(axis.text.x=element_text(angle=90))
 ```
 
+```{r severityinsectspecies}
+yj_bee %>%
+  ggbarplot(x = "grouping",
+            y = "n",
+            fill = "d_severity_rm",
+            position = position_fill())
 
+```
 
-### ACE-I
-Ruef wrote in 2009 that the use of ACE I increases the risk of a severe reaction. 
+```{r acei}
 
-```{r}
-data$q_423_ace <- yesonly(data$q_423_ace)
-
-wilcox.test(q_116_VAS_v7~q_423_ace,data = data)
-data %>% 
-  filter(d_elicitor_gr5=="insects") %>% 
-ggplot(aes(q_423_ace,q_116_VAS_v7))+
-  geom_violin()
-
-data %>% 
-  filter(d_elicitor_gr5=="insects") %>% 
-group_by(q_423_ace) %>% 
-  summarise(medianVAS=median(q_116_VAS_v7,na.rm=T),
-            IQRVAS = IQR(q_116_VAS_v7,na.rm=T))
-
-
-wilcox.test(ANAscore~q_423_ace,data = data %>% 
-  filter(d_elicitor_gr5=="insects") 
-)
-
-data %>% 
-  filter(d_elicitor_gr5=="insects") %>% 
-ggplot(aes(q_423_ace,ANAscore))+
-  geom_violin()
-data %>% 
-  filter(d_elicitor_gr5=="insects") %>% 
- group_by(q_423_ace) %>% 
-  summarise(medianANAscore=median(ANAscore,na.rm=T),
-            IQRANAscore = IQR(ANAscore,na.rm=T))
-
-cowplot::plot_grid(
-data %>% 
+ggarrange(
+  plot_ace_cardiacs,
+ggarrange(rdb %>% 
   filter(d_elicitor_gr5=="insects") %>% 
 ggplot(aes(q_423_ace,q_116_VAS_v7))+
   geom_boxplot(),
-data %>% 
+rdb %>% 
   filter(d_elicitor_gr5=="insects") %>% 
 ggplot(aes(q_423_ace,ANAscore))+
   geom_boxplot()
+),
+nrow = 2,
+ncol = 1
 )
 
 ```
 
-### Beta blockers 
-cardioselectivity??????
-```{r}
-data$q_423_beta <- yesonly(data$q_423_beta)
+```{r betas}
+rdb_temp <- rdb
+rdb_temp$q_423_beta <- yesonly(rdb_temp$q_423_beta)
 
-wilcox.test(q_116_VAS_v7~q_423_beta,data = data)
-data %>% 
+wilcox.test(q_116_VAS_v7~q_423_beta,data = rdb_temp)
+rdb_temp %>% 
   filter(d_elicitor_gr5=="insects") %>% 
 ggplot(aes(q_423_beta,q_116_VAS_v7))+
   geom_violin()
 
-data %>% 
+rdb_temp %>% 
   filter(d_elicitor_gr5=="insects") %>% 
 group_by(q_423_beta) %>% 
   summarise(medianVAS=median(q_116_VAS_v7,na.rm=T),
             IQRVAS = IQR(q_116_VAS_v7,na.rm=T))
 
 
-wilcox.test(ANAscore~q_423_beta,data = data %>% 
+wilcox.test(ANAscore~q_423_beta,data = rdb_temp %>% 
   filter(d_elicitor_gr5=="insects") 
 )
 
-data %>% 
+rdb_temp %>% 
   filter(d_elicitor_gr5=="insects") %>% 
 ggplot(aes(q_423_beta,ANAscore))+
   geom_violin()
-data %>% 
+rdb_temp %>% 
   filter(d_elicitor_gr5=="insects") %>% 
  group_by(q_423_beta) %>% 
   summarise(medianANAscore=median(ANAscore,na.rm=T),
             IQRANAscore = IQR(ANAscore,na.rm=T))
 
-cowplot::plot_grid(
-data %>% 
+
+ggarrange(
+  plot_beta_cardiacs,
+  ggarrange(
+    rdb_temp %>% 
   filter(d_elicitor_gr5=="insects") %>% 
 ggplot(aes(q_423_beta,q_116_VAS_v7))+
   geom_boxplot(),
-data %>% 
+rdb_temp %>% 
   filter(d_elicitor_gr5=="insects") %>% 
 ggplot(aes(q_423_beta,ANAscore))+
   geom_boxplot()
+  ),
+nrow =2,
+ncol = 1
 )
 
 ```
 
-
-### mast cell burden - mastocytosis 
-
-```{r}
-data$q_410_masto_cur %<>%  yesonly()
-
-wilcox.test(q_116_VAS_v7~q_410_masto_cur,data = data)
-data %>% 
-  filter(d_elicitor_gr5=="insects") %>% 
-ggplot(aes(q_410_masto_cur,q_116_VAS_v7))+
-  geom_violin()
-
-data %>% 
-  filter(d_elicitor_gr5=="insects") %>% 
-group_by(q_410_masto_cur) %>% 
-  summarise(medianVAS=median(q_116_VAS_v7,na.rm=T),
-            IQRVAS = IQR(q_116_VAS_v7,na.rm=T))
-
-
-wilcox.test(ANAscore~q_410_masto_cur,data = data %>% 
-  filter(d_elicitor_gr5=="insects") 
-)
-
-data %>% 
-  filter(d_elicitor_gr5=="insects") %>% 
-ggplot(aes(q_410_masto_cur,ANAscore))+
-  geom_violin()
-data %>% 
-  filter(d_elicitor_gr5=="insects") %>% 
- group_by(q_410_masto_cur) %>% 
-  summarise(medianANAscore=median(ANAscore,na.rm=T),
-            IQRANAscore = IQR(ANAscore,na.rm=T))
-
-cowplot::plot_grid(
-data %>% 
-  filter(d_elicitor_gr5=="insects") %>% 
-ggplot(aes(q_410_masto_cur,q_116_VAS_v7))+
-  geom_boxplot(),
-data %>% 
-  filter(d_elicitor_gr5=="insects") %>% 
-ggplot(aes(q_410_masto_cur,ANAscore))+
-  geom_boxplot()
-)
-
+```{r cardiacmasto}
+cardiac_beta_plots[[6]]+
+              labs(x = "cardiac arrest")
 ```
 
-```{r}
-cowplot::plot_grid(
-data %>% 
-  filter(d_elicitor_gr5=="insects") %>% 
-ggplot(aes(q_212_tryptase_value_v5,q_116_VAS_v7))+
-  geom_point()+
-  scale_x_log10(),
-data %>% 
-  filter(d_elicitor_gr5=="insects") %>% 
-ggplot(aes(q_212_tryptase_value_v5,ANAscore))+
-  geom_point()+
-  scale_x_log10()
-)
-
-
-
-cowplot::plot_grid(
-data %>% 
+```{r tryp, fig.cap="Severity of anaphylaxis is influenced by baseline serum tryptase levels with the cut off of 8 ng/ml in IVA (top row) vs other anaphylaxis cases",fig.width = 7}
+ggarrange(
+rdb %>% 
   filter(d_elicitor_gr5=="insects") %>% 
   mutate(typ_cat=ifelse(q_212_tryptase_value_v5<8,
                   "low",
@@ -287,7 +364,7 @@ data %>%
   filter(!is.na(typ_cat)) %>% 
   ggplot(aes(typ_cat,q_116_VAS_v7))+
   geom_boxplot(),
-data %>% 
+rdb %>% 
   filter(d_elicitor_gr5=="insects") %>% 
   mutate(typ_cat=ifelse(q_212_tryptase_value_v5<8,
                   "low",
@@ -295,87 +372,53 @@ data %>%
   filter(!is.na(typ_cat)) %>% 
   ggplot(aes(typ_cat,ANAscore))+
   geom_boxplot(),
-data %>% 
+rdb %>% 
   filter(d_elicitor_gr5=="insects",
          !is.na(d_severity_rm)) %>% 
   mutate(typ_cat=ifelse(q_212_tryptase_value_v5<8,
                   "low",
-                  "high")) %>% 
+                  "high"),
+         d_severity_rm = factor(d_severity_rm)) %>% 
   group_by(d_severity_rm,typ_cat) %>% 
   filter(!is.na(typ_cat)) %>% 
     summarize(n = n()) %>% 
   ggplot(aes(typ_cat,n,fill=d_severity_rm))+
   geom_bar(stat="identity",position= "fill"),
-data %>% 
-  filter(d_elicitor_gr5!="insects") %>% 
+rdb %>%
+  filter(d_elicitor_gr5!="insects") %>%
   mutate(typ_cat=ifelse(q_212_tryptase_value_v5<8,
                   "low",
-                  "high")) %>% 
-  filter(!is.na(typ_cat)) %>% 
+                  "high")) %>%
+  filter(!is.na(typ_cat)) %>%
   ggplot(aes(typ_cat,q_116_VAS_v7))+
   geom_boxplot(),
-data %>% 
-  filter(d_elicitor_gr5!="insects") %>% 
+rdb %>%
+  filter(d_elicitor_gr5!="insects") %>%
   mutate(typ_cat=ifelse(q_212_tryptase_value_v5<8,
                   "low",
-                  "high")) %>% 
-  filter(!is.na(typ_cat)) %>% 
+                  "high")) %>%
+  filter(!is.na(typ_cat)) %>%
   ggplot(aes(typ_cat,ANAscore))+
   geom_boxplot(),
-data %>% 
+rdb %>%
   filter(d_elicitor_gr5!="insects",
-         !is.na(d_severity_rm)) %>% 
+         !is.na(d_severity_rm)) %>%
   mutate(typ_cat=ifelse(q_212_tryptase_value_v5<8,
                   "low",
-                  "high")) %>% 
-  group_by(d_severity_rm,typ_cat) %>% 
-  filter(!is.na(typ_cat)) %>% 
-    summarize(n = n()) %>% 
+                  "high"),
+         d_severity_rm = factor(d_severity_rm)) %>%
+  group_by(d_severity_rm,typ_cat) %>%
+  filter(!is.na(typ_cat)) %>%
+    summarize(n = n()) %>%
   ggplot(aes(typ_cat,n,fill=d_severity_rm))+
-  geom_bar(stat="identity",position= "fill")
-)
+  geom_bar(stat="identity",position= "fill"),
+ncol =3 , nrow = 2,
+widths = c(1,1.1,2))
 
 ```
 
-Here put the mastocytosis and baseline serum tryptase as the evaluation of severe risk
-Here it is crucial to compare to even these reactions that had nearly no reactions
 
-### Model the risk of severity of a severe reaction in IVA
-
-USe the model from our previous paper
-
-## Managment
-
-### Adrenaline is less often used in patients with IVA compared to other anaphylaxis cases
-
-```{r adrenuse, fig.cap="**Therapy of IVA cases.** A: General managment methods in IVA and non-IVA. B: Reasons for not administering adrenaline in both IVA and non-IVA cases. C,D,E: "}
-#fig_adrenuse1
-```
-
-Patients who underwent IVA significantly less often recived adrenaline treatment than in other adrenaline cases (`r test_adrenuse1$observed %>% prop.table()`, `r test_adrenuse1$p.value %>% pval()`). After adjusting both groups for simmilar age, sex and severity distribution - the difference in adrenaline use was still significant irrespective of the route of administration. Antihistaminic drugs on the other had were given more often in cases of IVA when compared to non-IVA. 
-
-IVA was most often treated with corticosteroids and antihistamines (significantly more frequent than in other anaphylaxis cases). On the other hand adrenaline, beta-2 mimetics and oxygen were given more often in non-IVA. 
-
-## Diagnostics 
-
-
-## Repeated reactions
-
-```{r}
-treact <- table(rdb$grouping,rdb$q_160_ever_react)[,1:2] %>% prop.table(1)*100
-p <- table(rdb$grouping,rdb$q_160_ever_react)[,1:2] %>% summary() %>% {.$p.value}
-```
-In general `r treact[1,2]`% patient with insect allergy had experienced anaphylaxis in the past which is less than if the reaction is elicited by other elcitors (`r treact[2,2]`%, p = `r p`).  We documented `r sum(repeated_reaction_in_Reg)` patients with two documented reactions in our registry. 
-Out of these `r sum(greter_same)` (`r sum(greter_same)/sum(repeated_reaction_in_Reg)*100`%) had Insect elicited anaphylaxis and in `r greter_same[1]` (`r greter_same[1]/sum(greter_same)*100`) The follwoeing reaction was more severe than before.  
-
-
-### Do we know how mnay beekeepers were in our dataset?
-We were unable to estimate the fraction of cases that were elicited in bee-keepers as this information is not asked in the questionnaire. 
-
-### Hypothesis: Wasp stings are more severe than bee stings
-We previously saw that refractory anaphylaxis cases come from bees. Here we see no difference in the severity of cases elicited by bees and wasps (in the RM). 
-
-```{r,fig.height=8}
+```{r yjbee, fig.height=8, fig.width = 7, fig.cap="Models of severity and the influence of jellow jacket vs bees"}
 require(broom)
 
 ana_outcome_matched <- function(data = data4,
@@ -457,7 +500,7 @@ output_severity <- lapply(possible_outcomes,
 do_cof_tab <- function(x){
   output_severity[[x]]$fit %>% summary() %>% {.$coefficients}%>% tidy() %>% as.matrix()
 }
-
+require(broom)
 temp <- lapply(1:5,do_cof_tab) %>% do.call(what = rbind) %>%
                           as_tibble() %>%
   {mutate(.,
@@ -484,7 +527,9 @@ gridExtra::grid.arrange(output_severity[[2]]$plot,
              label = c(1776,1780,1206,234,1780))
   )#+
   #geom_line(aes(group=outcome))
+```
 
+```{r modelfitness, fig.cap="Comparison of modelling to different severity scales."}
 
 ggplot(temp,aes(.rownames,Pr...t.., color=outcome))+
   geom_segment(x=0.5,xend=4.5,y=log10(0.05),yend=log10(0.05))+
@@ -496,16 +541,7 @@ ggplot(temp,aes(.rownames,Pr...t.., color=outcome))+
   labs(x = "",y="p value")
 ```
 
-Based on the above graphs of patients matched according to sex and age we cannot say that the severity of their reaction differ between yellow-jackets and bees in any of the models except ANAscore - where yellow jacket were linked to  a slightly more severe reaction.
-
-But in the ANAscore variable it shows up to be significant ! Yellow-jackets stings are more severe than the bee stings. This is however very hard to compare to refractory cases. Maybe we can use the refractory case identifier to say in which group we see more refractory cases? 
-
-
-### Increased BTSC develops in the normal range <8
-
-
-
-```{r,fig.height=8}
+```{r tryp2,fig.height=8, fig.cap = "tryptase cut off value plot"}
 output_severity <- lapply(possible_outcomes,
                          function(x){
                          ana_outcome_matched(data = data4,
@@ -545,118 +581,5 @@ gridExtra::grid.arrange(output_severity[[2]]$plot,
   geom_jitter()+
   theme(axis.text.x = element_text(angle=40, hjust=1))
   )
-```
-
-Based on the above we see that the severity of anaphylaxis significantly depends on tryptase concentration (here under 8 µg/ml). Only in the VAS scale this did not sho as significant.
-There might be problems with the vas scale...
-
-### Mastocytosis
-
-### Older Age
-
-### ACE - I
-
-### previous reactions (severe)
-
-### Male sex
-
-### Beta blockers and CARDIOSELECTIVE BLOCKERS
-
-### Evaluate the pediatric population separately
-
-### Number of SAR during VIT compare to other hypos
-#### Compare bee sit to wasp sit for AEs
-#### correlate the tryptase value with SIT types and severity
-### 
-they used generalized aditive models (package GAM?)
-Also ROC curves for confirmation
-
-# Discussion
-
-Cardiologic symptoms and hypotensive collapse might be associated with vanom anaphylaxis due to the vaso-vagal reflex. As seen in patients undrgoing blood sampling needles (and probably also insect stings) may elicit a hypotensive response due to extreme emotional distress with bradycardia, limiting the bloodflow to the brain and causing a syncope. This mechanism may contribute to the ongoing histamin-induced vasodialation and may worsen the symptoms of an allergic reaction.
-
-
-
-# Conclusion
-
-# Acknowledgements
-
-<!-- The following line inserts a page break when the output is MS Word. For page breaks in PDF, use \newpage on its own line.  -->
-##### 
-
-# References 
-<!-- The following line ensures the references appear here for the MS Word or HTML output files, rather than right at the end of the document (this will not work for PDF files):  -->
-<div id="refs"></div>
-
-##### 
-
-# Figures
-
-
-
-
-```{r flow,fig.width=6,fig.height=6, fig.cap=" A) Flow-diagram illustrating the rationale to include cases in our analysis. B,C,D: Sex, age, and severity distribution was matched in cases in both groups to allow for comparable results between IVA and non_IVA cases"}
-ggarrange(ggplot()+
-            background_image(png::readPNG("../figures/flow.png")),
-          lower_panel,
-          ncol = 1,
-          nrow = 2,
-          heights = c(1,0.4),
-          labels = c("A","")
-)
-```
-
-##### 
-
-```{r insectstime, fig.cap="A: Proportion of anaphylaxis cases elicited by specific insects according to the month in which the reaction occured. Less frequent insects were groupeped together as 'other'. B: The proportion of insect elicited cases to ceses elicited by other triggers considering patient's age. C: Geographical differences in the most common eliciotors of IVA. Countries which reported less than 10 cases of anaphylaxis due to insect venom were not illustrated in this figure.",fig.height=4,fig.width = 7}
-fig_basic
-```
-
-
-##### 
-
-```{r figsymptoms, fig.cap="Symptoms of insect venom anaphylaxis (IVA) compared to other elicitors",fig.width=9.5,fig.height = 8}
-fig_symptoms
-```
-
-##### 
-
-```{r adrenalineuse, fig.cap = "Therapy modes in patients with IVA compared to oter elicitors. A)  B)",fig.height=10,fig.width = 7}
-
-ggpubr::ggarrange(
-  ggarrange(
-    plotManagement,
-    rf_ggplot_treatment,
-    labels = c("A","B")
-  ),
-  #lower_panel,
-  matrix_venom$p+
-    labs (x = "", y = "")+
-    geom_segment(aes(x = c(8.5),
-                     xend = c(8.5), 
-                     y = c(0.5),
-                     yend = c(39.5)),color = "red")+
-    geom_segment(aes(x = c(0.5),
-                     xend = c(21.5), 
-                     y = c(28.5),
-                     yend = c(28.5)), color = "red" ),
-  nrow = 2,
-  heights = c(1.5,3),
-  labels = c("","C")
-)
-```
-
-
-##### 
-
-```{r figcofactors, fig.cap="Cofactors of insect venom anaphylaxis ad their relationship to severity of a reaction",fig.width=5,fig.height = 8}
-cof_fig
-```
-
-
-# Supplementrary Figures
-
-```{r treatmentmatrixother}
-#matrix_other
 ```
 

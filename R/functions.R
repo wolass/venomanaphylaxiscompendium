@@ -291,3 +291,461 @@ severity_brown <- function(data){
   severity_brown <- as.factor(severity_brown)
   return(severity_brown)
 }
+
+#'This function makes a chisq test on selected variables given a grouping variable.
+#'It outputs a p.value
+#'
+#'
+#'
+funChi <-function(var,grouping_var){
+  var %>%
+    data.frame(gr = grouping_var) %>%
+    {chisq.test(.[,1],.[,2])$p.value}
+}
+
+funN1 <- function(var, grouping_var){
+  var %>%
+    data.frame(grouping_var) %>% table %>%
+    {.[2,1]}
+  #group_by(grouping_var) %>%
+  #summarise(count=n())
+}
+funN2 <- function(var, grouping_var){
+  var %>%
+    data.frame(grouping_var) %>% table %>%
+    {.[2,2]}
+  #group_by(grouping_var) %>%
+  #summarise(count=n())
+}
+funF1 <- function(var, grouping_var){
+  var %>%
+    data.frame(grouping_var) %>%
+    table %>% {.[1:2,]} %>%
+    prop.table(2) %>%
+    {.[2,1]}
+  #group_by(grouping_var) %>%
+  #summarise(count=n())
+}
+
+funF2 <- function(var, grouping_var){
+  var %>%
+    data.frame(grouping_var) %>%
+    table %>% {.[1:2,]} %>%
+    prop.table(2) %>%
+    {.[2,2]}
+  #group_by(grouping_var) %>%
+  #summarise(count=n())
+}
+funC <- function(var, grouping_var){
+  var %>%
+    data.frame(grouping_var) %>%
+    table %>% {.[1:2,]} %>%
+    assocstats() %>% {.$cramer}
+}
+
+#' This function takes grouping vector and a DATA FRame ONLY OF  variables to test
+#'
+ChiF <- function(variablesDF,grouping){
+  # C <- lapply(variablesDF,funC,grouping)
+  data.frame(variables = names(variablesDF),
+             pval = lapply(variablesDF,funChi,grouping) %>% unlist,
+             counts_1 = lapply(variablesDF,funN1,grouping) %>%unlist,
+             counts_2 = lapply(variablesDF,funN2,grouping) %>%unlist,
+             fraq_1 = lapply(variablesDF,funF1,grouping) %>%unlist,
+             fraq_2 = lapply(variablesDF,funF2,grouping) %>%unlist,
+             Cramer = lapply(variablesDF,funC,grouping) %>% unlist
+  )
+}
+
+variableSelectionTab <- function(data){
+  data.frame(variableName=data %>% names(),
+             type = data %>%lapply(class) %>% unlist,
+             level = data %>% lapply(function(x){levels(x) %>% length}) %>% unlist(),
+             section = c(rep("general",17),
+                         rep("symptoms",72-17),
+                         rep("location",77-72),
+                         rep("previous reactions",86-77),
+                         rep("diagnostic",114-86),
+                         rep("triggers",184-114),
+                         rep("cofactors",234-184),
+                         rep("management",307-234),
+                         rep("prophylaxis",369-307),
+                         rep("other",length(data[1,])-369))
+  )
+}
+
+#' Do a bunch of statistial tests on a data frame
+#' This function automatically chooses test and performs them on the anaphylaxis registry database
+#' @param grouping Factor with two levels to group the cases into case control sets
+#' @param rdb database on which to perform the test (you can restrict it)
+#' @return Tbl
+#' @export
+makeTests <- function(groups,rdb){
+  grouping <- rdb[,groups]
+  variableSelectionTab <- variableSelectionTab(rdb)
+  variableSelectionTab %<>% # Make division for tests
+    rowwise() %>%
+    mutate(fun = if(level==3|level==2){
+      "chi"
+    } else if(variableName%in%c("q_212_tryptase_value_v5","d_age","ANAscore")) {
+      "t.test"
+    } else if (variableName%in%c("d_severity_rm","d_organ_sum",
+                                 "q_116_VAS_v7", "q_120_time_between_v4",
+                                 "q_131_biphasic_time_v4","q_141_fatal_time_v5",
+                                 "q_632_autoinj_number_v7")){
+      "Kruskal-Wallis"
+    } else {
+      "not tested"
+    })
+
+  # Perform chi2 test
+  varDF <- rdb[,variableSelectionTab %>% filter(fun=="chi") %>%
+                 select(variableName) %>% pull %>% as.character()]
+  ts <- lapply(varDF, # Check which tables are givin an error with chisq test
+               function(x){ # You may implement also fisher tests here later
+                 table(x,grouping)
+               }) %>%
+    lapply(function(x){
+      length(which(x==0))
+    }) %>% lapply(function(x){
+      ifelse(x==0,T,F)
+    }) %>% unlist()
+  varDF[,ts]
+  #ChiF(varDF[ts],grouping) # put this into the dataframe
+  variableSelectionTab %<>% full_join(ChiF(varDF[,ts],grouping),
+                                      by = c("variableName"="variables")
+  )
+  #perform t.tests
+  varDF <- rdb[,variableSelectionTab %>% filter(fun=="t.test")
+               %>% select(variableName) %>% pull %>% as.character()]
+  #chek if t.test possible
+  varDF %>%  lapply(function(column){
+    split(column,grouping) %>% lapply(function(x){
+      is.na(x) %>% `!` %>% sum() %>% {ifelse(.<2,F,T)}
+    }) %>% rbind %>% all()
+  }) %>% cbind()
+  grouping %<>% factor()
+  ttsts <- lapply(varDF,function(x){
+    obj <- t.test(x[grouping==levels(grouping)[1]],
+                  x[grouping==levels(grouping)[2]],
+                  na.rm=T)
+    return(c(pval=obj$p.value,
+             mean1=obj$estimate[1],
+             mean2 = obj$estimate[2]))
+  }) %>% do.call(what=rbind) %>% as.data.frame() %>%
+  {data.frame(variableName=rownames(.),.,stringsAsFactors = F)}
+  # Join with the maind DF wit h substituting the missing values
+  variableSelectionTab %<>% full_join( ttsts, by = "variableName") %>%
+    mutate(pval = coalesce(pval.y, pval.x)) %>%
+    select(-c(pval.x,pval.y))
+  # Perform Kruskall
+  varDF <- rdb[,variableSelectionTab %>% filter(fun=="Kruskal-Wallis")
+               %>% select(variableName) %>% pull %>% as.character()]
+  # Chek if kruskal possible
+  varDF %<>%  lapply(function(column){
+    split(column,grouping) %>% lapply(function(x){
+      is.na(x) %>% `!` %>% sum() %>% {ifelse(.<2,F,T)}
+    }) %>% rbind %>% all()
+  }) %>% unlist() %>% cbind() %>%
+  {varDF[,.]}
+  ktest <-lapply(varDF,function(x){
+    p <- kruskal.test(x,grouping)$p.value
+    m <- split(x,grouping) %>% lapply(function(x){
+      #if(length(x)   ###checkifgood
+      median(x,na.rm=T)
+    }) %>% do.call(what=cbind)
+    IQR <- split(x,grouping) %>% lapply(function(x){
+      #if(length(x)   ###checkifgood
+      IQR(x,na.rm=T)
+    }) %>% do.call(what=cbind)
+    return(c(pval=p,
+             median1 = m[1],
+             median2 = m[2],
+             IQR1 = IQR[1],
+             IQR2 = IQR[2]))
+  }) %>% do.call(what = rbind) %>%
+    data.frame() %>%
+    {data.frame(variableName=rownames(.),
+                .,
+                stringsAsFactors = F)}
+  variableSelectionTab %<>% full_join(ktest, by = "variableName") %>%
+    mutate(pval = coalesce(pval.y, pval.x)) %>%
+    select(-c(pval.x,pval.y))
+  return(variableSelectionTab)
+}
+
+
+
+## Creat a formatted data frame
+
+makeOdds <- function(data,var1,var2){ # var1 to predyktor, var2 - outcome
+  if(var1=="b_sex"){
+    or <- questionr::odds.ratio(data[,var1],data[,var2])
+  } else {
+    or <- questionr::odds.ratio(data[,var1] %>% factor(levels=c("no","yes")),data[,var2])
+    data.frame(V = var1,
+               p = format(or$p,scientific = T,digits = 1),
+               mean = or[[1]],
+               lower = or[[2]],
+               upper = or[[3]],
+               stringsAsFactors = F)
+  }
+}
+makeDF <- function(data,variables,grouping,outcome){
+  o <-lapply(variables,function(x){
+    grouping <- data[,grouping]
+    grA <- which(grouping==levels(grouping)[1])
+    grB <- which(grouping==levels(grouping)[2])
+    rbind(
+      #c(makeOdds(data =data, var1 = x, var2 = outcome),S="all"),
+      c(makeOdds(data =data[grA,], var1 = x, var2 = outcome),S="IVA"),
+      c(makeOdds(data =data[grB,], var1 = x, var2 = outcome),S="non-IVA"),
+      NA
+    )
+  }) %>% do.call(what=rbind) %>% data.frame()
+  return(rbind(rep(NA,length(o[1,])),o) %>% data.frame())
+}
+
+
+#makeDF(rdb,"q_114",grouping,"severity_brown")
+makeTableText <- function(makeDF){
+  rbind(c("Cofactor","Elicitor","p"),
+        makeDF[-c(1),c(1,6,2)])
+}
+
+makeForestPlot <- function(data,variables,grouping,outcome,cLow=0.2,cHigh = 4){
+  df <- makeDF(data,variables,grouping,outcome)
+  forestplot(labeltext = makeTableText(df),
+             mean = df[,"mean"] %>% unlist,
+             lower = df[,"lower"] %>% unlist,
+             upper = df[,"upper"] %>% unlist,
+             new_page = TRUE,
+             is.summary=c(T,rep(F,length(df[,1])-1)),
+             clip=c(cLow,cHigh),
+             xlog=TRUE,
+             col=fpColors(box="royalblue",line="darkblue", summary="royalblue"))
+}
+
+or_plot <- function(my_result){
+  my_result %>%
+    mutate_all(unlist) %>%
+    mutate(variable = forcats::fct_inorder(V)) %>% #make variable into factor (otherwise ggplot will make alphabetically)
+    ##start ggplot()
+    ggplot(aes(x = forcats::fct_rev(V),
+               y = mean))+
+    geom_hline(yintercept = 1,
+               colour = 'grey')+ #1.0 reference line
+    geom_errorbar(aes(ymin = lower, ymax = upper),
+                  width  = 0.2,
+                  colour = '#41ae76',
+                  size   = 0.9) + #OR lower-upper errorbars
+    ##geom_linerange(aes(ymin=or_lower, ymax=or_upper), width=0.2, colour='#41ae76', size=0.9) + #alternative to errorbars
+    geom_point(shape  = 18,
+               size   = 2.5,
+               colour = '#41ae76') +
+    ##explanatory labels
+    geom_text(aes(label = S),
+              vjust = -0.5) +
+    ##reference level labels
+    #geom_text(data = my_result %>%
+    #            filter(is.na(or)) %>%
+    #            mutate(or_reference = 1.0),
+    #          aes(label = value, x = variable, y = or_reference), angle = 90, vjust = -0.2, colour = '#737373') +
+    coord_flip() +
+    scale_y_log10() + #log scale breaks=c(0.2, 0.5, 1, 1.5, 2.0, 3.0), breaks=c(0.01, 0.1, 0.5, 1, 2.0)
+    theme_bw() +                          #theme
+    theme(axis.text.y  = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.title   = element_blank(),
+          #panel.border = element_blank(),
+          axis.text.x  = element_text(size=12, colour='black')
+          #,panel.grid.major.y = element_blank() #optinally only remove horizontal grid lines (keeping odds ratio ones)
+          ,panel.grid.major = element_blank() #these remove all grid lines
+          ,panel.grid.minor = element_blank()
+    )
+
+  #or_plot
+
+}
+
+cramerFun <- function(data,grouping,vars){
+
+  lapply(data[,vars],function(x){
+    DescTools::CramerV(table(x,
+                             data[,grouping]),
+                       conf.level = 0.80,
+                       method = "ncchisqadj")
+  }) %>% do.call(what=rbind) %>%  {data.frame(var=rownames(.),.)} #%>%
+  #data.frame(var=vars)
+}
+
+supraCramerFun <- function(data,vars,grouping,subset = NULL){
+  if(is.null(subset)){
+    o <- cramerFun(data,grouping,vars)
+  } else{
+    o <- split(data,data[,subset]) %>%  lapply(function(x){
+      cramerFun(x,grouping,vars) %>% data.frame()
+    })
+  }
+  out <- list(NULL)
+  for(x in names(o)){
+    out[[x]] <- mutate(o[[x]],subset = x)
+  }
+  out %>% do.call(what=rbind) %>% data.frame()
+}
+
+plot.Cramer <- function(x){
+  if(is.null(x$subset)){
+    p <- ggplot(x, aes(var,Cramer.V))+
+      geom_bar(stat = "identity")+
+      geom_errorbar(aes(ymin= lwr.ci,
+                        ymax = upr.ci),
+                    width=0.2)
+  } else {
+    p <- ggplot(x, aes(var,Cramer.V,fill=subset))+
+      geom_bar(stat = "identity",position = "dodge")+
+      geom_errorbar(aes(ymin= lwr.ci,
+                        ymax = upr.ci),
+                    position = position_dodge(0.9),
+                    width=0.2)
+  }
+  p + geom_segment(mapping = aes(x=0.5,xend = length(levels(var))+0.5,
+                                 y = 0.1, yend= 0.1),
+                   linetype = 2, color = "gray")+
+    geom_segment(mapping = aes(x=0.5,xend = length(levels(var))+0.5,
+                               y = 0.3, yend= 0.3),
+                 linetype = 2, color = "gray")+
+    theme_classic()+
+    theme(axis.text.x = element_text(angle = 45,hjust=1))
+}
+
+
+f4 <- function(x){
+  x[rdb$d_elicitor_gr5=="insects"]%>%
+    split(rdb$b_sex[rdb$d_elicitor_gr5=="insects"]) %>%
+    f3
+}
+f5 <- function(x){
+  x[rdb$d_elicitor_gr5=="insects"]%>%
+    split(rdb$d_age_gr2[rdb$d_elicitor_gr5=="insects"]) %>%
+    f3
+}
+
+funtempspider <- function(var){
+  age_sex_matched %>%
+    group_by(grouping,!!var) %>%
+    summarize(n= n()) %>%
+    mutate(variable = deparse(var)) %>%
+    group_by(grouping) %>%
+    nest() %>%
+    mutate(prop = map(data,function(x){
+      x$n/sum(x$n)
+    })
+    ) %>% unnest() %>%
+    as.matrix()
+}
+
+plot_mor <-function(){
+gridExtra::grid.arrange(
+  #cowplot::plot_grid(
+  rdbp %>%
+    select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
+    mutate(MOR = substr(b_reactiondate,4,5)) %>%
+    filter(!is.na(q_340_insects),MOR!="00") %>%
+    ggplot(aes(MOR,fill=q_340_insects))+
+    geom_bar(position = "fill")+
+    theme_classic()+
+    theme(axis.text.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          legend.position = "none"
+    )+
+    ylab("Proportion"),
+  rdbp %>%
+    select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
+    mutate(MOR = substr(b_reactiondate,4,5)) %>%
+    filter(!is.na(q_340_insects),MOR!="00") %>%
+    ggplot(aes(MOR,fill=q_340_insects))+
+    geom_bar()+
+    theme_classic()+
+    labs(fill="Insect",x = "Month of the year")+
+    theme(axis.text.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          legend.position = c(0.01,.98),
+          legend.justification = c(0,1)),
+  rdbp %>%
+    select(b_reactiondate,grouping,d_elicitor_gr5,d_centres_country) %>%
+    mutate(MOR = substr(b_reactiondate,4,5),
+           d_elicitor_gr5 = relevel(d_elicitor_gr5, "insects")) %>%
+    filter(!is.na(grouping),MOR!="00") %>%
+    group_by(MOR,grouping) %>%
+    summarize(n = n()) %>%
+    group_by(MOR) %>%
+    summarise(prop = n[1]/sum(n)) %>%
+    ggplot(aes(MOR,prop))+
+    geom_bar(stat="identity")+
+    theme_classic()+
+    labs(x = "Month of the year",y = "Fraction of insect elicited ANA"),
+  #theme(legend.position = c(0.01,.98),
+  #      legend.justification = c(0,1)),
+  heights = c(0.4,1,0.5),
+  ncol = 1
+)
+}
+
+funtempspider2 <- function(var){
+  age_sex_matched %>%
+    group_by(grouping) %>%
+    summarize(n= mean(!!var, na.rm = T)) %>%
+    mutate(variable = deparse(var)) %>%
+    group_by(grouping) %>%
+    nest() %>%
+    mutate(prop = map(data,function(x){
+      x$n/sum(x$n)
+    })
+    ) %>% unnest() %>%
+    as.matrix()
+}
+
+#' Check the variable in a dataset.
+#' @param data a data frame
+#' @param var  variable should be a binomial fctor
+#' @param groupby a binomial factor variable in the data frame to divide into two groups
+#'
+#' @export
+checkVarTab <- function(data, var, groupby){
+  data[!is.na(data[,var])&!is.na(data[,groupby]),] %>%
+    #filter(!is.na(get(groupby)&!is.na(get(var)))) %>%
+    group_by(get(groupby),get(var)) %>%
+    summarize(n = n()) %>%
+    mutate(perc = n/sum(n)*100)
+}
+
+
+tryptase_plot <- function(data3){
+  ggplot(data3[!is.na(data3$q_340_insects),],aes(q_212_tryptase_value_v5,color=q_340_insects))+
+    geom_density()+
+    xlim(0,30)+
+    geom_density(mapping = aes(q_212_tryptase_value_v5),data3[data3$d_elicitor_gr5!="insects",],fill="black",alpha =0.2)
+}
+
+
+
+# Plot countries proportions
+plot.proportions <- function(data,varx,vary,minN){
+  ns <- data %>% filter(grouping == "insects") %>% group_by(get(varx)) %>%
+    summarize(n=n()) %>% filter(n>minN)
+  l=length(ns$n)
+  ggplot(data[!is.na(data[,vary])&
+                data[,varx]%in%ns$`get(varx)`,],
+         aes(get(varx),
+             fill = get(vary)))+
+    geom_bar(position = "fill")+
+    theme(axis.text.x = element_text(angle = 45,hjust=1))+
+    annotate(geom = "text",
+             x = 1:l,
+             y = rep(0.3,l),
+             label = paste("n =",ns%>% {as.character(.$n)}),
+             angle = 90)
+}
