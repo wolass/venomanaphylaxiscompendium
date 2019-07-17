@@ -180,7 +180,7 @@ Cardiologic symptoms and hypotensive collapse might be associated with venom ana
 
 
 
-```{r flow,fig.width=6,fig.height=6, fig.cap=" A) Flow-diagram illustrating the rationale to include cases in our analysis. B,C,D: Sex, age, and severity distribution was matched in cases in both groups to allow for comparable results between IVA and non_IVA cases"}
+```{r flow,fig.width=6,fig.height=6, fig.cap=" A) Flow-diagram illustrating the rationale for including registry cases in the final analysis. B,C,D: Age, sex, and severity distribution was matched in cases in both groups to allow for comparable results between IVA and non-IVA cases. Two age-subsets of patients could be recognized based on the density plot of age (B)."}
 ggarrange(ggplot()+
             background_image(png::readPNG("../figures/flow.png")),
           lower_panel,
@@ -193,16 +193,23 @@ ggarrange(ggplot()+
 
 ##### 
 
-```{r insectstime, fig.cap="A: Proportion of anaphylaxis cases elicited by specific insects according to the month in which the reaction occurred. Less frequent insects were grouped together as 'other'. B: The proportion of insect elicited cases to cases elicited by other triggers considering the patient's age. C: Geographical differences in the most common elicitors of IVA. Countries which reported less than 10 cases of anaphylaxis due to insect venom were not illustrated in this figure.",fig.height=4,fig.width = 7}
+```{r insectstime, fig.cap="A: Proportion of anaphylaxis cases elicited by specific insects according to the month in which the reaction occurred. Less frequent insect species were grouped together as 'other'. B: The density distribution of IVA cases to cases elicited by other triggers considering the patient's age. C: Geographical differences in the most common elicitors of IVA. Countries which reported less than 10 IVA cases were not illustrated in this figure.", fig.height=4, fig.width = 7}
 fig_basic
 ```
 
 
 ##### 
 
-```{r figsymptoms, fig.cap="Symptoms of insect venom anaphylaxis (IVA) compared to other elicitors",fig.width=9.5,fig.height = 8}
+```{r figsymptoms, fig.cap="Symptoms of insect venom anaphylaxis (IVA) compared to other elicitors. A: Proportional presentation of specific reaction symptoms. B: High-level overview of involved organ systems and selected cofactors in form of a radar plot.", fig.width=8.5, fig.height = 3.2}
 fig_symptoms
 ```
+
+##### 
+
+```{r figcofactors, fig.cap="Cofactors of insect venom anaphylaxis. A: Odds ratios of eliciting severe anaphylaxis. B: Proportional ",fig.width=5.6,fig.height = 6}
+cof_fig
+```
+
 
 ##### 
 
@@ -232,11 +239,6 @@ ggpubr::ggarrange(
 ```
 
 
-##### 
-
-```{r figcofactors, fig.cap="Cofactors of insect venom anaphylaxis ad their relationship to severity of a reaction",fig.width=5,fig.height = 8}
-cof_fig
-```
 
 
 # Supplementary Figures
@@ -244,6 +246,70 @@ cof_fig
 ```{r treatmentmatrixother}
 #matrix_other
 ```
+
+```{r crammersv}
+tests_matched %>%
+    mutate(organ = factor(ifelse(grepl(variableName,pattern = "111"),"skin",
+                          ifelse(grepl(variableName,pattern = "112"),"gastro",
+                                 ifelse(grepl(variableName,pattern = "113"),"respiratory",
+                                        ifelse(grepl(variableName,pattern = "114"),"cardio",NA)))),
+                          levels = c("respiratory","cardio","gastro","skin"))
+           ) %>%
+    filter(!is.na(Cramer),
+           section == "symptoms",
+           Cramer > 0.11,
+           !(variableName %in% c("q_114","q_143_fatal_adre_v5", "q_112_abdominal_pain")))%>%
+    mutate(variableName = car::recode(variableName,
+                                      "'q_112_nausea' = 'nausea';
+                                      'q_114_loss_of_consciousness' = 'unconsciousness';
+                                      'q_113_throat_tightness_v5' = 'throat tightness';
+                                      'q_114_reductions_of_alertness' = 'reduced allertness';
+                                      'q_112_incontinence' = 'incontinence';
+                                      'q_112_abdominal_pain' = 'abdominal pain';
+                                      'q_112_diarrhoea' = 'diarrhoea';
+                                      'q_113_wheezing_expiratory_distress_v5' = 'expiratory distress';
+                                      'q_113_rhinitis_v5' = 'rhinitis';
+                                      'q_114_dizziness' = 'dizziness';
+                                      'q_114_hypotension_collapse_v5' = 'hypotension';
+                                      'q_111' = 'any skin symptoms'"
+    )) %>% #{.[,1]}
+    ggdotchart(x = "variableName",
+               y = "Cramer",
+               color = "organ",
+               palette = "lancet",
+               sorting = "descending",
+               add = "segments",
+               add.params = list(color = "organ"),
+               rotate = T,
+               #group = "organ",
+               dot.size = 5,
+               size = 2,
+               #label = "Cramer"
+               ggtheme = theme_pubr())+
+    labs(x = "",y = "Cramer's V",color = "")+
+    theme(legend.justification = c(-3,0))
+
+```
+
+```{r}
+severity_joined_brown %>%
+    ggbarplot(x = "grouping",
+              y = "n",
+              fill = "d_severity_rm",
+              position = position_fill(reverse = T),
+              color = "d_severity_rm",
+              palette = "lancet")+
+    facet_grid(.~subset,scale = "free_x",space = "free_x")+
+    labs(fill = "Severity")+
+    theme(axis.title.x =  element_blank(),
+          axis.text.x = element_text(angle=20,hjust = 1),
+          legend.position = "right"
+    )+
+    annotate("text",x = 1.5, y = 0.5, label = c("*","*",""),
+             size =12)+
+    guides(color = F)
+```
+
 
 ```{r hypotensionkids, fig.cap="Hypotension in IVA of kids"}
 hypotensionPlot

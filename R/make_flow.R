@@ -9,21 +9,28 @@ nodes <-
   create_node_df(
     n = 7,
     type = "a",
-    label= c(paste0("All cases in the\nEuropean Anaphylaxis Registry\n",length(data4$b_submitdate)),
+    label= c(paste0("All cases in the\nEuropean Anaphylaxis Registry\n",
+                    format(length(data4$b_submitdate),
+                           big.mark = ",")),
              paste0("Formal anaphylaxis definition met\n",
-                    length(which(data4$reaction_type_brown=="anaphylaxis"))),
+                    format(length(which(data4$reaction_type_brown=="anaphylaxis")),
+                           big.mark = ",")),
              paste0("Insects as elicitors\n",
-                    length(which(data4$d_elicitor_gr5== "insects" &
-                                   data4$reaction_type_brown=="anaphylaxis"))),
+                    format(length(which(data4$d_elicitor_gr5== "insects" &
+                                   data4$reaction_type_brown=="anaphylaxis")),
+                           big.mark = ",")),
              paste0("Other elicitors\n",
-                    length(which(data4$d_elicitor_gr5!= "insects"&
-                                   data4$reaction_type_brown=="anaphylaxis"))),
+                    format(length(which(data4$d_elicitor_gr5!= "insects"&
+                                   data4$reaction_type_brown=="anaphylaxis")),
+                           big.mark = ",")),
              paste(paste0("Yellow-jackets = ",
-                          length(which(data4$q_340_insects== "yellow jacket"&
-                                         data4$reaction_type_brown=="anaphylaxis"))),
+                          format(length(which(data4$q_340_insects== "yellow jacket"&
+                                         data4$reaction_type_brown=="anaphylaxis")),
+                                 big.mark = ",")),
                    paste0("Bees = ",
-                          length(which(data4$q_340_insects== "bee"&
-                                         data4$reaction_type_brown=="anaphylaxis"))),
+                          format(length(which(data4$q_340_insects== "bee"&
+                                         data4$reaction_type_brown=="anaphylaxis")),
+                                 big.mark = ",")),
                    paste0("Hornets = ",
                           length(which(data4$q_340_insects== "hornet"&
                                          data4$reaction_type_brown=="anaphylaxis"))),
@@ -33,12 +40,14 @@ nodes <-
                    sep="\n"
              ),
              paste0("Elicitor unknown\n",
-                    length(which(data4$d_elicitor_gr5=="unkown" &
-                                   data4$reaction_type_brown=="anaphylaxis"))),
+                    format(length(which(data4$d_elicitor_gr5=="unkown" &
+                                   data4$reaction_type_brown=="anaphylaxis")),
+                           big.mark = ",")),
              paste0("Other known\nelicitors\n",
-                    length(which(data4$d_elicitor_gr5!="insects"&
+                    format(length(which(data4$d_elicitor_gr5!="insects"&
                                    data4$d_elicitor_gr5!="unkown" &
-                                   data4$reaction_type_brown=="anaphylaxis")))
+                                   data4$reaction_type_brown=="anaphylaxis")),
+                           big.mark = ","))
     ),
 
     #color = c("red", "green",
@@ -64,6 +73,9 @@ create_graph() %>%
     attr_type = "graph") %>%
   add_global_graph_attrs(value="black",
                          attr = "fontcolor",
+                         attr_type = "node") %>% #render_graph()
+  add_global_graph_attrs(value="white",
+                         attr = "fillcolor",
                          attr_type = "node") %>% #render_graph()
   export_graph(file_name = "analysis/figures/flow.png", file_type = "png",
                title = NULL,

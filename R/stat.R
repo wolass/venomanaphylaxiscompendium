@@ -1009,34 +1009,37 @@ align = "h",
 labels = c("A","B"))
 
 lower_panel <- ggpubr::ggarrange(
+  ANAscore_matched  %>%
+    ggplot(aes(x = d_age, fill = grouping)) +
+    geom_density(alpha = 0.5)+
+    labs(x = "Age [years]",fill = "elicitor")+
+    theme_classic()+
+    theme(legend.position = "none")+
+    scale_fill_manual(values = rev(c("#c4c4c4", "#000000")))+
+    labs(y ="density",x = "Age [years]",fill = "")+
+    geom_segment(aes(x = 22, xend =22, y = 0, yend = 0.02),
+                 linetype = 2),
 
-ANAscore_matched %>%
-  group_by(b_sex,grouping) %>%
-  ggplot(aes(fill=grouping,x=b_sex))+
-  geom_bar(position = "fill")+
-  theme_classic()+
-  theme(legend.position = "none")+
-  scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32")))+
-  labs(y ="proportion",x = "Sex",fill = "elicitor"),
+  ANAscore_matched %>%
+    group_by(b_sex,grouping) %>%
+    ggplot(aes(fill=grouping,x=b_sex))+
+    geom_bar(position = "fill")+
+    theme_classic()+
+    theme(legend.position = "none")+
+    scale_fill_manual(values = rev(c("#c4c4c4", "#454545")))+
+    labs(y ="proportion",x = "Sex",fill = "elicitor"),
 
-ANAscore_matched  %>%
-  ggplot(aes(x = d_age, fill = grouping)) +
-  geom_density(alpha = 0.5)+
-  labs(x = "Age [years]",fill = "elicitor")+
-  theme_classic()+
-  theme(legend.position = "none")+
-  scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32")))+
-  labs(y ="density",x = "Age [years]",fill = ""),
-ANAscore_matched  %>%
-  #select(grouping,d_severity_rm) %>%
-  group_by(grouping,d_severity_rm) %>%
-  summarize(n = n()) %>%
-  ggplot(aes(x = as.factor(d_severity_rm),y=n, fill = grouping)) +
-  geom_bar(stat="identity",position="dodge")+
-  theme_classic()+
-  labs(x = "Severity grade [R&M]",fill = "R&M",y="cases [n]")+
-  theme(legend.position = "none")+
-  scale_fill_manual(values = rev(c("#E5F5E0", "#74C476","#005A32"))),
+  ANAscore_matched  %>%
+    #select(grouping,d_severity_rm) %>%
+    group_by(grouping,d_severity_rm) %>%
+    summarize(n = n()) %>%
+    ggplot(aes(x = as.factor(d_severity_rm),y=n, fill = grouping)) +
+    geom_bar(stat="identity",position="dodge")+
+    theme_classic()+
+    labs(x = "Severity grade [R&M]",fill = "R&M",y="cases [n]")+
+    theme(legend.position = "none")+
+    scale_fill_manual(values = rev(c("#c4c4c4", "#454545"))),
+
 common.legend = T,
 legend = "right",
 align = "h",
@@ -1430,7 +1433,7 @@ tryp_assoc <- function(symptom){
               y = "n",
               facet.by = "grouping",
               position = position_fill(),
-              palette = "lancet")+
+              palette = c( "#848484","#1f1f1f"))+
     labs(y = "proportion",
          fill = "tryptase")
 
@@ -1468,7 +1471,9 @@ output_plot_tryp <- ggarrange(
           #axis.title.x = element_text(angle= 5,hjust = 1)
     ),
   widths = c(1,1.2),
-  align = "hv"
+  align = "hv",
+  common.legend = T,
+  legend = "top"
 )
 
 fit_try_cardiac <- glm(q_114_cardiac_arrest ~ tryp_cat+grouping, data = age_sex_matched %>%
@@ -1666,12 +1671,29 @@ plot_beta_cardiacs <-
 ##### Figure MOR2  eli_green####
 eli_green <-
   rdbp %>%
-  select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
+  select(b_reactiondate,
+         grouping,
+         q_340_insects,
+         d_centres_country) %>%
   mutate(MOR = substr(b_reactiondate,4,5),
-         q_340_insects = ifelse(is.na(q_340_insects),"non-IVA",as.character(q_340_insects)) %>%
-           factor(levels=c("yellow jacket","bee","hornet","bumble-bee","horsefly","mosquito","other","non-IVA"))) %>%
-  filter(!is.na(q_340_insects),MOR!="00",
-         q_340_insects!="non-IVA") %>%
+         q_340_insects = ifelse(
+           is.na(q_340_insects),
+           "non-IVA",
+           as.character(q_340_insects)
+           ) %>%
+           factor(
+             levels=c(
+               "yellow jacket",
+               "bee","hornet",
+               "bumble-bee",
+               "horsefly",
+               "mosquito",
+               "other",
+               "non-IVA"))) %>%
+  filter(
+    !is.na(q_340_insects),
+    MOR!="00",
+    q_340_insects != "non-IVA") %>%
   mutate(MOR = car::recode(MOR,
                            "'01' = 'Jan';
                            '02' = 'Feb';
@@ -1688,28 +1710,25 @@ eli_green <-
   mutate(MOR = factor(MOR, levels = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))) %>%
   group_by(MOR,q_340_insects) %>%
   summarize(count = n()) %>%
-  ggpubr::ggbarplot(
-    x = "MOR",
+  ggpubr::ggbarplot(x = "MOR",
     y = "count",
-    fill = "q_340_insects"
-  )+
-  labs(fill="Insect",x = "Month",y = "Cases [n]")+
+    fill = "q_340_insects")+
+  labs(fill="Insect",x = "",y = "Cases [n]")+
   theme(axis.text.x = element_text(angle = 90, hjust = 1),
-    #axis.title.x = element_blank(),
+    axis.title.x = element_blank(),
     #axis.ticks.x = element_blank(),
     legend.position = c(0.01,.98),
     legend.justification = c(0,1),
     #panel.background = element_rect(fill = "#c9ccc5"),
-    legend.background = element_blank()
-  )+
-  #scale_fill_brewer(palette = 2,direction = -1)
-  scale_fill_manual(values = rev(c("#E5F5E0",
-                                   "#C7E9C0",
-                                   "#A1D99B",
-                                   "#74C476",
-                                   "#41AB5D",
-                                   "#238B45",
-                                   "#005A32")))
+    legend.background = element_blank())+
+  scale_fill_brewer(palette = "Greys",direction = -1)
+  # scale_fill_manual(values = rev(c("#E5F5E0",
+  #                                  "#C7E9C0",
+  #                                  "#A1D99B",
+  #                                  "#74C476",
+  #                                  "#41AB5D",
+  #                                  "#238B45",
+  #                                  "#005A32")))
 
 age_dens <- ggpubr::ggdensity(rdbp %>%
                     filter(!is.na(grouping)) %>%
@@ -1720,7 +1739,7 @@ age_dens <- ggpubr::ggdensity(rdbp %>%
                   position = "fill",
                   rug = T,
                   color = "grouping",
-                  palette = manual_greens[c(4,1)])+
+                  palette = "grey")+#manual_greens[c(4,1)])+
   theme(legend.position = "right")+
   labs(x = "Age [years]",fill = "", color = "")
 
@@ -1740,11 +1759,12 @@ IVAonly <- rdb %>%
                                         "'not EU' = 'Brazil'")) %>%
   plot.proportions("d_centres_country","q_340_insects",5)+
   theme_classic()+
-  theme(axis.text.x = element_text(angle = 30, hjust = 1))+
+  theme(axis.text.x = element_text(angle = 30, hjust = 1),
+        axis.title.x = element_blank())+
   labs(x = "Country",
        y="Proportion",
        fill = "Insect")+
-  scale_fill_manual(values = rev(c("#E5F5E0", "#C7E9C0", "#A1D99B", "#74C476", "#41AB5D", "#238B45","#005A32")))
+    scale_fill_brewer(palette = "Greys",direction = -1)
 
 
 right_panel <- ggpubr::ggarrange(age_dens,
@@ -1924,6 +1944,7 @@ colnames(tempdf) <- c("skin",
                       "tryptase")
 rownames(tempdf) <- c("max","min","IVA","non-IVA")
 
+names(tempdf)[2] <- "gastrointestinal"
 ########## FIGURE GOES HERE #######
 fig_symptoms <- ggarrange(
   # Symtoms
@@ -1962,52 +1983,8 @@ fig_symptoms <- ggarrange(
           legend.justification = c(1,1),
           axis.title.x.bottom = element_blank())+
     labs(x = "symptom",y = "proportion [%]", fill = "elicitor")+
-    scale_fill_manual(values = manual_greens[c(1,3)])+
+    scale_fill_manual(values = c("#1f1f1f", "#848484"))+
     scale_y_continuous(labels = scales::percent_format(accuracy = 1)),
-  # Crammers V
-  tests_matched %>%
-    mutate(organ = factor(ifelse(grepl(variableName,pattern = "111"),"skin",
-                          ifelse(grepl(variableName,pattern = "112"),"gastro",
-                                 ifelse(grepl(variableName,pattern = "113"),"respiratory",
-                                        ifelse(grepl(variableName,pattern = "114"),"cardio",NA)))),
-                          levels = c("respiratory","cardio","gastro","skin"))
-           ) %>%
-    filter(!is.na(Cramer),
-           section == "symptoms",
-           Cramer > 0.11,
-           !(variableName %in% c("q_114","q_143_fatal_adre_v5", "q_112_abdominal_pain")))%>%
-    mutate(variableName = car::recode(variableName,
-                                      "'q_112_nausea' = 'nausea';
-                                      'q_114_loss_of_consciousness' = 'unconsciousness';
-                                      'q_113_throat_tightness_v5' = 'throat tightness';
-                                      'q_114_reductions_of_alertness' = 'reduced allertness';
-                                      'q_112_incontinence' = 'incontinence';
-                                      'q_112_abdominal_pain' = 'abdominal pain';
-                                      'q_112_diarrhoea' = 'diarrhoea';
-                                      'q_113_wheezing_expiratory_distress_v5' = 'expiratory distress';
-                                      'q_113_rhinitis_v5' = 'rhinitis';
-                                      'q_114_dizziness' = 'dizziness';
-                                      'q_114_hypotension_collapse_v5' = 'hypotension';
-                                      'q_111' = 'any skin symptoms'"
-    )) %>% #{.[,1]}
-    ggdotchart(x = "variableName",
-               y = "Cramer",
-               color = "organ",
-               palette = "lancet",
-               sorting = "descending",
-               add = "segments",
-               add.params = list(color = "organ"),
-               rotate = T,
-               #group = "organ",
-               dot.size = 5,
-               size = 2,
-               #label = "Cramer"
-               ggtheme = theme_pubr())+
-    labs(x = "",y = "Cramer's V",color = "")+
-    theme(legend.justification = c(-3,0)),
-
-
-
 
   tempdf  %>%
   {.[,c(2,1,5,3,4,6)]} %>%
@@ -2020,28 +1997,12 @@ fig_symptoms <- ggarrange(
             legend.text.size = 7,
             grid.label.size = 0)+
     theme(legend.position = "none")+
-    scale_color_manual(values = manual_greens),
+    scale_color_manual(values = c("#1f1f1f", "#848484")),
 
-  severity_joined_brown %>%
-    ggbarplot(x = "grouping",
-              y = "n",
-              fill = "d_severity_rm",
-              position = position_fill(reverse = T),
-              color = "d_severity_rm",
-              palette = "lancet")+
-    facet_grid(.~subset,scale = "free_x",space = "free_x")+
-    labs(fill = "Severity")+
-    theme(axis.title.x =  element_blank(),
-          axis.text.x = element_text(angle=20,hjust = 1),
-          legend.position = "right"
-    )+
-    annotate("text",x = 1.5, y = 0.5, label = c("*","*",""),
-             size =12)+
-    guides(color = F),
   common.legend = F,
-  labels = c("A","B","C","D"),
-  nrow = 2, ncol =2,
-  widths = c(1,0.9))
+  labels = c("A","B"),
+  nrow = 1, ncol =2,
+  widths = c(1,1.1))
 
 #### Cramer Plot just for reference ####
 plot.Cramer(cramerFun(data =rdbp,
@@ -2074,49 +2035,86 @@ plot.Cramer(supraCramerFun(data =rdbp,
 require(ggpubr)
 cof_fig<- ggarrange(
   ggplot()+
-    background_image(png::readPNG("analysis/figures/figForestfinal.png")),
+    background_image(png::readPNG("analysis/figures/figForestfinalrmr.png")),
+
   ggarrange(
     age_sex_matched %>%
-    filter(!is.na(d_severity_rm),
+    filter(!is.na(d_severity_rmr),
            !is.na(tryp_cat)) %>%
-    mutate(d_severity_rm = d_severity_rm %>% factor()) %>%
-    group_by(grouping,d_severity_rm,tryp_cat) %>%
+    mutate(d_severity_rmr = d_severity_rmr %>% factor()) %>%
+    group_by(grouping,d_severity_rmr,tryp_cat) %>%
     summarize(n = n()) %>%
     ggbarplot(x= "tryp_cat",
-              fill = "d_severity_rm",
+              fill = "d_severity_rmr",
               y = "n",
               facet.by = "grouping",
-              position = position_fill(reverse = T),
-              palette = "lancet")+
-    labs(y = "proportion",x = "Tryptase levels",fill = "severity grade"),
+              position = position_fill(reverse = F),
+              palette = c("#848484","#1f1f1f"))+
+    labs(y = "proportion",
+         x = "tryptase levels",
+         fill = "severity"),
 
-  age_sex_matched %>%
-    filter(!is.na(d_severity_rm),
-           !is.na(q_410_masto_cur),
-           q_410_masto_cur != "unknown") %>%
-    mutate(d_severity_rm = d_severity_rm %>% factor()) %>%
-    group_by(grouping,d_severity_rm,q_410_masto_cur) %>%
-    summarize(n = n()) %>%
-    ggbarplot(x= "q_410_masto_cur",
-              fill = "d_severity_rm",
-              y = "n",
-              facet.by = "grouping",
-              position = position_fill(reverse = T),
-              palette = "lancet")+
-    labs(fill = "severity",x = "Concomitant mastocytosis",y="proportion")+
-    theme(axis.text.y = element_blank(),
-          axis.ticks.y = element_blank(),
-          axis.title.y = element_blank()),
-  labels = c("B",""),
-  widths = c(1,0.8),
-  common.legend = T
-  ),
-  output_plot_tryp+
-    labs(fill = "tryptase [ng/ml]"),
-nrow = 3,
-ncol=1,
-heights = c(1,0.7,0.7),
-labels = c("A","","C")
+    ggarrange(
+      cardiac_typtase_effect[[6]][[2]]$data %>%
+      ggbarplot(x = "q_114_cardiac_arrest",
+                y = "n",
+                fill = "tryp_cat",
+                facet.by = "grouping",
+                position = position_fill(),
+                palette = c("#848484","#1f1f1f"))+
+        labs(x = "cardiac arrest",
+             fill = "tryptase [ng/ml]")+
+      theme(axis.text.y = element_blank(),
+            axis.title.y = element_blank(),
+            axis.line.y = element_blank(),
+            axis.ticks.y = element_blank(),
+            legend.position = "top"#,
+            #axis.title.x = element_text(angle= 5,hjust = 1)
+      ),#+
+      #theme(
+      #  legend.text = element_blank(),
+      #  legend.title = element_blank(),
+      #  legend.key = element_rect(fill = "white")
+      #), #+
+      #scale_fill_discrete(
+      #  guide = guide_legend(override.aes = list(color = "white"))
+      #),#+
+        #theme(legend.position = "none"#,
+              #axis.title.x = element_text(angle= 10,hjust = 0.5,vjust = 1)
+        #),
+      cardiac_typtase_effect[[2]][[2]]$data %>%
+      ggbarplot(x = "q_114_loss_of_consciousness",
+                y = "n",
+                fill = "tryp_cat",
+                facet.by = "grouping",
+                position = position_fill(),
+                palette = c("#848484","#1f1f1f"))+
+        labs(y = "proportion",
+             x = "loss of consciousness",
+             fill = "tryptase")+
+        theme(axis.text.y = element_blank(),
+              axis.title.y = element_blank(),
+              axis.line.y = element_blank(),
+              axis.ticks.y = element_blank(),
+              legend.position = c(.1,.99),
+              legend.direction = "horizontal"#,
+              #axis.title.x = element_text(angle= 5,hjust = 1)
+        )+
+      labs(fill = "tryptase [ng/ml]",
+           x = "loss of consciousness"),
+      widths = c(1,1),
+      common.legend = T
+    )+
+      theme(plot.margin = unit(c(0.8,0,0,0),"lines")),
+
+    nrow = 1,
+    ncol = 2,
+    widths = c(1,1.6)
+    ),
+  nrow = 2,
+  ncol=1,
+  heights = c(1,0.7),
+  labels = c("A","B")
 )
 
 #### Heatmap Symptom+Therapy ####
