@@ -446,15 +446,15 @@ tempdf <- age_sex_matched %>%
 # Split the plot into kids and grown ups AGE division - 12
 # Get the proper table
 
-symptTabKids <- makeTests(rdb=rdb[rdb$d_age<13,],
+symptTabKids <- makeTests(rdb=rdb[rdb$d_age<22,],
           groups = "grouping") %>%
           {split(.,.$section)} %>%
-  .$symptoms %>% mutate(subset = "children")
+  .$symptoms %>% mutate(subset = "under 22")
 
-symptTabAdults <- makeTests(rdb=rdb[rdb$d_age>13,],
+symptTabAdults <- makeTests(rdb=rdb[rdb$d_age>=22,],
                                   groups = "grouping") %>%
                                   {split(.,.$section)} %>%
-                          .$symptoms %>% mutate(subset = "adults")
+                          .$symptoms %>% mutate(subset = "over 22")
 ex <- full_join(symptTabKids,symptTabAdults)
 
 # ggplot(ex %>% filter(pval<1e-10) %>%
@@ -491,7 +491,8 @@ hypotensionPlot <-
   #      axis.ticks.x = element_blank())+
   labs(y = "proportion [%]", x = "hypotension")+
    theme(axis.text.x = element_text(angle = 50,hjust =1),
-         legend.position = "top")
+         legend.position = "top",
+         legend.title = element_blank())
 
 
 
@@ -885,8 +886,9 @@ plotManagement <- testANAscoreMatched$management$variableName %>%
     legend.justification = c(1, 1)
   ) +
   labs(x = "Therapy", y = "proportion", fill = "") +
-  scale_fill_manual(values = rev(c("#E5F5E0", "#74C476", "#005A32"))) +
-  theme(axis.title.x = element_blank())+ scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+  scale_fill_manual(values = rev(c("#848484","#1f1f1f"))) +
+  theme(axis.title.x = element_blank())+
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))
 
 
 backup <- testANAscoreMatched$management[, -7] %>%
@@ -1053,8 +1055,9 @@ labels = c("B","C","D"))
 
 test_adrenuse1<- ANAscore_matched %>%
   group_by(grouping,d_522_adren_agg) %>%
-  summarize(n = n()) %>% {matrix(.$n,ncol = 2)} %>%
-  chisq.test()
+  summarize(n = n()) %>%
+  spread(key = d_522_adren_agg, value = n) %>%
+  {chisq.test(.[,2:3])}
 
 ###### Test if me see less skin symptoms in mastocytosis patients #####
 df <- data4 %>%
@@ -1546,7 +1549,7 @@ cardiac_ace <- function(s){
               y = "n",
               facet.by = "grouping",
               position = position_fill(),
-              palette = "lancet")+
+              palette = c("#848484","#1f1f1f"))+
     labs(y = "proportion",
          fill = "ACE-Inhibitors")
 }
@@ -1587,7 +1590,7 @@ cardiac_beta <- function(s){
               y = "n",
               facet.by = "grouping",
               position = position_fill(),
-              palette = "lancet")+
+              palette = c("#848484","#1f1f1f"))+
     labs(y = "proportion",
          fill = "Beta blockers")
 }
@@ -1714,7 +1717,7 @@ eli_green <-
     y = "count",
     fill = "q_340_insects")+
   labs(fill="Insect",x = "",y = "Cases [n]")+
-  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust =0.5),
     axis.title.x = element_blank(),
     #axis.ticks.x = element_blank(),
     legend.position = c(0.01,.98),
@@ -1729,6 +1732,49 @@ eli_green <-
   #                                  "#41AB5D",
   #                                  "#238B45",
   #                                  "#005A32")))
+
+rare_spring_autumn <- rdbp %>%
+  select(b_reactiondate,
+         grouping,
+         q_340_insects,
+         d_centres_country) %>%
+  mutate(MOR = substr(b_reactiondate,4,5),
+         q_340_insects = ifelse(
+           is.na(q_340_insects),
+           "non-IVA",
+           as.character(q_340_insects)
+         ) %>%
+           factor(
+             levels=c(
+               "yellow jacket",
+               "bee","hornet",
+               "bumble-bee",
+               "horsefly",
+               "mosquito",
+               "other",
+               "non-IVA"))) %>%
+  filter(
+    !is.na(q_340_insects),
+    MOR!="00",
+    q_340_insects != "non-IVA") %>%
+  mutate(MOR = car::recode(MOR,
+                           "'01' = 'Jan';
+                           '02' = 'Feb';
+                           '03' = 'Mar';
+                           '04' = 'Apr';
+                           '05' = 'May';
+                           '06' = 'Jun';
+                           '07' = 'Jul';
+                           '08' = 'Aug';
+                           '09' = 'Sep';
+                           '10' = 'Oct';
+                           '11' = 'Nov';
+                           '12' = 'Dec'")) %>%
+  mutate(MOR = factor(MOR, levels = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))) %>%
+  filter(MOR %in% c("Mar","Apr","Nov")) %>%
+  group_by(MOR,d_centres_country) %>%
+  summarize(n = n())
+
 
 age_dens <- ggpubr::ggdensity(rdbp %>%
                     filter(!is.na(grouping)) %>%
@@ -1890,8 +1936,9 @@ severity_joined_brown <- full_join(
   by = c("d_severity_rm","grouping","n")
     ) %>% full_join(
       rdb %>%
+        filter(grouping =="insects") %>%
         mutate(d_severity_rm = severity_brown %>% factor(),
-               grouping = d_age_gr2) %>%
+               grouping = ifelse(d_age<22, "age < 22","age > 22")) %>%
         filter(!is.na(d_severity_rm)
         ) %>%
         group_by(d_severity_rm,
@@ -1982,7 +2029,7 @@ fig_symptoms <- ggarrange(
           legend.position = c(0.99,0.99),
           legend.justification = c(1,1),
           axis.title.x.bottom = element_blank())+
-    labs(x = "symptom",y = "proportion [%]", fill = "elicitor")+
+    labs(x = "symptom",y = "proportion [%]", fill = "")+
     scale_fill_manual(values = c("#1f1f1f", "#848484"))+
     scale_y_continuous(labels = scales::percent_format(accuracy = 1)),
 
@@ -2111,10 +2158,12 @@ cof_fig<- ggarrange(
     ncol = 2,
     widths = c(1,1.6)
     ),
-  nrow = 2,
+  plot_ace_cardiacs,
+  plot_beta_cardiacs,
+  nrow = 4,
   ncol=1,
-  heights = c(1,0.7),
-  labels = c("A","B")
+  heights = c(1.2,0.7,0.65,0.65),
+  labels = c("A","B","C","D")
 )
 
 #### Heatmap Symptom+Therapy ####
@@ -2453,7 +2502,7 @@ matrix_treat_sympt<- multiphi_f(
             "q_552_cortico_oral_v5",
             "q_552_volume_v5",
             "q_552_adren_inhal_v5",
-            "q_552_beta2_iv_v5",
+      #      "q_552_beta2_iv_v5",
             "q_552_o2_v5",
             "q_522_o2",
             "q_522_beta2_inhal",
@@ -2609,7 +2658,7 @@ matrix_venom <- matrix_treat_sympt %>%
             #Colv = "none",
             k_row = 2,
             k_col =2,
-            colors = c("#FFFFFF","#000066"),
+            colors = c("#FFFFFF","#000000"),
             plot_metod = "ggplot",
             return_ppxpy=TRUE
             )
