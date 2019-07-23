@@ -44,6 +44,8 @@ manual_greens <- rev(c("#E5F5E0",
 ####### General Functions #############
 source("R/functions.R")
 
+palBW <- c("#848484","#1f1f1f")
+
 #### Data cleaning ####
 data4 %<>% correctLabels1()
 
@@ -494,6 +496,20 @@ hypotensionPlot <-
          legend.position = "top",
          legend.title = element_blank())
 
+hypotension2 <- ex %>%
+  filter(variableName =="q_114_hypotension_collapse_v5") %>%
+  tidyr::gather(key = "group",
+                value = "Fraction",
+                c("fraq_1",
+                  "fraq_2")) %>%
+  mutate(group = car::recode(group,
+                             "'fraq_1'='IVA';
+                   'fraq_2'='non-IVA'")) %>%
+  ggbarplot(x = "subset",y = "Fraction",
+            fill = "group",
+            position = position_dodge(),
+            palette = rev(palBW))+
+  labs(x = "hypotension", y = "proportion [%]", fill = "")
 
 
 #### Mastocytose patienten  as a subroup #####
@@ -1023,8 +1039,8 @@ lower_panel <- ggpubr::ggarrange(
                  linetype = 2),
 
   ANAscore_matched %>%
-    group_by(b_sex,grouping) %>%
-    ggplot(aes(fill=grouping,x=b_sex))+
+    group_by(b_sex, grouping) %>%
+    ggplot(aes(fill=grouping, x=b_sex))+
     geom_bar(position = "fill")+
     theme_classic()+
     theme(legend.position = "none")+
@@ -2687,3 +2703,132 @@ yj_bee <- rdb %>%
            grouping) %>%
   summarize(n = n())
 
+
+#### Plotting stings among years ####
+
+data %>%
+  filter(d_elicitor_gr5=="insects") %>%
+  mutate(MOR = substr(b_reactiondate,4,5)) %>%
+  mutate(MOR = car::recode(MOR,
+           "'01' = 'Jan';
+                           '02' = 'Feb';
+                           '03' = 'Mar';
+                           '04' = 'Apr';
+                           '05' = 'May';
+                           '06' = 'Jun';
+                           '07' = 'Jul';
+                           '08' = 'Aug';
+                           '09' = 'Sep';
+                           '10' = 'Oct';
+                           '11' = 'Nov';
+                           '12' = 'Dec'")) %>%
+  mutate(MOR = factor(MOR, levels = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))) %>%
+  filter(!is.na(MOR)) %>%
+
+  mutate(d_year_reaction = ifelse(d_year_reaction<=2009,"till 2009",
+                                 ifelse(d_year_reaction<=2012, "2009-2012",
+                                       ifelse(d_year_reaction <= 2015, "2012-2015","2016-2019"))))%>%
+  group_by(MOR,d_year_reaction) %>%
+  summarize(n = n()) %>%
+  ggline(x = "MOR",
+         y = "n",
+         color = "d_year_reaction")
+
+#### Density plot for age and triggers####
+data %>%
+  mutate(d_elicitor_gr5  = fct_lump(d_elicitor_gr5,3)) %>%
+ggpubr::ggdensity(x = "d_age",
+                  fill = "d_elicitor_gr5"#,
+                  #position = position_stack(reverse = T),
+                 # palette = "grey"
+                 )
+
+rdb_temp <- rdb
+rdb_temp$q_423_beta <- yesonly(rdb_temp$q_423_beta)
+
+wilcox.test(q_116_VAS_v7~q_423_beta,data = rdb_temp)
+rdb_temp %>%
+  filter(d_elicitor_gr5=="insects") %>%
+  ggplot(aes(q_423_beta,q_116_VAS_v7))+
+  geom_violin()
+
+rdb_temp %>%
+  filter(d_elicitor_gr5=="insects") %>%
+  group_by(q_423_beta) %>%
+  summarise(medianVAS=median(q_116_VAS_v7,na.rm=T),
+            IQRVAS = IQR(q_116_VAS_v7,na.rm=T))
+
+
+wilcox.test(ANAscore~q_423_beta,data = rdb_temp %>%
+              filter(d_elicitor_gr5=="insects")
+)
+
+rdb_temp %>%
+  filter(d_elicitor_gr5=="insects") %>%
+  ggplot(aes(q_423_beta,ANAscore))+
+  geom_violin()
+rdb_temp %>%
+  filter(d_elicitor_gr5=="insects") %>%
+  group_by(q_423_beta) %>%
+  summarise(medianANAscore=median(ANAscore,na.rm=T),
+            IQRANAscore = IQR(ANAscore,na.rm=T))
+
+
+ggarrange(
+  plot_beta_cardiacs,
+  ggarrange(
+    rdb_temp %>%
+      filter(d_elicitor_gr5=="insects") %>%
+      ggplot(aes(q_423_beta,q_116_VAS_v7))+
+      geom_boxplot(),
+    rdb_temp %>%
+      filter(d_elicitor_gr5=="insects") %>%
+      ggplot(aes(q_423_beta,ANAscore))+
+      geom_boxplot()
+  ),
+  nrow =2,
+  ncol = 1
+)
+
+#### previous reaction and the adrenaline treatemnt ####
+
+adren_prev <- ANAscore_matched %>%
+  group_by(d_522_adren_agg, grouping, q_160_ever_react) %>%
+  filter(q_160_ever_react %in% c("no","yes")) %>%
+  summarize(n = n()) %>%
+  mutate(q_160_ever_react = car::recode(q_160_ever_react,
+                                        "'no'='no prev. ANA';
+                                        'yes'='reacted previously'")) %>%
+  ggbarplot(x = "grouping",
+            y = "n",
+            fill = "d_522_adren_agg",
+            position = position_fill(),
+            facet.by = "q_160_ever_react",
+            palette = palBW)+
+  labs(x = "",
+       fill = "adrenaline administered?",
+       y = "proportion [%]")
+
+adren_severity <- ANAscore_matched %>%
+  group_by(d_522_adren_agg, grouping, d_severity_rmr) %>%
+  #filter(d_severity_rmr %in% c("no","yes")) %>%
+  summarize(n = n()) %>%
+  ggbarplot(x = "grouping",
+            y = "n",
+            fill = "d_522_adren_agg",
+            position = position_fill(),
+            facet.by = "d_severity_rmr",
+            palette = palBW)+
+  labs(x = "",
+       fill = "adrenaline administered?",
+       y = "proportion [%]")
+
+adren_severity_sev<- adren_severity$data %>%
+  filter(d_severity_rmr =="severe") %>%
+  spread(key = grouping, value = n) %>%
+  {chisq.test(.[,3:4])$p.value} %>% pval()
+
+adren_severity_mild <- adren_severity$data %>%
+  filter(d_severity_rmr =="mild") %>%
+  spread(key = grouping, value = n) %>%
+  {chisq.test(.[,3:4])$p.value} %>% pval()
