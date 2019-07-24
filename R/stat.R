@@ -1027,7 +1027,7 @@ align = "h",
 labels = c("A","B"))
 
 lower_panel <- ggpubr::ggarrange(
-  ANAscore_matched  %>%
+    age_  %>%
     ggplot(aes(x = d_age, fill = grouping)) +
     geom_density(alpha = 0.5)+
     labs(x = "Age [years]",fill = "elicitor")+
