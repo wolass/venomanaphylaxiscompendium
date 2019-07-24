@@ -14,7 +14,7 @@ output:
       fig_caption: yes
       reference_docx: "../templates/template.docx" # Insert path for the DOCX file
 bibliography: references.bib
-csl: "../templates/journal-of-archaeological-science.csl" # Insert path for the bib-style
+csl: "../templates/expert-review-of-clinical-immunology.csl" # Insert path for the bib-style
 ---
 
 ^1^ Department of Dermatology, Venerology, and Allergology, Charité – Universitätsmedizin Berlin, corporate member of Freie Universität Berlin, Humboldt-Universität zu Berlin, and Berlin Institute of Health, Charitéplatz 1, 10117 Berlin,
@@ -32,8 +32,8 @@ Phone: +49 30 450 529 005;      Fax: +49 30 450 529 902
 **Keywords:**
   anaphylaxis, adrenaline (epinephrine), beta-blockers, insect venom allergy, yellow-jacket
 
-**Highlights:**
-  These are the highlights. 
+<!-- **Highlights:** -->
+<!--   These are the highlights.  -->
 **Document statistics:**
   Word count, figures, tables, references
 
@@ -122,14 +122,14 @@ In general `r treact[1,2] %>% round(1)`% of patients with insect allergy had exp
 
 ## Co-factors
 
-The factor most prominently associated with an increased risk of severe anaphylaxis was mastocytosis, and there were no differences in elicitor groups (Fig. \@ref(fig:figcofactors)). Mastocytosis was increasing the risk of cardiac arrest in patients undergoing IVA significantly more than in patients undergoing anaphylaxis due to other triggers (Fig. S\@ref(fig:cardiacmasto)). 
+The factor most prominently associated with an increased risk of severe anaphylaxis was mastocytosis, and there were no differences in elicitor groups (Fig. \@ref(fig:figcofactors)). Mastocytosis was increasing the risk of cardiac arrest in patients undergoing IVA significantly more than in patients undergoing anaphylaxis due to other triggers (Fig. S\@ref(fig:supplement)). 
 
 Concomitant cardiovascular diseases were associated with a higher risk of severe anaphylaxis when elicited by insects. They played an insignificant role in non-IVA cases (Fig. \@ref(fig:figcofactors)). 
 
 Risk of severe anaphylaxis in patients concomitantly using ACE-I (as well as beta-blockers) could not be independently measured due to coexisting cardiovascular pathologies. ACE-I use was, however, more often associated with cardiac arrests in both IVA and anaphylaxis by other triggers (Fig. \@ref(fig:figcofactors)C) whereas beta-blockers use was associated with higher severity of anaphylaxis and with cardiovascular symptoms (cardiac arrest, chest pain). Surprisingly, arrhythmia was more frequently reported in patients undergoing IVA with concomitant beta-blockers (Fig. \@ref(fig:figcofactors)D). 
 
 Baseline serum tryptase correlated with the severity of reactions in the Ring and Messmer scale and was more prominently increasing risk of severe anaphylaxis in IVA patients than in other cases (Fig. \@ref(fig:figcofactors)B).
-Cases with cardiac arrest were associated with increased tryptase over eight ng/ml, and this proportion was higher in IVA when compared to other elicitors. Loss of consciousness was also associated with increased tryptase levels but only in patients with IVA (Fig. \@ref(fig:figcofactors)C). Based on the severity and symptom profile, we decided to use a tryptase cut off value of 8 ng/ml (Fig. S\@ref(fig:tryp2)) rather than the currently used 11.5 ng/ml.
+Cases with cardiac arrest were associated with increased tryptase over eight ng/ml, and this proportion was higher in IVA when compared to other elicitors. Loss of consciousness was also associated with increased tryptase levels but only in patients with IVA (Fig. \@ref(fig:figcofactors)C). Based on the severity and symptom profile, we decided to use a tryptase cut off value of 8 ng/ml (Fig. S\@ref(fig:figcofactors)B) rather than the currently used 11.5 ng/ml.
 
 We compared the Hymenoptera species responsible for triggering IVA according to the severity of the reaction and found no differences. Patients matched according to sex and age had similar severity of a reaction to known eliciting insects (p = 0.4128). 
 <!-- This data, however, is not comparable to the refractory anaphylaxis cases as refractory anaphylaxis seems to be a distinct phenotype.  -->

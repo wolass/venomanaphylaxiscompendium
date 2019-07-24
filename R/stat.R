@@ -1027,7 +1027,7 @@ align = "h",
 labels = c("A","B"))
 
 lower_panel <- ggpubr::ggarrange(
-    age_  %>%
+    age_sex_matched  %>%
     ggplot(aes(x = d_age, fill = grouping)) +
     geom_density(alpha = 0.5)+
     labs(x = "Age [years]",fill = "elicitor")+
@@ -1038,7 +1038,7 @@ lower_panel <- ggpubr::ggarrange(
     geom_segment(aes(x = 22, xend =22, y = 0, yend = 0.02),
                  linetype = 2),
 
-  ANAscore_matched %>%
+  age_sex_matched %>%
     group_by(b_sex, grouping) %>%
     ggplot(aes(fill=grouping, x=b_sex))+
     geom_bar(position = "fill")+
