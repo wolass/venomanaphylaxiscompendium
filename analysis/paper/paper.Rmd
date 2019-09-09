@@ -482,7 +482,7 @@ severity_joined_brown %>%
 
 
 
-```{r rfplot, fig.cap="Therapy of anaphylaxis. A: Adrenaline use considering if patients had previous anaphylaxis. B: Variable impo"}
+```{r rfplot, fig.cap="Therapy of anaphylaxis. A: Adrenaline use considering if patients had previous anaphylaxis. B: Variable impo", fig.height=3.5, fig.width=7.1}
 ggarrange(
   adren_prev+
     geom_segment(aes(x = 0.5,
@@ -494,7 +494,8 @@ ggarrange(
   rf_ggplot_treatment,
   nrow = 1,
   ncol = 2,
-  labels=c("A","B")
+  labels=c("A","B"),
+  widths = c(1,1.3)
 )
 ```
 
