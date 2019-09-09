@@ -859,12 +859,12 @@ rdb %>%
 
 
 ANAscore_matched <-
-  match_patients(rdb %>%
+  match_patients(data = rdb %>%
                    filter(d_522_adren_agg %in% c("yes", "no")),
-                 "grouping",
-                 c("ANAscore","d_age"),
+                 grouping_var ="grouping",
+                 matching_vars = c("ANAscore","d_age"),
                  grouping_var_level = "insects",
-                 T)
+                 df = T)
 testANAscoreMatched <- makeTests(groups = "grouping",
                                  rdb=ANAscore_matched) %>%
   #arrange(pval) %>%
@@ -1059,9 +1059,15 @@ lower_panel <- ggpubr::ggarrange(
                  linetype = 2),
 
   age_sex_matched %>%
-    group_by(b_sex, grouping) %>%
+    # count(b_sex, grouping) %>% #spread(b_sex,n) %>% {chisq.test(.[,2:3])}
+    # ggpubr::ggbarplot(
+    #   fill = "grouping",
+    #   y = "n",
+    #   x = "b_sex",
+    # ),
     ggplot(aes(fill=grouping, x=b_sex))+
     geom_bar(position = "fill")+
+    #facet_grid(.~b_sex)+
     theme_classic()+
     theme(legend.position = "none")+
     scale_fill_manual(values = rev(c("#c4c4c4", "#454545")))+
@@ -2184,15 +2190,17 @@ cof_fig<- ggarrange(
         y = "prop",
         facet.by = c("grouping",
                      "d_111_urti_flush"),
-        fill = "tryptase_value_3cat",
-        x = "d_severity_rmr",
+        x = "tryptase_value_3cat",
+        fill = "d_severity_rmr",
         position = position_fill(reverse = T),
         palette = "grey"
       )+
-      labs(x = "severity",
+      theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+      guides(fill= guide_legend(ncol = 2,nrow = 2, byrow = F))+
+      labs(fill = "severity",
            y = "proportion",
-           fill = "BST\n[ng/ml]")+
-      guides(fill= guide_legend(ncol = 2,nrow = 2, byrow = F)),
+           x = "BST [ng/ml]")
+      ,
     widths = c(1,0.5),
     ncol = 2,
     nrow = 1,
@@ -3413,3 +3421,55 @@ ANAscore_matched %>%
   {.[,3:4]} %>%
   chisq.test
 
+
+age_sex_matched %>%
+  count(grouping,d_age,b_sex) %>%
+  ggbarplot(x = "d_age",
+            y = "n",
+            fill="grouping",
+            facet.by = "b_sex",
+            position = position_fill())
+
+
+matching.result <- ggarrange(
+rdb %>%
+  filter(!is.na(grouping)) %>%
+  # count(b_sex, grouping) %>% #spread(b_sex,n) %>% {chisq.test(.[,2:3])}
+  # ggpubr::ggbarplot(
+  #   fill = "grouping",
+  #   y = "n",
+  #   x = "b_sex",
+  # ),
+  ggplot(aes(fill=grouping, x=d_age_gr5b))+
+  geom_bar(position = "fill")+
+  facet_grid(.~b_sex)+
+  theme_classic()+
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank())+
+  #theme(legend.position = "none")+
+  scale_fill_manual(values = rev(c("#c4c4c4", "#454545")))+
+  labs(y ="proportion",x = "Sex",fill = "")+
+  geom_segment(mapping = aes(x = 0.5, xend =5.5,y= 0.5,yend = 0.5),color = "red", linetype = 2),
+
+age_sex_matched %>%
+  # count(b_sex, grouping) %>% #spread(b_sex,n) %>% {chisq.test(.[,2:3])}
+  # ggpubr::ggbarplot(
+  #   fill = "grouping",
+  #   y = "n",
+  #   x = "b_sex",
+  # ),
+  ggplot(aes(fill=grouping, x=d_age_gr5b))+
+  geom_bar(position = "fill")+
+  facet_grid(.~b_sex)+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 20, hjust =1))+
+  scale_fill_manual(values = rev(c("#c4c4c4", "#454545")))+
+  labs(y ="proportion",x = "",fill = "")+
+  geom_segment(mapping = aes(x = 0.5, xend =5.5,y= 0.5,yend = 0.5),color = "red", linetype = 2),
+nrow =2,
+ncol =1,
+common.legend = T,
+heights = c(1,1.4),
+labels = c("A","B")
+)
