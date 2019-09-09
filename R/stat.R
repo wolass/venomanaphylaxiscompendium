@@ -141,13 +141,32 @@ data4$route_sc[data4$d_330_drug_group %in%
                  )] <- TRUE
 data4$route_sc[data4$d_elicitor_gr5 == "insects"] <- T
 
+#### d_111_urti_flush
+
+data4 <- data4 %>%
+  mutate(d_111_urti_flush = ifelse(q_111_urticaria=="yes"|
+                                     q_111_erythema_flush_v5=="yes",
+                                   "yes",
+                                   "no"))
+
+##### medium Tryptase between 4 and 8 11.5 ####
+
+data4 <- data4 %>%
+  mutate(tryptase_value_3cat =
+           ifelse(q_212_tryptase_value_v5 < 4,
+                  "low",
+                  ifelse(q_212_tryptase_value_v5 < 8,
+                         "medium",
+                         ifelse(q_212_tryptase_value_v5 <11.5,
+                         "high",
+                         ">11.5"))))
 
 ##### FINAL DATABASE RDB ######
 
 rdb <- data4[data4$reaction_type_brown=="anaphylaxis",]
 countries <-rdb %>%
   filter(d_elicitor_gr5=="insects") %>%
-  select(d_centres_country) %>%
+  dplyr::select(d_centres_country) %>%
   group_by(d_centres_country) %>%
   summarize(n=n())%>% arrange(desc(n))
 
@@ -165,18 +184,15 @@ rdbp$grouping<- grouping
 
 
 
-##### DIAGRAM ##############
-source("R/make_flow.R")
-make_flow()
-
 
 ###Statistic###########
 
 ### Binomial trigger either insects or other
-testInsectsbinomial <- makeTests(groups = "grouping",rdb=rdb) %>% arrange(pval)
+testInsectsbinomial <- makeTests(groups = "grouping",rdb=rdb) %>%
+  arrange(pval)
 
 testInsectsbinomialTab <- testInsectsbinomial %>% #filter(pval<1e-30) %>%
-  select(variableName,counts_1,counts_2,fraq_1,fraq_2,
+  dplyr::select(variableName,counts_1,counts_2,fraq_1,fraq_2,
          pval,
          section) %>%
          {split(.,.$section)}
@@ -190,7 +206,7 @@ tests_matched <- makeTests(groups ="grouping",
                            rdb =age_sex_matched)
 
 tests_matchedTab <- tests_matched %>% filter(pval<1e-30) %>%
-  select(variableName,counts_1,counts_2,fraq_1,fraq_2,
+  dplyr::select(variableName,counts_1,counts_2,fraq_1,fraq_2,
          pval,
          section) %>%
          {split(.,.$section)}
@@ -204,12 +220,16 @@ rdb$groupYJ <- ifelse(rdb$d_insect_gr4 == "yellow jacket",
 
 testsYJ <- makeTests("groupYJ",rdb = rdb) %>%
   arrange(pval) %>%
-  select(variableName,counts_1,counts_2,fraq_1,fraq_2,
+  dplyr::select(variableName,counts_1,counts_2,fraq_1,fraq_2,
          pval,
          section) %>%
          {split(.,.$section)}
 
 
+
+##### DIAGRAM ##############
+source("R/make_flow.R")
+make_flow()
 
 ###### FOREST PLOT ####
 
@@ -315,7 +335,7 @@ repeatedPat<- rdb %>%
   #filter(reaction_type_brown=="anaphylaxis",
   #       d_elicitor_gr5 =="insects") %>%
   group_by(b_patient_code) %>% summarise(n =n()) %>%
-  arrange(desc(n)) %>% filter(n>1) %>% select(b_patient_code) %>%
+  arrange(desc(n)) %>% filter(n>1) %>% dplyr::select(b_patient_code) %>%
   pull() %>% as.character()
 
 
@@ -329,7 +349,7 @@ tempDF<-filter(rdb,b_patient_code %in% repeatedPat) %>% #rowwise() %>%
                                       substr(Rdate,6,10)),
                                 Rdate)%>% as.Date(format = "%d.%m.%Y")) %>%
   # select(b_reactiondate,Rdate)
-  select(#variableSelectionTab(rdb) %>%
+  dplyr::select(#variableSelectionTab(rdb) %>%
           # filter(section=="symptoms") %>%
            #select(variableName) %>% pull() %>% as.character(),
          b_patient_code,d_severity_rm,Rdate,q_340_insects,d_elicitor_gr5
@@ -546,7 +566,7 @@ checkVarTab(data = rdb,
 #### The most associated differences
 AssociatedVars <- testInsectsbinomial %>%
   arrange(desc(Cramer)) %>%
-  select(-c(2:5,11:16)) %>%
+  dplyr::select(-c(2:5,11:16)) %>%
   filter(Cramer>0.25)
 
 #### Crammer Plot ####
@@ -649,17 +669,17 @@ F1$libs <- "purrr"
 F1$data[["pat_ids"]]<-
   data4 %>%
   filter(d_elicitor_gr5=="insects") %>%
-  select(b_patient_code) %>%
+  dplyr::select(b_patient_code) %>%
   group_by(b_patient_code) %>%
   summarise(reps =n()) %>%
   filter(reps>1) %>%
-  select(b_patient_code) %>% pull() %>% as.character()
+  dplyr::select(b_patient_code) %>% pull() %>% as.character()
 F1$data[["dt"]]  <-
   data4 %>%
   filter(d_elicitor_gr5=="insects",
          #q_610_sit_prior_v5 %in% c("no","yes"),
          b_patient_code %in% F1$data$pat_ids) %>%
-  select(b_patient_code,d_severity_rm,b_reactiondate) %>%
+  dplyr::select(b_patient_code,d_severity_rm,b_reactiondate) %>%
   mutate(Rdate =  ifelse(substr(as.character(b_reactiondate),1,2)=="00",
                          paste0("15",substr(as.character(b_reactiondate),3,10)),
                          as.character(b_reactiondate))
@@ -782,12 +802,12 @@ prop_fun <- function(data, grouping_var, predictor_vars, other_vars=NULL,
                      samplesize = 200) {
   if(is.logical(grouping_var)){
     temp <- data %>%
-      select(!!!predictor_vars,!!!other_vars) %>%
+      dplyr::select(!!!predictor_vars,!!!other_vars) %>%
       mutate(grouping = grouping_var) %>%
       filter(complete.cases(.))
   } else {
   temp <- data %>%
-    select(!!!grouping_var,!!!predictor_vars,!!!other_vars) %>%
+    dplyr::select(!!!grouping_var,!!!predictor_vars,!!!other_vars) %>%
     filter(complete.cases(.)) %>%
     mutate(grouping = ifelse(get(grouping_var) == "insects", T,
                            F))
@@ -849,7 +869,7 @@ testANAscoreMatched <- makeTests(groups = "grouping",
                                  rdb=ANAscore_matched) %>%
   #arrange(pval) %>%
   #filter(pval<1e-30) %>%
-  select(variableName,counts_1,counts_2,fraq_1,fraq_2,
+  dplyr::select(variableName,counts_1,counts_2,fraq_1,fraq_2,
          pval,
          section) %>%
          {split(.,.$section)}
@@ -1380,8 +1400,7 @@ data %>%
 
 data$q_116_VAS_v7 %<>% as.numeric(as.character())
 
-data %>%
-  select()
+
 
 
 fit <- glm(q_116_VAS_v7~ANAscore+
@@ -1409,7 +1428,7 @@ summary(fit)
 testInsectsbinomial %>%
   filter(section=="cofactors") %>%
   arrange(desc(Cramer)) %>%
-  select(1,8,9,10,pval) %>%{.[c(14,16:18,22,23,24,26,35,43),]} %>%
+  dplyr::select(1,8,9,10,pval) %>%{.[c(14,16:18,22,23,24,26,35,43),]} %>%
   pull(variableName)
 
 # FEATURE SELECTION########
@@ -1556,6 +1575,8 @@ cardiac_ace <- function(s){
            q_423!="unknown",
            !!s != "unknown",
            !is.na(grouping)) %>%
+    mutate(grouping = car::recode(grouping,
+                                  "'insects'='IVA';'other'='non-IVA'")) %>%
     group_by(q_423_ace,
              !!s,
              grouping) %>%
@@ -1577,17 +1598,46 @@ cardiac_ace_plots <- names(data) %>% broom::tidy() %>%
   })
 
 plot_ace_cardiacs <-
-  ggarrange(cardiac_ace_plots[[1]]+
-              labs(x = "cardiologic symptoms"),
+  ggarrange(#cardiac_ace_plots[[1]]+
+            #  labs(x = "cardiologic symptoms"),
             cardiac_ace_plots[[6]]+
-              labs(x = "cardiac arrest")+
+              labs(x = "cardiac arrest",
+                   fill = "ACE-I")+
               theme(axis.title.y = element_blank(),
                     axis.ticks.y = element_blank(),
                     axis.text.y = element_blank()),
             widths = c(1, 0.8),
             common.legend = T)
 
+ace_tab <- age_sex_matched %>%
+  filter( q_423_ace!="unknown",
+          q_114_cardiac_arrest!="unknown") %>%
+  count(q_423_ace,
+        q_114_cardiac_arrest) %>%
+  ungroup() %>%
+  group_by(q_423_ace) %>%
+  mutate(prop = n/sum(n)) #%>%
+  #select(-n) %>%
+  #spread(q_114_cardiac_arrest,prop)
 
+beta_tab <- age_sex_matched %>%
+  filter(q_423_beta!="unknown",
+          q_114_cardiac_arrest!="unknown") %>%
+  count(grouping,
+        q_423_beta,
+        q_114_cardiac_arrest
+        ) %>%
+  ungroup() %>%
+  group_by(grouping,q_423_beta) %>%
+  mutate(prop = n/sum(n)) #%>%
+  #select(-n) %>%
+  #spread(q_114_cardiac_arrest,prop)
+
+beta_fit <- age_sex_matched %>%
+  filter(q_423_beta!="unknown",
+         q_114_cardiac_arrest!="unknown") %>%
+  glm(formula = q_114_cardiac_arrest~q_423_beta*grouping, family = "binomial")
+summary(beta_fit)
 #### Very important!!!! above!
 # This has to do with the cascade of
 
@@ -1597,6 +1647,8 @@ cardiac_beta <- function(s){
            q_423_beta!="unknown",
            !!s != "unknown",
            !is.na(grouping)) %>%
+    mutate(grouping = car::recode(grouping,
+                                  "'insects'='IVA';'other'='non-IVA'")) %>%
     group_by(q_423_beta,
              !!s,
              grouping) %>%
@@ -1625,14 +1677,14 @@ plot_beta_cardiacs <-
               theme(axis.title.y = element_blank(),
                     axis.ticks.y = element_blank(),
                     axis.text.y = element_blank()),
-            cardiac_beta_plots[[4]]+
-              labs(x = "chest pain / angina")+
-              theme(axis.title.y = element_blank(),
-                    axis.ticks.y = element_blank(),
-                    axis.text.y = element_blank()),
-            widths = c(1, 0.8,0.8),
+            # cardiac_beta_plots[[4]]+
+            #   labs(x = "chest pain / angina")+
+            #   theme(axis.title.y = element_blank(),
+            #         axis.ticks.y = element_blank(),
+            #         axis.text.y = element_blank()),
+            widths = c(1, 0.7,0.7),
             nrow = 1,
-            ncol = 3,
+            ncol = 2,
             common.legend = T)
 
 
@@ -1675,7 +1727,7 @@ plot_beta_cardiacs <-
               theme(axis.title.y = element_blank(),
                     axis.ticks.y = element_blank(),
                     axis.text.y = element_blank()),
-            widths = c(1, 0.8,0.8),
+            widths = c(1, 0.7,0.7),
             nrow = 1,
             ncol = 3,
             common.legend = T)
@@ -1690,7 +1742,7 @@ plot_beta_cardiacs <-
 ##### Figure MOR2  eli_green####
 eli_green <-
   rdbp %>%
-  select(b_reactiondate,
+  dplyr::select(b_reactiondate,
          grouping,
          q_340_insects,
          d_centres_country) %>%
@@ -1750,7 +1802,7 @@ eli_green <-
   #                                  "#005A32")))
 
 rare_spring_autumn <- rdbp %>%
-  select(b_reactiondate,
+  dplyr::select(b_reactiondate,
          grouping,
          q_340_insects,
          d_centres_country) %>%
@@ -1850,7 +1902,7 @@ png(width =500*2,height = 630*2,res = 300, filename = "IVAcomplete.png",pointsiz
 gridExtra::grid.arrange(
   #cowplot::plot_grid(
   rdbp %>%
-    select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
+    dplyr::select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
     mutate(MOR = substr(b_reactiondate,4,5)) %>%
     filter(!is.na(q_340_insects),MOR!="00") %>%
     ggplot(aes(MOR,fill=q_340_insects))+
@@ -1864,7 +1916,7 @@ gridExtra::grid.arrange(
           legend.justification = c(0,1))+
     scale_fill_manual(values = rev(c("#E5F5E0", "#C7E9C0", "#A1D99B", "#74C476", "#41AB5D", "#238B45","#005A32"))),
   rdbp %>%
-    select(b_reactiondate,grouping,d_elicitor_gr5,d_centres_country) %>%
+    dplyr::select(b_reactiondate,grouping,d_elicitor_gr5,d_centres_country) %>%
     mutate(MOR = substr(b_reactiondate,4,5),
            d_elicitor_gr5 = relevel(d_elicitor_gr5, "insects")) %>%
     filter(!is.na(grouping),MOR!="00") %>%
@@ -2097,16 +2149,72 @@ plot.Cramer(supraCramerFun(data =rdbp,
 
 require(ggpubr)
 cof_fig<- ggarrange(
-  ggplot()+
-    background_image(png::readPNG("analysis/figures/figForestfinalrmr.png")),
-
+  ggarrange(
+    ggplot()+
+      background_image(png::readPNG("analysis/figures/figForestfinalrmr.png")),
+    age_sex_matched %>%
+      filter(q_410_masto_cur!="yes",
+             !is.na(tryptase_value_3cat ),
+             !is.na(d_severity_rmr)#,
+             #d_severity_rm %in% c("2","3")
+      ) %>%
+      mutate(d_111_urti_flush =
+               factor(d_111_urti_flush,
+                      labels = c("skin -","skin +")),
+             grouping = factor(grouping,
+                               labels=c("IVA","non-IVA")),
+             d_severity_rmr = factor(d_severity_rmr,
+                                     labels = c("I+II","III+IV"))
+             # tryptase_value_3cat = car::recode(
+             #   tryptase_value_3cat,
+             #   "'low'='<4';'medium'='<8';'high'='<11.5'"
+             # )
+      ) %>%
+      count(grouping,
+            d_111_urti_flush,
+            d_severity_rmr,
+            tryptase_value_3cat) %>%
+      group_by(grouping,d_111_urti_flush) %>%
+      mutate(prop = prop.table(n)) %>%
+      mutate(tryptase_value_3cat =
+               factor(tryptase_value_3cat,
+                      levels = c("low","medium","high",">11.5"),
+                      labels = c("<4","<8","<11.5",">11.5"))) %>%
+      ggpubr::ggbarplot(
+        y = "prop",
+        facet.by = c("grouping",
+                     "d_111_urti_flush"),
+        fill = "tryptase_value_3cat",
+        x = "d_severity_rmr",
+        position = position_fill(reverse = T),
+        palette = "grey"
+      )+
+      labs(x = "severity",
+           y = "proportion",
+           fill = "BST\n[ng/ml]")+
+      guides(fill= guide_legend(ncol = 2,nrow = 2, byrow = F)),
+    widths = c(1,0.5),
+    ncol = 2,
+    nrow = 1,
+    labels = c("","B")
+  ),
+  ggarrange(
+    plot_beta_cardiacs,
+    plot_ace_cardiacs,
+    nrow=1,ncol = 2,
+    widths = c(2.8,1)
+  ),
   ggarrange(
     age_sex_matched %>%
     filter(!is.na(d_severity_rmr),
            !is.na(tryp_cat)) %>%
-    mutate(d_severity_rmr = d_severity_rmr %>% factor()) %>%
+    mutate(d_severity_rmr = d_severity_rmr %>%
+             factor(labels = c("I+II","III+IV"))) %>%
     group_by(grouping,d_severity_rmr,tryp_cat) %>%
     summarize(n = n()) %>%
+      ungroup() %>%
+      mutate(grouping = car::recode(grouping,
+                                    "'insects' = 'IVA';'other'='non-IVA'")) %>%
     ggbarplot(x= "tryp_cat",
               fill = "d_severity_rmr",
               y = "n",
@@ -2119,6 +2227,9 @@ cof_fig<- ggarrange(
 
     ggarrange(
       cardiac_typtase_effect[[6]][[2]]$data %>%
+        ungroup() %>%
+        mutate(grouping = car::recode(grouping,
+                                      "'insects' = 'IVA';'other'='non-IVA'")) %>%
       ggbarplot(x = "q_114_cardiac_arrest",
                 y = "n",
                 fill = "tryp_cat",
@@ -2146,6 +2257,9 @@ cof_fig<- ggarrange(
               #axis.title.x = element_text(angle= 10,hjust = 0.5,vjust = 1)
         #),
       cardiac_typtase_effect[[2]][[2]]$data %>%
+        ungroup() %>%
+        mutate(grouping = car::recode(grouping,
+                                      "'insects' = 'IVA';'other'='non-IVA'")) %>%
       ggbarplot(x = "q_114_loss_of_consciousness",
                 y = "n",
                 fill = "tryp_cat",
@@ -2174,12 +2288,10 @@ cof_fig<- ggarrange(
     ncol = 2,
     widths = c(1,1.6)
     ),
-  plot_ace_cardiacs,
-  plot_beta_cardiacs,
-  nrow = 4,
+  nrow = 3,
   ncol=1,
-  heights = c(1.2,0.7,0.65,0.65),
-  labels = c("A","B","C","D")
+  heights = c(1.2,0.65,0.7),
+  labels = c("A","C","D")
 )
 
 #### Heatmap Symptom+Therapy ####
@@ -2232,7 +2344,7 @@ require(gplots)
 #
 #
 x <- age_sex_matched %>%
-  select(#starts_with("q_1"),
+  dplyr::select(#starts_with("q_1"),
          #-q_112,
          #-q_113,
          #-q_114,
@@ -2272,7 +2384,7 @@ vars <- importance(fit_rf) %>%
   filter(MeanDecreaseGini > 10)
 
 x <- age_sex_matched %>%
-  select(vars$.rownames) %>%
+  dplyr::select(vars$.rownames) %>%
   map(function(x){
     ifelse(is.na(x), 0,ifelse(x=="yes",1,0))
   }) %>%
@@ -2302,20 +2414,20 @@ x <- age_sex_matched %>%
 # )
 
 
-heatmap.2(t(x),
-          density.info = "none",
-          trace = "none",
-          #Rowv = dendr,
-          ColSideColors = age_sex_matched %>%
-            mutate(group = ifelse(grouping=="insects",
-                                  "green",
-                                  ifelse(grouping =="other",
-                                         "white",
-                                         "gray"))) %>%
-            select(group) %>% pull() %>% as.character(),
-          distfun= function(x) dist(x, method="binary"),
-          hclustfun=function(x) hclust(x, method="ward.D")
-)
+# heatmap.2(t(x),
+#           density.info = "none",
+#           trace = "none",
+#           #Rowv = dendr,
+#           ColSideColors = age_sex_matched %>%
+#             mutate(group = ifelse(grouping=="insects",
+#                                   "green",
+#                                   ifelse(grouping =="other",
+#                                          "white",
+#                                          "gray"))) %>%
+#             dplyr::select(group) %>% pull() %>% as.character(),
+#           distfun= function(x) dist(x, method="binary"),
+#           hclustfun=function(x) hclust(x, method="ward.D")
+# )
 
 # require(heatmap.plus)
 # heatmap.plus(t(x),
@@ -2335,14 +2447,13 @@ heatmap.2(t(x),
 #                      '4' = 'red'"
 #                    )) %>%
 #             select(group,severity)  %>% as.matrix(),
-#           distfun= function(x) dist(x, method="canberra"),
 #           hclustfun=function(x) hclust(x, method="ward.D2")
 # )
 
 
 
 age_sex_matched %>%
-  select(starts_with("q_1")
+  dplyr::select(starts_with("q_1")
     # #-q_112,
     # #-q_113,
     # #-q_114,
@@ -2357,7 +2468,7 @@ age_sex_matched %>%
 
 
 pca1 <- age_sex_matched %>%
-  select(#starts_with("q_1"),
+  dplyr::select(#starts_with("q_1"),
          starts_with("q_5")) %>%
   map(function(x){
     ifelse(is.na(x), 0,ifelse(x=="yes",1,0))
@@ -2393,14 +2504,14 @@ autoplot(prcomp(x, center = F,scale. = T),
 
 o <-  rdb %>%
   filter(grouping=="insects") %>%
-  select(b_case_id,atopy,d_age,b_sex) %>%
+  dplyr::select(b_case_id,atopy,d_age,b_sex) %>%
   {filter(.,complete.cases(.))} %>%
   mutate(grouping = ifelse(atopy=="yes",1,0)) %>%
   matchit(formula = as.formula("grouping~d_age+b_sex"),
   method = "nearest",
   ratio = 1) %>%
   match.data() %>%
-  select(b_case_id) %>%
+  dplyr::select(b_case_id) %>%
   pull() %>%
   {rdb[rdb$b_case_id %in% .,]}
 
@@ -2431,7 +2542,7 @@ phi_f <- function(data,
          var2){
          data %>% #age_sex_matched %>%
   filter(!!sym(grouping_var)==grouping_var_val) %>%  #filter(grouping =="insects") %>%
-  select(!!sym(var1),!!sym(var2)) %>%  #select(d_520_adren1,q_111) %>%
+  dplyr::select(!!sym(var1),!!sym(var2)) %>%  #select(d_520_adren1,q_111) %>%
   #mutate(!!sym(var1) =
   #          ifelse(is.na(d_520_adren1),NA,
   #                 ifelse(d_520_adren1=="yes","yes",
@@ -2832,3 +2943,473 @@ adren_severity_mild <- adren_severity$data %>%
   filter(d_severity_rmr =="mild") %>%
   spread(key = grouping, value = n) %>%
   {chisq.test(.[,3:4])$p.value} %>% pval()
+
+
+### Statistical modelling ####
+
+# As a last attempt for the analysis -
+# perform a modelling with the use of
+# random forest or regression using the following inputs:
+# Absence of urticaria,
+# BST,
+# short time for the onset of symptoms,
+# older age,
+# male sex?,
+# cardiologic conditions.
+
+# Actually the best prediction is the reaction symptoms...
+# so this can be used for future episodes....
+# In such model we would need repeated reactions for validation
+
+## Absence of urticaria+flush and tryptase levels in both groups and severity
+skin_symptoms <- list()
+age_sex_matched <- age_sex_matched %>%
+  mutate(d_111_urti_flush = ifelse(
+    q_111_urticaria=="yes"|
+      q_111_erythema_flush_v5=="yes","yes","no") %>%
+      factor())
+
+skin_symptoms$tab <- age_sex_matched %>%
+  group_by(grouping,d_111_urti_flush) %>%
+  filter(q_111!="unknown",q_410_masto_cur!="yes") %>%
+  count(grouping,d_111_urti_flush) %>%
+  group_by(grouping) %>% # now required with changes to dplyr::count()
+  mutate(prop = prop.table(n))
+
+skin_symptoms$chisq <-
+  skin_symptoms$tab$n %>%
+  matrix(ncol = 2) %>%
+  chisq.test(.)
+
+skin_symptoms$masto_tab <-
+  age_sex_matched %>%
+  filter(q_111 != "unknown",
+         q_410_masto_cur != "unknown") %>%
+  #dplyr::select(d_111_urti_flush, q_410_masto_cur) %>%
+  #gather("var", "value") %>%
+  count(d_111_urti_flush, q_410_masto_cur) %>%
+  group_by(q_410_masto_cur) %>% # now required with changes to dplyr::count()
+  mutate(prop = prop.table(n))
+
+skin_symptoms$masto_chisq <-
+  skin_symptoms$masto_tab$n %>%
+  matrix(nrow = 2, byrow = T) %>%
+  chisq.test()
+
+skin_symptoms$severe_tab <-
+age_sex_matched %>%
+  mutate(grouping = car::recode(grouping, "'insects'='IVA';
+                                'other'='non-IVA'")) %>%
+  filter(q_111_urticaria != "unknown",
+         q_410_masto_cur != "yes") %>%
+  # select(grouping,q_111_urticaria,
+  #        severity_brown) %>%
+  count(grouping,
+        d_111_urti_flush,
+        d_severity_rmr) %>%
+  group_by(grouping,d_111_urti_flush) %>%
+  mutate(prop = prop.table(n))
+
+skin_symptoms$severe_urti_flush_plot <-
+  skin_symptoms$severe_tab %>%
+  mutate(d_severity_rmr = ifelse(d_severity_rmr == "mild",
+                                 "I+II",
+                                 "III+IV")) %>%
+  ggpubr::ggbarplot(
+    x = "d_111_urti_flush",
+    y = "n",
+    fill = "d_severity_rmr",
+    facet.by = "grouping",
+    position= position_fill(),
+    palette = palBW
+  ) +
+  labs(x = "urticaria or flush",
+       y = "proportion",
+       fill = "severity [R&M]")
+
+
+# age_sex_matched <- age_sex_matched %>%
+#   mutate(d_111_angio_or_urti = ifelse(
+#     q_111_urticaria=="yes"|
+#       q_111_angioedema=="yes","yes","no") %>%
+#       factor())
+
+
+# age_sex_matched %>%
+#   filter(#q_111_urticaria!="unknown",
+#          q_410_masto_cur != "yes") %>%
+#   group_by(grouping,
+#            d_111_angio_or_urti,
+#            d_severity_rmr) %>%
+#   summarize(n = n()) %>%
+#   ggpubr::ggbarplot(
+#     x = "d_111_angio_or_urti",
+#     y = "n",
+#     fill = "d_severity_rmr",
+#     facet.by = "grouping",
+#     position = position_fill()
+# )
+#
+# age_sex_matched %>%
+#   filter(q_111_urticaria!="unknown",
+#          q_410_masto_cur != "yes") %>%
+#   group_by(grouping,q_111,severity_brown) %>%
+#   summarize(n = n()) %>%
+#   ggpubr::ggbarplot(
+#     x = "q_111",
+#     y = "n",
+#     fill = "severity_brown",
+#     facet.by = "grouping",
+#     position = position_fill()
+#
+#   )
+# age_sex_matched %>%
+#   filter(q_111_urticaria!="unknown",
+#          q_410_masto_cur != "yes") %>%
+#   group_by(grouping,q_111_urticaria,severity_brown) %>%
+#   summarize(n = n()) %>%
+#   ggpubr::ggbarplot(
+#     x = "q_111_urticaria",
+#     y = "n",
+#     fill = "severity_brown",
+#     facet.by = "grouping",
+#     position = position_fill()
+#
+#   )
+#
+#
+# age_sex_matched %>%
+#   filter(q_111_urticaria!="unknown",
+#          q_410_masto_cur != "yes") %>%
+#   group_by(grouping,d_111_angio_or_urti,severity_brown) %>%
+#   summarize(n = n()) %>%
+#   ggpubr::ggbarplot(
+#     x = "d_111_angio_or_urti",
+#     y = "n",
+#     fill = "severity_brown",
+#     facet.by = "grouping",
+#     position = position_fill()
+#
+#   )
+# age_sex_matched %>%
+#   filter(q_111_urticaria!="unknown",
+#          q_410_masto_cur != "yes",
+#          severity_brown == "severe") %>%
+#   group_by(grouping,d_111_urti_flush) %>%
+#   summarize(n = n()) %>%
+#   ggpubr::ggbarplot(
+#     fill = "d_111_urti_flush",
+#     y = "n",
+#     #fill = "severity_brown",
+#     x = "grouping",
+#     position = position_fill()
+#
+#   )
+
+skin_symptoms$plot_tryptase <- age_sex_matched %>%
+  filter(q_111_urticaria!="unknown",
+         d_severity_rm!="1",
+         q_410_masto_cur != "yes"#,
+         #q_212_tryptase_value_v5<25
+         ) %>%
+  mutate(grouping = car::recode(grouping, "'insects'='IVA';
+                                'other'='non-IVA'")) %>%
+  ggpubr::ggboxplot(
+    fill = "d_111_urti_flush",
+    y = "q_212_tryptase_value_v5",
+    x = "d_severity_rm",
+    facet.by = "grouping",
+    palette = palBW
+  )+
+  #scale_y_log10()+
+  labs(x = "severity [R&M]",
+       y = "tryptase [ng/mL]",
+       fill = "urticaria or flush")+
+  geom_segment(y = 11.5,
+               yend = 11.5,
+               x= 0.5,
+               xend=3.5,
+               linetype = 2,
+               color = "red")+
+  coord_cartesian(ylim = c(0,25))
+
+age_sex_matched %>%
+  filter(q_111!="unknown",
+         d_severity_rm!="1",
+         q_410_masto_cur != "yes") %>%
+  ggpubr::ggscatter(
+    color = "d_111_urti_flush",
+    y = "q_212_tryptase_value_v5",
+    x = "ANAscore",
+    facet.by = "grouping",
+    alpha = 0.2,
+    add = "reg.line",
+    palette = palBW
+  )+
+  scale_y_log10()
+
+
+# age_sex_matched %>%
+#   filter(q_111_urticaria!="unknown",
+#          q_410_masto_cur != "yes",
+#          d_severity_rm=="3",
+#          grouping == "insects") %>%
+# t.test(formula = q_212_tryptase_value_v5 ~ q_111_urticaria,
+#        data = .)
+#
+# age_sex_matched %>%
+#   filter(q_111_urticaria!="unknown",
+#          q_410_masto_cur != "yes",
+#          d_severity_rm=="3",
+#          grouping == "other") %>%
+#   t.test(formula = q_212_tryptase_value_v5 ~ q_111_urticaria,
+#          data = .)
+
+fit_skin_symptoms <- age_sex_matched %>%
+  filter(d_severity_rm!="1",
+         q_111!="unknown",
+         q_410_masto_cur != "yes",
+         q_212_tryptase_value_v5<11.5) %>%
+ aov(formula = q_212_tryptase_value_v5 ~
+       grouping * d_111_urti_flush * d_severity_rmr,
+    data = .)
+skin_symptoms$fit_tryp <- summary(fit_skin_symptoms)
+
+
+fit_skin_symptoms <- age_sex_matched %>%
+  filter(d_severity_rm!="1",
+         q_111!="unknown",
+         q_410_masto_cur != "yes") %>%
+  mutate(d_severity_rmr = ifelse(
+    d_severity_rmr=="severe",
+    1,0) %>%
+factor()) %>%
+  glm(formula =  d_severity_rmr ~
+        grouping * d_111_urti_flush,
+      data = .,
+      family="binomial")
+skin_symptoms$severity_fit_skin_symptoms <- summary(fit_skin_symptoms)
+
+age_sex_matched %>%
+  filter()
+
+require(MASS)
+m <- age_sex_matched %>%
+  filter(#d_severity_rm!="1",
+         q_111!="unknown",
+         q_410_masto_cur != "yes") %>%
+  mutate(d_severity_rm = d_severity_rm %>% factor) %>%
+polr(formula = d_severity_rm ~
+       grouping * d_111_urti_flush,data = .,Hess = T)
+summary(m)
+(ctable <- coef(summary(m)))
+## calculate and store p values
+p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
+
+## combined table
+(ctable <- cbind(ctable, "p value" = p))
+
+
+#### Figure symptoms with skin symptoms ####
+
+fig_symptoms2 <- ggpubr::ggarrange(
+  fig_symptoms,
+  ggarrange(skin_symptoms$severe_urti_flush_plot,
+            skin_symptoms$plot_tryptase,
+            labels = c("C","D")),
+  nrow =2,
+  ncol =1,
+  heights = c(1,0.8)
+)
+
+# Lets find out what we can say about these patients that do not have skin symptoms
+
+
+
+plot_tryptase_in_cardio_cur <- age_sex_matched %>%
+  mutate(grouping = car::recode(grouping,
+                           "'insects'='IVA';
+                           'other'='non-IVA'")) %>%
+  filter(q_410_masto_cur!="yes",
+         !is.na(tryptase_value_3cat ),
+         !is.na(d_severity_rm),
+         d_severity_rm %in% c("2","3"),
+         q_410_cardio_cur != "unknown") %>%
+  count(grouping,
+        q_410_cardio_cur,
+        #d_severity_rm,
+        tryptase_value_3cat) %>%
+  group_by(grouping,q_410_cardio_cur) %>%
+  mutate(prop = prop.table(n)) %>%
+  mutate(tryptase_value_3cat =
+           factor(tryptase_value_3cat,
+                  levels = c("low","medium","high",">11.5"))) %>%
+  ggpubr::ggbarplot(
+    y = "prop",
+    facet.by = "grouping",
+    x=             "q_410_cardio_cur",
+    fill = "tryptase_value_3cat",
+    #x = "d_severity_rm",
+    position = position_fill(reverse = T),
+    palette = "grey"
+  )+
+  labs(x = "concomitant\ncardiovascualr disease",
+       fill = "baseline\nserum\ntryptase\ncategory",
+       y = "proportion")+
+  theme(legend.position = "right")
+
+set.seed(60439)
+sets <- rbinom(n = nrow(age_sex_matched),
+       size=1,
+       prob = 0.7)
+
+d <- age_sex_matched %>%
+  mutate(subsets = sets) %>%
+  dplyr::select(
+    grouping,
+    q_423_asa,
+    q_410_asthma_cur,
+    q_410_cardio_cur,
+    q_114_hypotension_collapse_v5,
+    d_111_urti_flush,
+    tryptase_value_3cat,
+    q_212_tryptase_value_v5,
+    d_age,
+    b_sex,
+    d_severity_rmr,
+    subsets
+  ) %>%
+  filter(complete.cases(.)) %>%
+  mutate(d_severity_rmr = factor(d_severity_rmr),
+         tryptase_value_3cat =
+         factor(tryptase_value_3cat, levels =
+                 c("low","medium","high",">11.5")))
+
+d <- d %>%
+  filter(q_423_asa != "unknown",
+         q_410_asthma_cur != "unknown",
+         q_410_cardio_cur!= "unknown",
+         q_114_hypotension_collapse_v5 != "unknown"
+         )
+# d %>%
+#   randomForest::randomForest(
+#     x = . %>% dplyr::select(-d_severity_rm),
+#     y = . %>% dplyr::select(d_severity_rm),
+#     subset = . %>% dplyr::select(subset)
+#   )
+#str(d)
+
+
+
+set.seed(60439)
+rffit <- glm(d_severity_rmr~
+               tryptase_value_3cat+
+               #q_212_tryptase_value_v5+
+               d_111_urti_flush+
+               d_age+#b_sex+
+               q_410_cardio_cur+
+               q_410_asthma_cur+
+               q_114_hypotension_collapse_v5,
+            data = d %>%
+              filter(subsets==1,
+                     grouping =="insects") %>%
+                dplyr:::select(-subsets),family = "binomial")
+
+summary(rffit)
+
+rffit <- randomForest(d_severity_rmr~
+                        tryptase_value_3cat*
+                        #q_212_tryptase_value_v5+
+                        d_111_urti_flush+
+                        #d_age+b_sex+
+                        #q_410_cardio_cur+
+                        #q_423_asa+
+                        #q_410_asthma_cur+
+                        q_114_hypotension_collapse_v5
+                        ,
+             data = d %>% filter(subsets==1) %>%
+               dplyr:::select(-subsets),
+             importance = T,
+             mtry = 3,
+             ntree = 500,
+             maxnodes =100)
+
+rffit
+
+# predict test set, get probs instead of response
+predictions <-
+  predict(rffit,
+          d %>%
+            filter(subsets == 0,
+                   grouping == "insects") %>%
+            dplyr::select(-subsets),
+          type = "prob")
+# predictions$predict <- names(predictions)[1:2][apply(predictions[,1:2], 1, which.max)]
+# predictions$observed <- d %>%
+#   filter(subsets == 0) %>%
+#   dplyr::select(d_severity_rmr) %>% pull
+#  roc.mock <- roc(values = as.numeric(predictions),
+#                iscase =d %>%
+#                  filter(subsets == 0) %>%
+#                  dplyr::select(d_severity_rmr) %>% {
+#                   ifelse(
+#                   .=="mild",0,1
+#                 )})
+# plot(roc.mock, col = "gray60")
+
+table(d %>%
+        filter(subsets == 0,
+               grouping =="insects") %>%
+        dplyr::select(d_severity_rmr) %>%
+        pull(),
+      ifelse(
+        predictions[,2] <0.5,0,1
+      )
+)
+
+verification::roc.plot(
+  d %>%
+    filter(subsets == 0,
+           grouping =="insects") %>%
+    dplyr::select(d_severity_rmr) %>%  {
+  ifelse(
+    .=="mild",0,1
+  )},
+  predictions[,2])
+### Fig Adrenalineuse ####
+
+fig_adrenalineuse <- ggpubr::ggarrange(
+  plotManagement,
+
+  #lower_panel,
+  matrix_venom$p+
+    labs (x = "", y = "")+
+    geom_segment(aes(x = c(8.5),
+                     xend = c(8.5),
+                     y = c(0.5),
+                     yend = c(39.5)),color = "red")+
+    geom_segment(aes(x = c(0.5),
+                     xend = c(20.5),
+                     y = c(28.5),
+                     yend = c(28.5)), color = "red" )+
+    geom_segment(aes(x = c(0.5),
+                     xend = c(20.5),
+                     y = c(34.5),
+                     yend = c(34.5)), color = "red", linetype = 2  ),
+  nrow = 2,
+  heights = c(1.5,3),
+  labels = c("A","B")
+)
+
+### Do we see tachycardia in patients with lesss severe anaphylaxis to IVA? ####
+ANAscore_matched %>%
+  filter(q_114_palpitations_cardiac_arrythmia_v5 %in% c("no","yes")) %>%
+  count(grouping,d_severity_rmr, q_114_palpitations_cardiac_arrythmia_v5) %>%
+  group_by(grouping,d_severity_rmr) %>%
+  mutate(prop = n/sum(n)) %>%
+  filter(d_severity_rmr =="mild") %>%
+  dplyr::select(grouping,q_114_palpitations_cardiac_arrythmia_v5,n) %>%
+  spread(value =n,key = q_114_palpitations_cardiac_arrythmia_v5) %>%
+  {.[,3:4]} %>%
+  chisq.test
+

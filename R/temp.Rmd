@@ -1,0 +1,37 @@
+---
+title: "MWD"
+output: bookdown::word_document2
+---
+
+# Results
+This text refers to Fig. \@ref(fig:fig1main). 
+We also want to refere here to Fig. \@ref(fig:fig2main).
+
+In some cases we also need supplementary data. Please see Suppl. Fig. S\@ref(fig:fig1supp).
+
+Please note that the 'S' before the reference should optimally NOT be there and ideally one should write:
+
+```
+Fig. \@ref(fig:fig1supp) 
+```
+
+what would evaluate to Fig. S1. 
+
+
+# Figures
+
+
+```{r fig1main, fig.cap="First Main Figure"}
+plot(1)
+```
+
+
+```{r fig2main, fig.cap="Second Main Figure"}
+plot(1)
+```
+
+# Supplementary data
+
+```{r fig1supp, fig.cap="This is a supplementary figure and it should be called Fig. S1 and not Fig 3."}
+plot(1)
+```

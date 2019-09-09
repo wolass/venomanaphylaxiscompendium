@@ -64,18 +64,18 @@ match_patients <- function(data,
                            grouping_var_level = "insects"
 ){
   o <- data %>%
-    select(b_case_id,!!!grouping_var,!!!matching_vars) %>%
+    dplyr::select(b_case_id,!!!grouping_var,!!!matching_vars) %>%
     {filter(.,complete.cases(.))} %>%
     mutate(grouping = ifelse(grouping==grouping_var_level,1,0)) %>%
     matchit(formula = as.formula(paste0(grouping_var,
                                         "~",
                                         paste0(matching_vars,
                                                collapse = "+"))
-    ),
+                                          ),
     method = "nearest",
     ratio = 1) %>%
     match.data() %>%
-    select(b_case_id) %>% pull()
+    dplyr::select(b_case_id) %>% pull()
 
   if(df == T){
     o <- data[data$b_case_id %in% o,]
@@ -91,6 +91,18 @@ unknown_to_na <- function(vect){
                 0,
                 vect)
   )
+}
+
+compare <- function(x,percent =T,rounding =1){
+  if(percent == T){
+    paste0(round(x[1]*100,rounding),
+           "% vs. ",
+           round(x[2]*100,rounding),"%")
+  } else {
+    paste0(round(x[1],rounding),
+           " vs. ",
+           round(x[2],rounding))
+  }
 }
 
 
@@ -400,7 +412,7 @@ makeTests <- function(groups,rdb){
 
   # Perform chi2 test
   varDF <- rdb[,variableSelectionTab %>% filter(fun=="chi") %>%
-                 select(variableName) %>% pull %>% as.character()]
+                 dplyr::select(variableName) %>% pull %>% as.character()]
   ts <- lapply(varDF, # Check which tables are givin an error with chisq test
                function(x){ # You may implement also fisher tests here later
                  table(x,grouping)
@@ -417,7 +429,7 @@ makeTests <- function(groups,rdb){
   )
   #perform t.tests
   varDF <- rdb[,variableSelectionTab %>% filter(fun=="t.test")
-               %>% select(variableName) %>% pull %>% as.character()]
+               %>% dplyr::select(variableName) %>% pull %>% as.character()]
   #chek if t.test possible
   varDF %>%  lapply(function(column){
     split(column,grouping) %>% lapply(function(x){
@@ -437,10 +449,10 @@ makeTests <- function(groups,rdb){
   # Join with the maind DF wit h substituting the missing values
   variableSelectionTab %<>% full_join( ttsts, by = "variableName") %>%
     mutate(pval = coalesce(pval.y, pval.x)) %>%
-    select(-c(pval.x,pval.y))
+    dplyr::select(-c(pval.x,pval.y))
   # Perform Kruskall
   varDF <- rdb[,variableSelectionTab %>% filter(fun=="Kruskal-Wallis")
-               %>% select(variableName) %>% pull %>% as.character()]
+               %>% dplyr::select(variableName) %>% pull %>% as.character()]
   # Chek if kruskal possible
   varDF %<>%  lapply(function(column){
     split(column,grouping) %>% lapply(function(x){
@@ -470,7 +482,7 @@ makeTests <- function(groups,rdb){
                 stringsAsFactors = F)}
   variableSelectionTab %<>% full_join(ktest, by = "variableName") %>%
     mutate(pval = coalesce(pval.y, pval.x)) %>%
-    select(-c(pval.x,pval.y))
+    dplyr::select(-c(pval.x,pval.y))
   return(variableSelectionTab)
 }
 
@@ -649,7 +661,7 @@ plot_mor <-function(){
 gridExtra::grid.arrange(
   #cowplot::plot_grid(
   rdbp %>%
-    select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
+    dplyr::select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
     mutate(MOR = substr(b_reactiondate,4,5)) %>%
     filter(!is.na(q_340_insects),MOR!="00") %>%
     ggplot(aes(MOR,fill=q_340_insects))+
@@ -662,7 +674,7 @@ gridExtra::grid.arrange(
     )+
     ylab("Proportion"),
   rdbp %>%
-    select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
+    dplyr::select(b_reactiondate,grouping,q_340_insects,d_centres_country) %>%
     mutate(MOR = substr(b_reactiondate,4,5)) %>%
     filter(!is.na(q_340_insects),MOR!="00") %>%
     ggplot(aes(MOR,fill=q_340_insects))+
@@ -675,7 +687,7 @@ gridExtra::grid.arrange(
           legend.position = c(0.01,.98),
           legend.justification = c(0,1)),
   rdbp %>%
-    select(b_reactiondate,grouping,d_elicitor_gr5,d_centres_country) %>%
+    dplyr::select(b_reactiondate,grouping,d_elicitor_gr5,d_centres_country) %>%
     mutate(MOR = substr(b_reactiondate,4,5),
            d_elicitor_gr5 = relevel(d_elicitor_gr5, "insects")) %>%
     filter(!is.na(grouping),MOR!="00") %>%

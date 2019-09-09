@@ -1,5 +1,5 @@
 ---
-title: "Insect venom anaphylaxis: a case - control study of the European Anaphylaxis Registry"
+title: "Phenotypes and risk assesment of insect venom anaphylaxis: a case - control study of the European Anaphylaxis Registry"
 author:
   - Wojciech Francuzik^1^
   - Sabine Dölle-Bierke^1^
@@ -30,7 +30,7 @@ csl: "../templates/expert-review-of-clinical-immunology.csl" # Insert path for t
 Phone: +49 30 450 529 005;      Fax: +49 30 450 529 902
 
 **Keywords:**
-  anaphylaxis, adrenaline (epinephrine), beta-blockers, insect venom allergy, yellow-jacket
+  anaphylaxis, adrenaline (epinephrine), beta-blockers, insect venom allergy, Hymenoptera
 
 <!-- **Highlights:** -->
 <!--   These are the highlights.  -->
@@ -38,7 +38,7 @@ Phone: +49 30 450 529 005;      Fax: +49 30 450 529 902
   Word count, figures, tables, references
 
 
-<!-- This is the format for text comments that will be ignored during renderings. Do not put R code in these comments because it will not be ignored. -->
+
 
 ```{r setup, echo = FALSE,warning=FALSE,include=F}
 knitr::opts_chunk$set(
@@ -57,27 +57,28 @@ devtools::load_all('.',quiet = T) # Or use devtools::load_all('.', quiet = T) if
 
 
 # Abstract
-Insect-venom elicited anaphylaxis is a common hypersensitivity reaction which may be life-threatening. Using the data from the European Anaphylaxis Registry (`r nrow(data)` cases in total) we identified insect-venom elicited anaphylaxis cases (n = `r {data$d_elicitor_gr5=="insects"} %>% sum()`) and analyzed these in comparison to anaphylaxis elicited by other elicitors (n = `r {data$d_elicitor_gr5!="insects"} %>% sum()`).
+Insect-venom elicited anaphylaxis is a common hypersensitivity reaction which may be life-threatening. Using data from the European Anaphylaxis Registry (`r nrow(data)` cases) we identified `r {data$d_elicitor_gr5=="insects"} %>% sum()` with insect-venom elicited anaphylaxis and analyzed these in comparison to anaphylaxis triggered by other elicitors (n = `r {data$d_elicitor_gr5!="insects"} %>% sum()`).
 
-The data showed that `r {{rdb$q_340_insects=="yellow jacket"} %>% sum(na.rm=T)/sum({!is.na(rdb$q_340_insects)})*100} %>% {round(.,1)}`% of all insect elicited cases were elicited by yellow jackets, followed by bees (`r {{rdb$q_340_insects=="bee"} %>% sum(na.rm=T)/sum({!is.na(rdb$q_340_insects)})*100} %>% {round(.,1)}`%). The insect venom elicited cases occurred mostly in outdoor places (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(q_152_location) %>% summarize(n=n()) %>% {.[c(4),2] %>% sum()/(.[,2] %>% sum)*100} %>% round(1)`%) patients' homes (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(q_152_location) %>% summarize(n=n()) %>% {.[c(8),2] %>% sum()/(.[,2] %>% sum)*100} %>% round(1)`%) or urban places (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(q_152_location) %>% summarize(n=n()) %>% {.[c(5),2] %>% sum()/(.[,2] %>% sum)*100} %>% round(1)`%). 
+The data show that `r {{rdb$q_340_insects=="yellow jacket"} %>% sum(na.rm=T)/sum({!is.na(rdb$q_340_insects)})*100} %>% {round(.,1)}`% of all insect elicited cases were elicited by yellow jackets, followed by bees (`r {{rdb$q_340_insects=="bee"} %>% sum(na.rm=T)/sum({!is.na(rdb$q_340_insects)})*100} %>% {round(.,1)}`%). The venom triggered cases occurred mostly in outdoor places (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(q_152_location) %>% summarize(n=n()) %>% {.[c(4),2] %>% sum()/(.[,2] %>% sum)*100} %>% round(1)`%) patients' homes (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(q_152_location) %>% summarize(n=n()) %>% {.[c(8),2] %>% sum()/(.[,2] %>% sum)*100} %>% round(1)`%) or urban places (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(q_152_location) %>% summarize(n=n()) %>% {.[c(5),2] %>% sum()/(.[,2] %>% sum)*100} %>% round(1)`%). 
 
-Skin, gastrointestinal and respiratory symptoms occurred less frequently in insect elicited cases of anaphylaxis, whereas cardiologic symptoms (with hypotension, collapse, and loss of consciousness) were more frequent.  Intramuscular adrenaline (as a first-line therapy) was administered significantly less often in insect venom elicited cases (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(d_522_adren_agg) %>% summarize(n=n()) %>% {.[2,2]/(.[1,2])*100} %>% round(1)`% vs `r rdb %>% filter(is.na(q_340_insects)) %>% group_by(d_522_adren_agg) %>% summarize(n=n()) %>% {.[2,2]/(.[1,2])*100} %>% round(1)`, p < 0.0001). The mortality rate in insect anaphylaxis was comparable to other cases (0.295%, p = 0.174).
+Regarding the symptoms: skin, gastrointestinal and respiratory manifestations occurred less frequently in insect induced cases of anaphylaxis, but cardiovascular symptoms (with hypotension, collapse, and loss of consciousness) were more frequent.  Intramuscular adrenaline (as a first-line therapy) was administered significantly less often in insect venom elicited cases (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(d_522_adren_agg) %>% summarize(n=n()) %>% {.[2,2]/(.[1,2])*100} %>% round(1)`% vs `r rdb %>% filter(is.na(q_340_insects)) %>% group_by(d_522_adren_agg) %>% summarize(n=n()) %>% {.[2,2]/(.[1,2])*100} %>% round(1)`, p < 0.0001). The mortality rate in insect anaphylaxis was comparable to other cases (0.295%, p = 0.174).
 
-Patients who experienced insect-venom anaphylaxis were older (p < 0.0001), more often had concomitant mastocytosis (p < 0.0001) and cardiologic conditions (p < 0.0001) and females more often had concomitant thyroid diseases and less often suffered from a food allergy or atopic dermatitis. 
+Patients who experienced insect-venom anaphylaxis were older than patients with anaphylaxis elicited by other elicitors (p < 0.0001), more often had concomitant mastocytosis (p < 0.0001) and cardiologic conditions (p < 0.0001) and females more often had concomitant thyroid diseases and less often suffered from a food allergy or atopic dermatitis. 
 
-Symptoms of insect venom anaphylaxis are distinctively different from other anaphylactic reactions. What made us consider the therapy of insect elicited cases of anaphylaxis separately. Indeed we observed different therapeutic patterns in insect elicited cases of anaphylaxis (more antihistaminics but fewer corticosteroids, bronchodilators, and surprisingly - adrenaline). The presented evidence indicates that the management of insect-venom anaphylaxis may be improved. Patients with concomitant cardiologic conditions and these with hyperreactive mast cells require intensified prophylactic measures. 
+ <!-- MORE DISCUSSION!!!!!-->
+The data show that the management of insect-venom anaphylaxis may be improved. Patients with concomitant cardiologic conditions and these with hyperreactive mast cells require intensified prophylactic measures.  
 
 
 
 # Introduction
 
-Hypersensitivity to insect venom may manifest as a systemic reaction (anaphylaxis) in up to 0.3-7.5% of the adult population [@Bil2008]. Insect venom anaphylaxis (IVA) can be fatal, and patients sometimes require lifelong systemic immunotherapy [@Sturm2017]. 
+Hypersensitivity to insect venom can manifest as a systemic reaction (anaphylaxis) in up to 0.3-7.5% of the adult population [@Bil2008]. Insect venom anaphylaxis (IVA) can be fatal, and patients sometimes require lifelong systemic immunotherapy [@Sturm2017]. 
 
-Recent expert position on the future of anaphylaxis research indicates the need for a more precise description of diagnosis, biomarkers, and phenotypes of anaphylaxis [@JimenezRodriguez2018]. Nevertheless, in order to facilitate precision-medicine approach [@Muraro2017] in the treatment of anaphylaxis - we first need to investigate its subtypes and pathomechanisms better. 
+Recent expert position on the future of anaphylaxis research indicates the need for a more precise description of the diagnosis, biomarkers, and phenotypes of anaphylaxis [@JimenezRodriguez2018]. Nevertheless, in order to facilitate a precision-medicine approach [@Muraro2017] in the treatment of anaphylaxis - it is first needed to study its clinical subtypes and pathomechanisms in more detail. 
 
 Clinical controlled trials in anaphylaxis are hardly possible due to the acuteness of this life-threatening condition. Therefore large registries, gathering clinical data as well as biological samples from patients with a well documented (recent) history of anaphylaxis are a crucial tool in investigating this entity.  
 
-This study aimed to identify current patterns of insect venom anaphylaxis (IVA) in regard to symptoms, cofactors, and management and compare them to other types of anaphylaxis (non-IVA) in a case-control manner. 
+This study aimed to identify current patterns of insect venom anaphylaxis (IVA) regarding symptoms, cofactors, and management by a case-control comparison with other types of anaphylaxis (non-IVA). 
 
 # Methods
 
@@ -90,46 +91,57 @@ We compared the frequency of various symptoms, cofactors --- known to increase t
 
 Due to a large number of documented reactions in the European Anaphylaxis registry - we were able to match the IVA cases to selected non-IVA cases according to sex and age to reduce the comparison bias. Subsequently, we compared the management in both groups and matched the control group according to the severity of a reaction. Propensity score matching has been performed using the "MatchIt" package for R [@matchit]. The results of the propensity score matching are in Fig. \@ref(fig:flow)B-D. 
 
-We trained a random forest classifier (using the "randomForest" package for R [@rf]) in order to find therapy approaches that varied the most between IVA / non-IVA group and presented the results Gini importance [@Strobl2007]. We also performed an association study of therapeutic interventions and symptoms. The resulting phi values are presented in a heatmap with automatic clustering using Ward’s Agglomerative Hierarchical Clustering Method with Euclidean distance [@heatmaply].  
 
 <!-- ## Data handling and statistics -->
-The statistical analysis was performed in the R Statistical Package [@R]. A simple comparison of categorical variables was performed using either Chi^2^ test or Fisher's exact test (where the number of observation in a bin was less than 10), continuous variables were analyzed using Mann-Whitney U test. We defined statistical significance as α = 0.05. Data, along with the analysis script, can be accessed online at https://github.com/wolass/venomanaphylaxiscompendium.
+We used the R Statistical Package [@R] for statistical analysis. A simple comparison of categorical variables was performed using either Chi^2^ test or Fisher's exact test (where the number of observation in a bin was less than 10), continuous variables were analyzed using Mann-Whitney U test. We defined statistical significance as α = 0.05. Data, along with the analysis script, can be accessed online at https://github.com/wolass/venomanaphylaxiscompendium.
+
+We trained a random forest classifier (using the "randomForest" package for R [@rf]) in order to find therapeutic approaches that varied the most between IVA / non-IVA group and presented the results Gini importance [@Strobl2007]. We also performed an association study of therapeutic interventions and symptoms. The resulting phi values are presented in a heatmap with automatic clustering using Ward’s Agglomerative Hierarchical Clustering Method with Euclidean distance [@heatmaply].
 
 # Results
 
-## Perennial distribution of anaphylaxis cases by elicitor.
+## Hymenoptera anaphylaxis shows seasonal patterns.
 
-Insect venom elicited anaphylaxis in contrast to other elicitors showed a significant seasonal fluctuation and was frequently reported from May till October. Their proportion of IVA to anaphylaxis cases elicited by other triggers during the summer seasons reached 60% and was as under 1% of cases during winter. Nevertheless, `r rare_spring_autumn$n %>% sum` cases of IVA (bee -- *Apis mellifera* in spring; yellow jacket -- *Vespula spp.* in autumn) were also reported in March, April, and November. Yellow-jacket was the most prominent IVA-causing insect followed by bees. The IVA-causing insects differed in European countries with hornets (*Vespa crabro*) being more prominent in the south of Europe. 
+Insect venom elicited anaphylaxis in contrast to other elicitors showed a significant seasonal fluctuation and was most frequently reported from May to October. Their proportion of IVA to anaphylaxis cases elicited by other triggers during the summer seasons reached 60% and was as below 1% of cases during winter. Nevertheless, `r rare_spring_autumn$n %>% sum` cases of IVA (bee -- *Apis mellifera* in spring; yellow jacket -- *Vespula spp.* in autumn) were triggered in March, April, and November. Yellow-jacket was the most prominent IVA-causing insect followed by bees. The IVA-causing insects differed in European countries with hornets (*Vespa crabro*) being more prominent in southern Europe. 
 
-IVA was more frequent in adults and seniors when compared to children and young adults. (Fig \@ref(fig:insectstime)B). When we looked at the density plot of IVA cases according to age - we saw a bimodal distribution forming two subsets of patients with a cutoff age of 22 (Fig \@ref(fig:flow)B.
+IVA was more frequent in adults and seniors than children and young adults. (Fig \@ref(fig:insectstime)B). When we analyzed a density plot of IVA cases according to age - we determined a bimodal distribution forming two subsets of patients with a cutoff age of 22 (Fig \@ref(fig:flow)B.
 
-## Symptoms
-IVA showed a specific symptom pattern. Patients, who underwent IVA, more often experienced cardiologic symptoms (dizziness, reduced alertness, unconsciousness) than in other elicitors of anaphylaxis and less often showed skin or gastrointestinal symptoms (Fig \@ref(fig:figsymptoms)A). The difference in severe hypotension frequency was especially prominent in the younger group under 22 (Fig. S\@ref(fig:supplement)). 
+## IVA is associated with cardiovascular symptoms 
+
+IVA showed a specific symptom pattern. Patients, who underwent IVA, more often experienced cardiologic symptoms (dizziness, reduced alertness, unconsciousness) than patients with other elicitors inducing anaphylaxis and less often had skin or gastrointestinal symptoms (Fig \@ref(fig:figsymptoms)A). The difference in severe hypotension frequency was especially prominent in the younger age group (under 22, Fig. S\@ref(fig:supplement)). 
 
 The pattern of organ involvement showed similarities in gastrologic, skin, and respiratory symptoms, and did not differ in the proportion of elevated baseline serum tryptase (> 8 ng/ml). Although, patients undergoing IVA  less often had concomitant atopic diseases (Fig \@ref(fig:figsymptoms)B).
 
-Severe reactions were more prevalent in older patients in comparison to patients under 22, and in IVA cases vs. other elicitors (Fig. S\@ref(fig:sev)D). There were no differences in severity of reactions elicited by yellow-jackets and other insect species. 
+Severe reactions of IVA were more prevalent in older patients in comparison to patients below 22 years, and in IVA cases vs. other elicitors (Fig. S\@ref(fig:sev)D). There were no differences in severity of reactions elicited by yellow-jackets and other insect species. 
 
-## Repeated reactions
+## Absence of skin symptoms is associated with more severe episodes of IVA
+
+Patients with concomitant mastocytosis had significantly more often anaphylaxis without skin symptoms (namely urticaria and flushing) when compared to patients without diagnosed mastocytosis
+(`r (skin_symptoms$masto_tab$prop[c(2,1)]*100) %>% round(1) %>% paste0(collapse="% vs. ")`%, `r pval(skin_symptoms$masto_chisq$p.value)`). We decided to further investigate cases where mastocytosis was not diagnosed. In these patients urticaria or flushing as symptoms of anaphylaxis were present more often in IVA than anaphylaxis triggered by other elicitors (`r (skin_symptoms$tab$prop[2]*100) %>% round(1)`% vs `r (skin_symptoms$tab$prop[4]*100) %>% round(1)`% respectively, `r pval(skin_symptoms$chisq$p.value)`).  Morover, in patients without concomitant mastocytosis who were also lacking skin symptoms, anaphylaxis was significantly more frequently severe (`r (skin_symptoms$severe_tab$prop[c(2,6)]*100) %>% round(1) %>% paste0(collapse="% in IVA vs. ")`%, `r pval(skin_symptoms$masto_chisq$p.value)`% in non-IVA). We performed a factorial logistic regression modelling and confirmed the significant interaction effect between the presence of skin symptoms and the trigger (eiter IVA or non-IVA) on the severity of anaphylaxis (`r pval(skin_symptoms$severity_fit_skin_symptoms %>% coef %>% .[4,4])`). Therefore, non-mastocytic patients presenting without urticara or flushing tended to have more severe anaphylaxis when it was triggered by insects, but not other elicitors of anaphylaxis (Fig. \@ref(fig:figsymptoms)C).
+
+Following this observation, we decided to investigate the association of skin symptoms with the tryptase levels in patients who did not have a diagnosis of mastocytosis. For this comparison, we removed the cases with BST above 11.5 ng/ml, potentially indicating non-diagnosed mastocytosis. Similarly, tryptase levels correlated with the severity of anaphylaxis, were higher in IVA patients, and the effect was prominently visible for IVA patients (`r skin_symptoms$fit_tryp[[1]][4,5] %>% pval()`). We did not observe such an interaction in the non-IVA group.
+
+## Nearly one-third of IVA patients experience repeated reactions
 
 ```{r repreactvars}
 treact <- table(rdb$grouping,rdb$q_160_ever_react)[,1:2] %>% prop.table(1)*100
 p <- table(rdb$grouping,rdb$q_160_ever_react)[,1:2] %>% summary() %>% {.$p.value}
 ```
 
-In general `r treact[1,2] %>% round(1)`% of patients with insect allergy had experienced anaphylaxis in the past. If the reaction was elicited by other elcitors previous reactions were more frequently seen (`r treact[2,2]%>% round(1)`%, `r p %>% pval()`).  We observed `r sum(repeated_reaction_in_Reg)` patients with two documented reactions in our registry. Out of these `r sum(greater_same[,2])` (`r (sum(greater_same[,2])/sum(repeated_reaction_in_Reg)*100)%>% round(1)`%) had Insect elicited anaphylaxis and in `r greater_same[1,2]` (`r (greater_same[1,2]/sum(greater_same[,2])*100 )%>%round(1) `%) the following reaction was more severe than before. In `r greater_same[3,2]` (`r (greater_same[3,2]/sum(greater_same[,2])*100) %>% round(1)`%) cases the reaction was graded exactly as before.
+In general `r treact[1,2] %>% round(1)`% of patients with insect allergy had experienced venom anaphylaxis in the past. If the reaction was elicited by other elcitors previous reactions were more frequently seen (`r treact[2,2]%>% round(1)`%, `r p %>% pval()`).  We observed `r sum(repeated_reaction_in_Reg)` patients with two documented reactions in our registry. Out of these `r sum(greater_same[,2])` (`r (sum(greater_same[,2])/sum(repeated_reaction_in_Reg)*100)%>% round(1)`%) had insect elicited anaphylaxis and in `r greater_same[1,2]` (`r (greater_same[1,2]/sum(greater_same[,2])*100 )%>%round(1) `%) the following reaction was more severe than before. In `r greater_same[3,2]` (`r (greater_same[3,2]/sum(greater_same[,2])*100) %>% round(1)`%) cases the reaction was similar in severity.
 
 
-## Co-factors
+## Increased baseline serum tryptase and concomitant cardiologic conditions increase the risk of severe IVA.
 
-The factor most prominently associated with an increased risk of severe anaphylaxis was mastocytosis, and there were no differences in elicitor groups (Fig. \@ref(fig:figcofactors)). Mastocytosis was increasing the risk of cardiac arrest in patients undergoing IVA significantly more than in patients undergoing anaphylaxis due to other triggers (Fig. S\@ref(fig:supplement)). 
+The factor most prominently associated with an increased risk of severe anaphylaxis was mastocytosis, and there were no differences in elicitor groups (Fig. \@ref(fig:figcofactors)). However, mastocytosis increased the risk of cardiac arrest in patients undergoing IVA significantly more than in patients undergoing anaphylaxis due to other triggers (Fig. S\@ref(fig:supplement)). 
 
-Concomitant cardiovascular diseases were associated with a higher risk of severe anaphylaxis when elicited by insects. They played an insignificant role in non-IVA cases (Fig. \@ref(fig:figcofactors)). 
+Concomitant diseases were more prevalent in IVA than in non-IVA cases (`r age_sex_matched %>% count(grouping,q_410_cardio_cur) %>% group_by(grouping) %>% mutate(prop= n/sum(n)) %>% {.[c(2,5),4]} %>% pull() %>% compare()`) and were associated with a higher risk of severe anaphylaxis when elicited by insects but were irrelevant in non-IVA cases (Fig. \@ref(fig:figcofactors)). Interestingly, BST values were increased in patients with concomitant cardiovasular diseases, irrespectively of the reaction severity (Fig. S\@ref(trypcardiocur)). 
 
-Risk of severe anaphylaxis in patients concomitantly using ACE-I (as well as beta-blockers) could not be independently measured due to coexisting cardiovascular pathologies. ACE-I use was, however, more often associated with cardiac arrests in both IVA and anaphylaxis by other triggers (Fig. \@ref(fig:figcofactors)C) whereas beta-blockers use was associated with higher severity of anaphylaxis and with cardiovascular symptoms (cardiac arrest, chest pain). Surprisingly, arrhythmia was more frequently reported in patients undergoing IVA with concomitant beta-blockers (Fig. \@ref(fig:figcofactors)D). 
+The risk of severe anaphylaxis in patients concomitantly using ACE-I (as well as beta-blockers) could not be independently measured due to coexisting cardiovascular pathologies. ACE-I use was, however, more often associated with cardiac arrests in all anaphylaxis cases (`r ace_tab %>% filter(q_114_cardiac_arrest =="yes") %>% dplyr::select(prop) %>% pull() %>% compare()`, `r pval(ace_tab %>% dplyr::select(-prop) %>% spread(q_114_cardiac_arrest,n) %>% {chisq.test(.[,2:3])$p.value})`) and there were no differences between IVA nad non-IVA  (Fig. \@ref(fig:figcofactors)C). 
+Beta-blocker use was generally associated with higher severity of anaphylaxis and with the onset of cardiovascular symptoms (cardiac arrest, chest pain), but we saw no difference between groups `r summary(beta_fit)[["coefficients"]][3,4] %>% pval()`). Surprisingly, arrhythmia was more frequently reported in patients undergoing IVA with concomitant beta-blockers (Fig. \@ref(fig:figcofactors)B). 
 
-Baseline serum tryptase correlated with the severity of reactions in the Ring and Messmer scale and was more prominently increasing risk of severe anaphylaxis in IVA patients than in other cases (Fig. \@ref(fig:figcofactors)B).
-Cases with cardiac arrest were associated with increased tryptase over eight ng/ml, and this proportion was higher in IVA when compared to other elicitors. Loss of consciousness was also associated with increased tryptase levels but only in patients with IVA (Fig. \@ref(fig:figcofactors)C). Based on the severity and symptom profile, we decided to use a tryptase cut off value of 8 ng/ml (Fig. S\@ref(fig:figcofactors)B) rather than the currently used 11.5 ng/ml.
+Baseline serum tryptase (BST) correlated with the severity of reactions (Ring and Messmer scale). Moreover, elevated BST was more prominently increasing the risk of severe anaphylaxis in IVA patients than in other cases (Fig. \@ref(fig:figcofactors)C).
+
+Cases with cardiac arrest were associated with an increased tryptase above 8 ng/ml, and this proportion was higher in IVA when compared to other elicitors. Loss of consciousness was a symptom associated with increased tryptase levels but only in patients with IVA (Fig. \@ref(fig:figcofactors)C). Based on the severity and symptom profile, we decided to use a tryptase cut off value of 8 ng/ml (Fig. \@ref(fig:figcofactors)B) rather than the currently used 11.5 ng/ml.
 
 We compared the Hymenoptera species responsible for triggering IVA according to the severity of the reaction and found no differences. Patients matched according to sex and age had similar severity of a reaction to known eliciting insects (p = 0.4128). 
 <!-- This data, however, is not comparable to the refractory anaphylaxis cases as refractory anaphylaxis seems to be a distinct phenotype.  -->
@@ -161,10 +173,9 @@ ttexercise1 <- age_sex_matched %>%
 
 ```
 
-Physical exercise in the fresh air (e.g., jogging in the park) predisposed to anaphylaxis due to insect stings (`r ttexercise1`).
-However, even though the physical exercise was more often associated with IVA than other triggers of anaphylaxis - it was not predictive of the severity of a reaction in these patients, as there were no differences in severity concerning accompanying exercise (`r ttexercise2`).
+Outdoor physical exercise (e.g., jogging in the park) was more often associated with IVA than other triggers of anaphylaxis (`r ttexercise1`). However, it was not associated with the severity of a reaction in these patients. (`r ttexercise2`).
 
-## Management
+## Interplay of symptoms and medication
 
 ```{r mngmttests}
 ttadren1 <- ANAscore_matched %>% 
@@ -177,12 +188,12 @@ ttadren1 <- ANAscore_matched %>%
 
 Patients who underwent IVA significantly less often received adrenaline treatment than in other anaphylaxis cases (26.9% vs 34.6%, `r test_adrenuse1$p.value %>% pval()`). After adjusting both groups for similar age, sex and severity distribution - the difference in adrenaline use was still significant irrespective of the administration route (`r ttadren1`, Fig \@ref(fig:adrenalineuse)). 
 <!-- Antihistaminic drugs, on the other hand, were given more often in cases of IVA when compared to non-IVA. -->
-Patients with IVA received corticosteroids and antihistamines significantly more frequently than in other anaphylaxis cases. On the other hand, adrenaline, beta-2 mimetics, and oxygen were given more often in non-IVA. 
+Patients with IVA received corticosteroids and antihistamines significantly more frequently than patients with anaphylaxis to other elicitors. On the other hand, adrenaline, beta-2 mimetics, and oxygen were given more often in non-IVA. 
 
-We discovered clusters of associated symptoms and therapy modes in IVA patients (association measured using phi). Cardiologic symptoms (cardiac arrest, hypotension, loss of consciousness) and urticaria, were treated more similarly than respiratory or gastrointestinal symptoms (Fig. \@ref(fig:adrenalineuse)B). Therapy of these symptoms consisted of adrenaline autoinjector (AAI), i.v. adrenaline in multiple doses, 100% oxygen inhalation, an initial dose of antihistamines, and inhaled β-2 agonists. 
+We discovered clusters of symptoms and therapy modes in IVA patients (association measured using phi). Cardiologic symptoms (cardiac arrest, hypotension, loss of consciousness) and urticaria, were treated more similarly than respiratory or gastrointestinal symptoms (Fig. \@ref(fig:adrenalineuse)B). The treatment of these symptoms consisted of using adrenaline autoinjector (AAI), i.v. adrenaline in multiple doses, 100% oxygen inhalation, an initial dose of antihistamines, and inhaled β-2 agonists. 
 Corticosteroids, i.v. volume replacement and i.v. β-2 agonists formed another therapy mode. 
 
-The most differences in the therapy of IVA vs. other forms of anaphylaxis was observed in the frequency of inhaled beta2-agonists and antihistamines (Fig. \@ref(fig:adrenalineuse)B).
+The most noticeable differences in the therapy of IVA vs. other forms of anaphylaxis were observed in the frequency of inhaled beta2-agonists and antihistamines (Fig. \@ref(fig:adrenalineuse)B).
 
 ```{r }
 pvaladrenprev <- adren_prev$data %>% 
@@ -200,6 +211,16 @@ pvaladrenprev_no <- adren_prev$data %>%
 Interestingly, adrenaline as a first emergency therapy was given less often in IVA cases when compared to other cases **if patients did not report the previous history of anaphylaxis** (`r pvaladrenprev_no`), but in patients who reported previous reactions, there was no difference in adrenaline therapy (`r pvaladrenprev`). 
 
 Similarly, there were no differences in adrenaline use between IVA and non-IVA when severe reactions were taken into consideration (`r adren_severity_sev`). However, when we restricted the analysis to mild anaphylaxis cases - non-IVA patients received adrenaline more frequently than IVA (`r adren_severity_mild`). 
+
+
+
+
+<!-- ## Time of the symptom onset  -->
+
+
+<!-- # Model for severity prediction -->
+<!-- As a last attempt for the analysis - perform modeling with the use of random forest or regression using the following inputs: Absence of urticaria, BST, short time for the onset of symptoms, older age, male sex? Cardiologic conditions.  -->
+
 
 <!-- ### Mastocytosis -->
 
@@ -224,142 +245,68 @@ Similarly, there were no differences in adrenaline use between IVA and non-IVA w
 
 <!-- Cardiologic symptoms and hypotensive collapse might be associated with venom anaphylaxis due to the vaso-vagal reflex. As seen in patients undergoing blood sampling needles (and probably also insect stings) may elicit a hypotensive response due to extreme emotional distress with bradycardia, limiting the blood flow to the brain and causing syncope. This mechanism may contribute to the ongoing histamine-induced vasodilatation and may worsen the symptoms of an allergic reaction. -->
 
-Surprisingly, detailed information on the seasonality of insect-elicited hypersensitivity reactions is scarce [@old]. The activity of *Vespula germanica* depends on the climate, and in invaded regions (e.i. Australia) it can even extend throughout the whole year [@Spradbery_1992]. The changing climate in Europe may influence the activity of Hymenoptera in this region in the upcoming years, but in the period from 2007 - 2019 the perennial distribution of IVA has remained stable (data not shown). 
+<!-- DONE Top view findings -->
 
-We saw differences in IVA frequency in age groups. Especially at the age extremes, IVA was less frequent, and the density distribution showed two modes (for ages of 10 and 54). Although frequency of insect stings hypersensitivity reactions in children is comparable to food hypersensitivity reactions (12-15% of cases of hypersensitivity reactions admitted to the ER), anaphylaxis is triggered significantly more often by food elicitors in childhood (56% of food hypersensitivity cases vs 5.3% of sting cases seen in the ER) [@Braganza2005]. Senior patients, on the other hand, suffer from drug-related hypersensitivity more often than insect sting hypersensitivity [@Aurich2019].  
+In this study, we identified the prolonged seasonality of IVA, its clinical symptom-profile, and treatment patterns. The data unravel phenotypes of IVA, which may contribute to the development of tools incorporating both clinical and biomarker data for predicting the severity of future episodes of anaphylaxis. 
 
-IVA was more associated with cardiologic symptoms than other anaphylaxis types. Additionally, cardiologic diseases were vital cofactor increasing the risk of a severe reaction in IVA only. The body of evidence suggests [@Worm2018; @nittner2015insect; @Ruff2009] that there is an essential link between the cardiovascular system and insect stings as they have been associated with cardiac arrhythmias usually occurring in patients with preexisting heart disease [@Sharma2016]. 
+<!-- DONE Seasonality -->
 
-Kounis syndrome (coronary arterial spasm induced by the release of mast cell mediators) could be another explanation for the increased concomitance of cardiovascular symptoms with IVA ([@CDT1609; @sinkiewicz2008allergic]). As the severity of cardiologic reactions was positively associated with the elevated BST (> 8 ng/ml), we theorize that insect venom is unspecifically activating more mast cells at once than food or drug elicitors (potentially due to its composition and subcutaneous route of administration). Such rapid activation leads to a more evident cardiovascular spasm (especially if the concomitant cardiovascular disease is present) and in result to more severe anaphylaxis. 
+Based on our findings, insects are the most probable anaphylaxis elicitor in Europe during Summer-season, with IVA cases extending from early Spring to the end of Autumn. Detailed information on the seasonality of insect-elicited hypersensitivity reactions is scarce [@old]. The activity of *Vespula germanica* depends on the climate, and in invaded regions (e.i. Australia) it can even extend throughout the year [@Spradbery_1992]. The changing climate in Europe may influence the activity of Hymenoptera in this region in the upcoming years. However, in the period from 2007 - 2019, the perennial ratio of IVA to non-IVA cases has remained unchanged (data not shown). 
 
-We propose to review the currently used reference values of serum tryptase levels. In our opinion, we should consider a cut-off value of 8 ng/ml as elevated, when evaluating patients in the context of IVA. Baseline serum tryptase levels (BST) of > 8 ng/ml were better predicting the risk of severe anaphylaxis and corresponded with cardiovascular symptom frequency.
 
-Cases of IVA had been treated with adrenaline less often than the age-and-sex-matched cases of anaphylaxis due to other elicitors. Moreover, administration of adrenaline did not depend on the trigger if the patient experienced anaphylaxis previously, but was significantly less often used if the patient experienced their first episode of IVA. 
-One explanation for this fact may be that although symptoms of IVA are more severe (cardiologic symptoms are considered life-threatening), they tend to be more transient. In case of food allergy, patients could develop symptoms for an extended time and will eventually be treated with adrenaline, whereas patients with IVA will often be recovering from hypotension or collapse when the emergency medical team arrive at the site (with AAI).
+<!-- Symptoms -->
+<!-- Cardio symptoms phenomenon -->
+IVA was more often associated with cardiologic symptoms non-IVA.
+Previous studies suggest [@Worm2018; @nittner2015insect; @Bonadonna2010] an essential link between the cardiovascular system and insect sting hypersensitivity. 
+IVA has been associated with cardiac arrhythmias usually occurring in patients with preexisting heart disease [@Sharma2016] and Kounis syndrome (coronary arterial spasm induced by the release of mast cell mediators [@CDT1609; @sinkiewicz2008allergic]).
 
-We saw less IVA in patients with concomitant atopic diseases, as these patients more often present with food anaphylaxis [@Tham2019]. 
+The rate of concomitant cardiovascular diseases was higher in IVA than non-IVA; we observed them be an essential cofactor increasing the *risk of a severe reaction if insects elicited the anaphylaxis*. This association was not significant in anaphylaxis elicited by other triggers.  Notably, cardiac arrest occurred more frequently in patients with the elevated BST (> 8 ng/ml), especially in IVA. 
+Nevertheless, the pathomechanism promoting cardiovascular symptoms in IVA requires further investigation. 
+
+Of note, cardiologic symptoms like hypotension, collapse, or cardiac arrest grade higher on the Ring and Messmer scale than skin or gastrointestinal symptoms. Therefore, since IVA predisposes to cardiologic symptoms, it is likely to be associated with more severe anaphylaxis.  
+
+Importantly, the absence of skin symptoms was associated with more severe IVA, which was also after we excluded patients with a known diagnosis of mastocytosis. Subsequently, we correlated the severity of anaphylaxis with BST levels and identified an interaction between the absence of skin symptoms and IVA using generalized linear regression.
+
+Our findings indicate that patients with BST of over 8 ng/ml are prone to severe anaphylaxis to insect venom. Patients with normal BST in the range of 8-11.4 ng/ml may have indolent systemic mastocytosis or concomitant undiagnosed mast cell activation syndrome (MCAS) [@Valent2019]. Zanotti et al. identified mast cell disorders in 17 out of 22 patients with IVA lacking skin symptoms [@Zanotti2015] and concluded that patients with BST of 7.95 ng/ml and IVA should undergo extensive diagnostic procedures. 
+
+Based on our and previous findings [@Ruff2009;@Zanotti2015;@JaraAcevedo2015] we propose to perform a peripheral blood KIT D816V mutation test in cases of BST of above 8 ng/ml and with a history of anaphylaxis presenting without urticaria or flushing. 
+
+
+<!-- Age -->
+
+Regarding the factors increasing risk of IVA - older patients experienced IVA more frequently. Young patients mainly suffer from food-induced anaphylaxis [@Grabenhenrich2016]. One of the limitations of our registry is the fact that we can only compare cases of anaphylaxis and due to the lack of healthy cohort - cannot draw conclusions on the frequency of a particular type of anaphylaxis in the population. 
+
+Emergency room (ER) admission data indicate that the frequency of insect stings hypersensitivity reactions in children is comparable to food hypersensitivity reactions (12-15% of cases of hypersensitivity reactions admitted to the ER), but pediatric anaphylaxis is triggered significantly more often by food elicitors (56% of food hypersensitivity cases vs. 5.3% of sting cases seen in the ER) [@Braganza2005]. Senior patients, on the other hand, suffer from drug-related hypersensitivity more often than insect sting hypersensitivity [@Aurich2019].  <!-- Risk factors - Concomitant disease -->
+Similarly, we saw less IVA in patients with concomitant atopic diseases, as these patients more often present with food anaphylaxis [@Tham2019]. 
+
+
+The influence of cardiologic medication could not be isolated from the effect of concomitant cardiologic conditions; therefore, we could not state if ACE-I and beta-blockers increased the severity of anaphylaxis. We did observe that there were no significant differences between IVA and non-IVA cases regarding the symptoms and severity of an episode with concomitant use of ACE-I or beta-blockers.  
+
+<!-- Therapy  -->
+Cases of IVA had been treated with adrenaline less often than the age- sex- and severity-matched cases of non-IVA. Moreover, administration of adrenaline did not depend on the trigger if the patient experienced anaphylaxis previously, but was significantly less often used if the patient experienced their first episode of IVA. The difference between groups was prominent for milder cases of anaphylaxis. 
+The reason for this observation is unclear. To our knowledge, this is the only data on the comparative adrenaline usage in a case-controlled group of IVA vs. non-IVA.  
+
+Nevertheless, international guidelines of anaphylaxis state that adrenaline (i.m.) is the first-line agent in all diagnosed cases of anaphylaxis [@Muraro2014]. Clinicians should not undermine the less severe IVA cases and treat them with adrenaline accordingly.
+
+Although there are no absolute contraindications for using adrenaline in anaphylaxis, one potential scenario where clinicians tend to be reluctant to using adrenaline is hypersensitivity reaction with high blood pressure with tachycardia which might be present at the initial phase of IVA, due to a psychologic reflex. In theory, these less severe cases of IVA might exhibit some form of stress-related blood pressure increase, but we lack data to confirm or discard this theory. 
+
+<!-- Limitations and strengths -->
+Due to the design of the European Anaphylaxis Registry, our analysis was restricted only to cases of anaphylaxis. Milder hypersensitivity reactions, as well as healthy controls, are not included in the database. Although The European Anaphylaxis Registry is ideal for investigating anaphylaxis subtypes - it might give an incomplete picture of the populational distribution of hypersensitivity reactions and restricts us to only comparing various forms of anaphylaxis. 
+
+Nevertheless, because the European Anaphylaxis Registry has until now gathered over 12 000 cases of anaphylaxis - it was possible to perform a case-controlled analysis on a relatively large number of cases and investigate many aspects of IVA.
+
+
+
 
 # Conclusion
 
-Based on our results, IVA is a distinctive subtype of anaphylaxis, with specific symptom profile and risk factors. Although therapy of IVA should be performed according to the guidelines and should not differ from other types of anaphylaxis, it is unclear why patients with IVA tend to receive adrenaline less often. 
+Based on our results, IVA is a distinctive subtype of anaphylaxis, with specific symptom profile and risk factors. IVA cases should undergo therapy according to the international management guidelines, and adrenaline should be given more often in IVA. 
 
-When evaluating the risk of future severe episodes - baseline serum tryptase levels over eight ng/ml should be considered.
+When evaluating the risk of future severe episodes - baseline serum tryptase levels over ng/ml should be considered.
 
 
 # Acknowledgements
 We thank all patients, parents, and their children for their support in providing data on the occurrence of anaphylaxis for this study. We thank the study personnel for patients counseling and data entry, and we thank the members of The European Anaphylaxis Registry in detail:
-J. Grünhagen (Berlin, Germany),
-K. Beyer (Berlin, Germany),
-A. Möser (Jena, Germany),
-T. Fuchs (Göttingen, Germany),
-F. Ruëff (Munich, Germany),
-B. Wedi (Hanover, Germany),
-F. Friedrichs (Aachen, Germany),
-H. Dickel (Bochum, Germany),
-H. Merk (Aachen, Germany),
-U. Hillen (Essen, Germany),
-A. Bauer (Dresden, Germany),
-N. Wagner (Erlangen, Germany),
-E. Rietschel (Cologne, Germany),
-R. Treudler, S. Aurich (Leipzig, Germany),
-L. Klimek, O. Pfaar (Wiesbaden, Germany),
-N. Reider (Innsbruck, Germany),
-W. Aberer (Graz, Austria),
-A. Köhli (Zurich, Switzerland),
-F. Riffelmann (Schmallenberg, Germany),
-B. Kreft (Halle, Germany),
-K. Nemat (Dresden, Germany),
-T. Kinaciyan (Vienna, Austria),
-R. Brehler (Münster, Germany),
-J. Witte (Hamburg, Germany),
-N. Hunzelmann und I. Huseynow (Cologne, Germany),
-T. Bieber (Bonn, Germany),
-U. Rabe (Treuenbritzen, Germany),
-P. Schmid-Grendelmeier (Zurich, Switzerland),
-W. Brosi (Würzburg, Germany),
-S. Nestoris (Lippe-Lemgo, Germany),
-T. Hawranek (Salzburg, Austria),
-R. Bruns (Greifswald, Germany),
-S. Lehmann (Aachen, Germany),
-L. Lange (Bonn, Germany),
-G. Hansen (Hanover, Germany),
-C. Pföhler (Homburg, Germany),
-E. Varga (Graz, Austria),
-Z. Szepfalusi (Vienna, Austria),
-P. Eng (Aarau, Switzerland),
-P. Eng (Lucerne, Switzerland),
-T. Reese (Rheine, Germany),
-M. Polz (Rüsselsheim, Germany),
-S. Schweitzer-Krantz (Düsseldorf, Germany),
-H. Rebmann (Tübingen, Germany),
-G. Stichtenoth (Lübeck, Germany),
-S. Theis (Schwedt, Germany),
-I. Yildiz (Neumünster, Germany),
-M. Gerstlauer (Augsburg, Germany),
-A. Nordwig (Dresden, Germany),
-R. Schlags (Wangen im Allgäu, Germany),
-I. Neustädter (Fürth, Germany),
-C. Stadlin (Zurich, Switzerland),
-M. Bücheler (Bonn, Germany),
-S. Volkmuth (Velbert, Germany),
-J. Fischer (Tübingen, Germany),
-A. Henschel (Berlin, Germany),
-S. Plank-Habibi (Alzenau, Germany),
-B. Schilling (Passau, Germany),
-A. Kleinheinz (Buxtehude, Germany),
-K. Schäkel (Heidelberg, Germany),
-N. Papadopoulos (Athen, Greece),
-M. Kowalski (Lodz, Poland),
-M. Fernandez-Rivas (Madrid, Spain),
-K. Solarewicz-Madajek (Wroclaw, Poland),
-C. Körner-Rettberg (Bochum, Germany),
-T. Mustakov (Sofia, Bulgaria),
-K. Hartmann (Lübeck, Germany),
-C. Kemen (Hamburg, Germany),
-U. Miehe (Leipzig, Germany),
-C. Ebner (Vienna, Austria),
-S. Haak (Oldenburg, Deutschland),
-V. Cardona (Barcelona, Spain),
-S. Hämmerling (Heidelberg, Germany),
-E. Arroabarren (Pamplona, Spain),
-M. Bilo (Ancona, Italy),
-N. Cabañes Higuero (Toledo, Spain),
-A. Vega Castro (Guadalajara, Spain),
-I. Poziomkowska-Gęsicka (Szczecin, Poland),
-S. Büsing (Osnabrück, Germany),
-U. Klettke (Berlin, Germany),
-C. Virchow (Rostock, Germany),
-G. Christoff (Sofia, Bulgaria),
-U. Jappe (Borstel, Germany),
-K. Breuer (Hamburg, Germany),
-S. Müller and T. Jakob (Freiburg, Germany),
-H. Straube (Darmstadt, Germany),
-C. Vogelberg (Dresden, Germany),
-F. Knöpfel (Norderney, Germany),
-J. Hourihane (Cork, Ireland),
-B. Rogala (Silesia, Poland),
-A. Montoro (Madrid, Spain),
-A. Brandes (Frankfurt/Oder, Germany),
-A. Muraro (Padua, Italy),
-T. Buck und J. Büsselberg (Hanover-Misburg, Germany),
-N. Zimmermann (Potsdam, Germany),
-D. Hernandez (Valencia, Spain),
-P. Minale (Genua, Italy),
-J. Niederwimmer und B. Zahel (Linz, Austria),
-A. Fiocchi (Rome, Italy),
-A. Reissig (Gera, Germany),
-F. Horak (Vienna, Austria),
-N. Klossowiski (Düsseldorf, Germany),
-F. Eitelberger (Wels, Austria),
-H. Ott (Hanover, Germany),
-R. Asero (Milan, Italy),
-S. Pistauer (Sylt/Westerland, Germany),
-M. Geißler (Ribnitz-Damgarten, Germany),
-L. Ensina (Sao Paulo, Brazil),
-A. Plaza Martin (Barcelona, Spain),
-J. Meister (Aue, Germany),
-S. Hompes (Hamburg, Germany),
-S. Stieglitz (Wuppertal, Germany).
 
 
 ##### 
@@ -373,7 +320,7 @@ S. Stieglitz (Wuppertal, Germany).
 # Figures
 
 
-```{r flow,fig.width=6,fig.height=6, fig.cap=" A) Flow-diagram illustrating the rationale for including registry cases in the final analysis. B, C, D: Age, sex, and severity distribution was matched in cases in both groups to allow for comparable results between IVA and non-IVA cases. Two age-subsets of patients could be recognized based on the density plot of age (B)."}
+```{r flow,fig.width=6,fig.height=6, fig.cap=" A) Flow-diagram illustrating the rationale for case inclusion and exclusion from the final analysis. B, C, D: Age, sex, and severity distribution was matched in cases in both groups to allow for comparable results between IVA and non-IVA cases. Two age-subsets of patients could be recognized based on the density plot of age (B)."}
 ggarrange(ggplot()+
             background_image(png::readPNG("../figures/flow.png")),
           lower_panel,
@@ -393,13 +340,14 @@ fig_basic
 
 ##### 
 
-```{r figsymptoms, fig.cap="Symptoms of insect venom anaphylaxis (IVA) compared to other elicitors. A: Proportional presentation of specific reaction symptoms. B: High-level overview of involved organ systems and selected cofactors in the form of a radar plot.", fig.width=8.5, fig.height = 3.2}
-fig_symptoms
+```{r figsymptoms, fig.cap="Symptoms of insect venom anaphylaxis (IVA) compared to other elicitors. A: Proportional presentation of specific reaction symptoms. B: High-level overview of involved organ systems and selected cofactors in the form of a radar plot.", fig.width=8.5, fig.height = 6.2}
+  fig_symptoms2
 ```
 
 ##### 
 
-```{r figcofactors, fig.cap="Cofactors of insect venom anaphylaxis. A: Odds ratios of eliciting severe anaphylaxis. B: Proportion of cases elicited by insects or other elicitors (upper panels) according to tryptase levels and cardiologic symptoms. ", fig.width = 5.6, fig.height = 10}
+```{r figcofactors, fig.cap="Cofactors of insect venom anaphylaxis. A: Odds ratios of eliciting severe anaphylaxis. B: Proportion of cases elicited by insects or other elicitors (upper panels) according to tryptase levels and cardiologic symptoms. ", fig.width = 6.7, fig.height = 7.4}
+
 cof_fig
 ```
 
@@ -407,29 +355,8 @@ cof_fig
 ##### 
 
 ```{r adrenalineuse, fig.cap = "Therapy in patients with IVA compared to other elicitors, cases matched according to sex, age, and severity of a reaction. A: Proportional use of therapy measures in both anaphylaxis groups.  B: Heatmap visualizing the association of symptoms and corresponding treatment -  presented as a scaled correlation coefficient (phi).", fig.height=9, fig.width = 7}
+fig_adrenalineuse
 
-ggpubr::ggarrange(
-    plotManagement,
-    
-  #lower_panel,
-  matrix_venom$p+
-    labs (x = "", y = "")+
-    geom_segment(aes(x = c(8.5),
-                     xend = c(8.5), 
-                     y = c(0.5),
-                     yend = c(39.5)),color = "red")+
-    geom_segment(aes(x = c(0.5),
-                     xend = c(20.5), 
-                     y = c(28.5),
-                     yend = c(28.5)), color = "red" )+
-    geom_segment(aes(x = c(0.5),
-                     xend = c(20.5), 
-                     y = c(34.5),
-                     yend = c(34.5)), color = "red", linetype = 2  ),
-  nrow = 2,
-  heights = c(1.5,3),
-  labels = c("","C")
-)
 
 # ggarrange(matrix_venom$py+
 #             theme(plot.margin=unit(c(0.1,9.8,0,9.5),"lines")),
@@ -555,5 +482,11 @@ rf_ggplot_treatment
 
 ```{r}
 adren_prev
+```
+
+
+```{r trypcardiocur, fig.cap="Tryptase levels in patients with concomitant cardiologic diseases. "}
+
+plot_tryptase_in_cardio_cur
 ```
 

@@ -43,10 +43,9 @@ nodes <-
                     format(length(which(data4$d_elicitor_gr5=="unkown" &
                                    data4$reaction_type_brown=="anaphylaxis")),
                            big.mark = ",")),
-             paste0("Other known\nelicitors\n",
-                    format(length(which(data4$d_elicitor_gr5!="insects"&
-                                   data4$d_elicitor_gr5!="unkown" &
-                                   data4$reaction_type_brown=="anaphylaxis")),
+             paste0("Control group of\nSex- and age-matched reactions\nto other known elicitors\n",
+                    format(nrow(age_sex_matched %>%
+                                  filter(grouping == "other")),
                            big.mark = ","))
     ),
 
@@ -54,10 +53,10 @@ nodes <-
     #          "grey", "blue"),
     #value = c(3.5, 2.6, 9.4, 2.7),
     shape= "rectangle",
-    width = c(2.5,3,1.8,1.2,1.8,1.2,1.2),
-    x = c(2, 2, 1.1, 3.1,1.1,4.7,3.1),
+    width = c(2.5,3,1.8,1.2,1.8,1.2,2.5),
+    x = c(2, 2, 1.1, 3.1,1.1,4.7,3.6),
     y = c(0,-1,-2,-2,-3,-2,-3),
-    height = c(rep(0.6,4),1,0.6,0.6))
+    height = c(rep(0.6,4),1,0.6,1))
 
 edges <- create_edge_df(from = c(1,2,2,3,4,4),
                         to =   c(2,3,4,5,6,7))
