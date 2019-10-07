@@ -2925,7 +2925,7 @@ adren_prev <- ANAscore_matched %>%
             facet.by = "q_160_ever_react",
             palette = palBW)+
   labs(x = "",
-       fill = "adrenaline administered?",
+       fill = "adrenaline\nadministered?",
        y = "proportion [%]")
 
 adren_severity <- ANAscore_matched %>%
