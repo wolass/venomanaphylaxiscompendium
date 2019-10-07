@@ -2953,6 +2953,11 @@ adren_severity_mild <- adren_severity$data %>%
   {chisq.test(.[,3:4])$p.value} %>% pval()
 
 
+ANAscore_matched %>%
+  group_by(d_522_adren_agg, grouping, d_severity_rmr,q_561_hospital_admission_v6) %>%
+  summarize(n())
+
+
 ### Statistical modelling ####
 
 # As a last attempt for the analysis -
