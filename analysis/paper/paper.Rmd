@@ -17,7 +17,7 @@ bibliography: references.bib
 csl: "../templates/expert-review-of-clinical-immunology.csl" # Insert path for the bib-style
 ---
 
-^1^ Department of Dermatology, Venerology, and Allergology, Charité – Universitätsmedizin Berlin, corporate member of Freie Universität Berlin, Humboldt-Universität zu Berlin, and Berlin Institute of Health, Charitéplatz 1, 10117 Berlin,
+^1^ Department of Dermatology, Venerology, and Allergology, Charité – Universitätsmedizin Berlin, corporate member of Freie Universität Berlin, Hmuboldt-Universität zu Berlin, and Berlin Institute of Health, Charitéplatz 1, 10117 Berlin,
 
 ^2^ Department of Dermatology and Allergology, Klinikum der Universität München, Germany 
 
@@ -72,14 +72,6 @@ The data show that the management of insect-venom anaphylaxis may be improved. P
 
 # Introduction
 
-Hypersensitivity to insect venom is a systemic reaction (anaphylaxis) in up to 0.3--7.5% of the adult population [@Bil2008]. Venom induced anaphylaxis (VIA) can be fatal, and patients sometimes require lifelong systemic immunotherapy [@Sturm2017]. 
-
-The need for a more precise description of the diagnosis, identification of biomarkers, and phenotypes of anaphylaxis is discussed [@JimenezRodriguez2018]. Nevertheless, in order to facilitate a precision-medicine approach [@Muraro2017] for the diagnosis of anaphylaxis --- a better understanding of its clinical subtypes is required.
-
-Controlled clinical trials in anaphylaxis are hardly possible due to the acuteness of this life-threatening condition and their infrequent and random occurence. Therefore registries, gathering clinical data from patients with a well documented (recent) history of anaphylaxis are a crucial tool in investigating this entity.  
-
-This study aimed to identify clinical patterns of venom induced anaphylaxis (VIA) regarding symptoms, cofactors, and management by a case-control comparison with other types of anaphylaxis (non-VIA). 
-
 # Methods
 
 We searched the European Anaphylaxis Registry [@Grabenhenrich2016] database from March 2019 for anaphylaxis cases elicited by insect's venom. The flowchart in Fig. \@ref(fig:flow) represents the detailed case-selection process. 
@@ -89,7 +81,8 @@ The final database consisted of `r countries %>% summarise(sum(n))` cases of ins
 The cases were either assigned to VIA group (if the triggering factor was an insect sting) or non-VIA group (if other elicitors triggered anaphylaxis).
 We compared the frequency of various symptoms, cofactors --- known to increase the risk of severe anaphylaxis, [@Worm2018] and management in both groups. 
 
-Due to a large number of documented reactions in the European Anaphylaxis registry - we were able to match the VIA cases to selected non-VIA cases according to sex and age to reduce the comparison bias. Subsequently, we compared the management in both groups and matched the control group according to the severity of a reaction. Propensity score matching has been performed using the "MatchIt" package for R [@matchit]. The results of the propensity score matching are in Fig. \@ref(fig:flow)B-D and supplementary Fig \@ref(fig:matchingresult). 
+Due to a large number of documented reactions in the European Anaphylaxis registry - we were able to match the VIA cases to selected non-VIA cases according to sex and age to reduce the comparison bias. 
+When we analyzed a density plot of VIA cases according to age - we determined a bimodal distribution forming two subsets of patients with a cutoff age of 22 (Fig \@ref(fig:flow)B). Subsequently, we compared the management in both groups and matched the control group according to the severity of a reaction. Propensity score matching has been performed using the "MatchIt" package for R [@matchit]. The results of the propensity score matching are in Fig. \@ref(fig:flow)B-D and supplementary Fig \@ref(fig:matchingresult). 
 
 
 <!-- ## Data handling and statistics -->
@@ -98,22 +91,24 @@ We used the R Statistical Package [@R] for statistical analysis. A simple compar
 We trained a random forest classifier (using the "randomForest" package for R [@rf]) in order to find therapeutic approaches that varied the most between VIA / non-VIA group and presented the results Gini importance [@Strobl2007]. We also performed an association study of therapeutic interventions and symptoms. The resulting phi values are presented in a heatmap with automatic clustering using Ward’s Agglomerative Hierarchical Clustering Method with Euclidean distance [@heatmaply].
 
 # Results
-
-When we analyzed a density plot of VIA cases according to age - we determined a bimodal distribution forming two subsets of patients with a cutoff age of 22 (Fig \@ref(fig:flow)B).
-
+ 
 ## VIA is often associated with cardiovascular symptoms 
 
-VIA displayed a specific symptom pattern. Patients, who underwent VIA, more often experienced cardiovascular symptoms (dizziness, reduced alertness, unconsciousness) than patients with other elicitors inducing anaphylaxis and less often had skin or gastrointestinal symptoms (Fig \@ref(fig:figsymptoms)A). The difference in severe hypotension frequency was especially prominent in the younger age group (under 22, Fig. S\@ref(fig:supplement)). 
+VIA displayed a specific symptom pattern. Patients, who underwent VIA, more often experienced cardiovascular symptoms (dizziness, hypotension, unconsciousness, reduced alertness) than patients with anaphylaxis due to other elicitors and less often presented with expiratory distress, rhinitis or diarrhoea (Fig. \@ref(fig:figsymptoms)A). 
 
-The pattern of organ involvement showed similarities in gastrologic, skin, and respiratory symptoms, and did not differ in the proportion of elevated baseline serum tryptase (> 8 ng/ml). Although, patients undergoing VIA  less often had concomitant atopic diseases (Fig \@ref(fig:figsymptoms)B).
-
-Severe reactions of VIA were more prevalent in older patients in comparison to patients below 22 years, and in VIA cases vs. other elicitors (Fig. S\@ref(fig:sev)D). There were no differences in severity of reactions elicited by yellow-jackets and other insect species. 
+Although the pattern of organ involvement during anaphylaxis in both groups showed similarities in gastrologic, skin, and respiratory systems, VIA more frequently involved over three organ systems (`r compare(c(tempdf[3:4,">3 organ\nsystems"]))`,<!-- , and did not differ in the proportion of elevated baseline serum tryptase (> 8 ng/ml). Although, patients undergoing VIA  less often had concomitant atopic diseases  -->
+Fig. \@ref(fig:figsymptoms)B).
 
 ## Absence of skin symptoms is associated with more severe episodes of VIA
 
 Patients with concomitant mastocytosis had significantly more often anaphylaxis without skin symptoms (namely urticaria and flushing) when compared to patients without diagnosed mastocytosis (`r (skin_symptoms$masto_tab$prop[c(2,1)]*100) %>% round(1) %>% paste0(collapse="% vs. ")`%, `r pval(skin_symptoms$masto_chisq$p.value)`). We decided to further investigate non-mastocytic patients. In these patients urticaria or flushing as symptoms of anaphylaxis were present less often in VIA than anaphylaxis triggered by other elicitors (`r (skin_symptoms$tab$prop[2]*100) %>% round(1)`% vs `r (skin_symptoms$tab$prop[4]*100) %>% round(1)`% respectively, `r pval(skin_symptoms$chisq$p.value)`).  Morover, in patients without concomitant mastocytosis who were also lacking skin symptoms, anaphylaxis was significantly more frequently severe (`r (skin_symptoms$severe_tab$prop[c(2,6)]*100) %>% round(1) %>% paste0(collapse="% in VIA vs. ")`%, `r pval(skin_symptoms$masto_chisq$p.value)`% in non-VIA). We performed a factorial logistic regression modelling and confirmed the significant interaction effect between the presence of skin symptoms and the trigger (eiter VIA or non-VIA) on the severity of anaphylaxis (`r pval(skin_symptoms$severity_fit_skin_symptoms %>% coef %>% .[4,4])`). Therefore, non-mastocytic patients presenting without urticara or flushing tended to have more severe anaphylaxis when it was triggered by insects, but not other elicitors of anaphylaxis (Fig. \@ref(fig:figsymptoms)C).
 
 Following this observation, we decided to investigate the association of skin symptoms with the tryptase levels in patients who did not have a diagnosis of mastocytosis. For this comparison, we removed the cases with BST above 11.5 ng/ml, potentially indicating non-diagnosed mastocytosis. Similarly, tryptase levels correlated with the severity of anaphylaxis, were higher in VIA patients, and the effect was prominently visible for VIA patients (`r skin_symptoms$fit_tryp[[1]][4,5] %>% pval()`). We did not observe such an interaction in the non-VIA group (Fig. \@ref(fig:figsymptoms)D).
+
+
+## Severity 
+Severe reactions of VIA were more prevalent in older patients in comparison to patients below 22 years, and in VIA cases vs. other elicitors (Fig. S\@ref(fig:sev)D). There were no differences in severity of reactions elicited by yellow-jackets and other insect species. 
+
 
 ## Nearly one-third of VIA patients experience repeated reactions
 

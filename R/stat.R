@@ -161,6 +161,8 @@ data4 <- data4 %>%
                          "high",
                          ">11.5"))))
 
+data4 <- data4 %>%
+  mutate(d_organ_sum_binom = ifelse(d_organ_sum<4,"1-3","4-5") %>% factor)
 ##### FINAL DATABASE RDB ######
 
 rdb <- data4[data4$reaction_type_brown=="anaphylaxis",]
@@ -402,8 +404,8 @@ iCodeDF %>% filter(difference=="greater")
 #     'q_114_loss_of_consciousness'='loss of consciousness';
 #     'q_112_abdominal_pain'='abdominal pain';
 #     'q_113_wheezing_expiratory_distress_v5'='expiratory distress'"),
-#     group = car::recode(group,"'fraq_1'='IVA';
-#                         'fraq_2'='non-IVA'")) %>%
+#     group = car::recode(group,"'fraq_1'='VIA';
+#                         'fraq_2'='non-VIA'")) %>%
 #                         {mutate(.,variableName = factor(.$variableName,
 #                                                         levels=unique(.$variableName)))} %>%
 #
@@ -425,7 +427,9 @@ temp1 <- lapply(list(quo(q_111),
             quo(q_112),
             quo(q_113),
             quo(q_114),
-            quo(atopy)),
+            quo(d_organ_sum_binom)#,
+            #quo(d_organ_sum)
+            ),
        funtempspider) %>%
   do.call(what = rbind) %>%
   as.data.frame()
@@ -446,23 +450,31 @@ tempdf <- temp %>% data.frame(stringsAsFactors = F) %>%
 {rbind(rep(1,length(.)),rep(0,length(.)),.[2,],temp2 %>% t() %>% {.[2,]})}
 tempdf<- tempdf %>%
   mutate_if(is.character,as.numeric)
-tempdf <- age_sex_matched %>%
-  group_by(grouping) %>%
-  summarize(tryptase = mean(q_212_tryptase_value_v5,na.rm = T)) %>%
-    {rbind(11,0,.[,2])} %>%
-    cbind(tempdf,.)
- radarchart(tempdf,
-             #axistype=1,
-           #seg=5, %>%
-           #plty=1,
-           #title="(axis=1, 5 segments, with specified vlabels)",
-           #vlcex=0.5
-           vlabels = c("skin",
-                      "gastrologic",
-                      "respiratory",
-                      "cardiac",
-                      "atopic",
-                      "tryptase"))
+# tempdf <- age_sex_matched %>%
+#   group_by(grouping) %>%
+#   summarize(tryptase = mean(q_212_tryptase_value_v5,na.rm = T)) %>%
+#     {rbind(11,0,.[,2])} %>%
+#     cbind(tempdf,.)
+tempdf <- funtempspider(quo(d_organ_sum_binom)) %>%
+  data.frame() %>%
+  filter(d_organ_sum_binom =="4-5") %>%
+  pull(prop) %>% as.character() %>% as.numeric() %>%
+  {c(1,0,.)} %>%
+  {cbind(tempdf,organ3=.)}
+colnames(tempdf) <- temp[5,]
+
+ # radarchart(tempdf,
+ #             #axistype=1,
+ #           #seg=5, %>%
+ #           #plty=1,
+ #           #title="(axis=1, 5 segments, with specified vlabels)",
+ #           #vlcex=0.5
+ #           vlabels = c("skin",
+ #                      "gastrologic",
+ #                      "respiratory",
+ #                      "cardiac",
+ #                      ">3 organs\nsystems"
+ #                      ))
 
 
 # Split the plot into kids and grown ups AGE division - 12
@@ -497,8 +509,8 @@ hypotensionPlot <-
                          c("fraq_1",
                            "fraq_2")) %>%
            mutate(group = car::recode(group,
-                  "'fraq_1'='IVA';
-                   'fraq_2'='non-IVA'")) %>%
+                  "'fraq_1'='VIA';
+                   'fraq_2'='non-VIA'")) %>%
          arrange(pval),
        aes(#reorder(variableName,pval),
           subset,
@@ -523,8 +535,8 @@ hypotension2 <- ex %>%
                 c("fraq_1",
                   "fraq_2")) %>%
   mutate(group = car::recode(group,
-                             "'fraq_1'='IVA';
-                   'fraq_2'='non-IVA'")) %>%
+                             "'fraq_1'='VIA';
+                   'fraq_2'='non-VIA'")) %>%
   ggbarplot(x = "subset",y = "Fraction",
             fill = "group",
             position = position_dodge(),
@@ -881,8 +893,8 @@ countYesManagment <- function(var){
     summarize(n = n()) %>%
     filter(!!sym(var) == "yes")
   data.frame(variable = names(tbl)[2],
-             IVA = tbl[1,3],
-             nonIVA = tbl[2,3])
+             VIA = tbl[1,3],
+             nonVIA = tbl[2,3])
 }
 
 plotManagement <- testANAscoreMatched$management$variableName %>%
@@ -911,7 +923,7 @@ plotManagement <- testANAscoreMatched$management$variableName %>%
       'q_522_volume'='volume iv.';
       'q_561_hospital_admission_v6'='hospital admission';
       'q_562_intensive_care_v6'='intensive care'"),
-    grouping = ifelse(grouping =="n", "IVA","non-IVA")
+    grouping = ifelse(grouping =="n", "VIA","non-VIA")
     ) %>%
   ggplot(aes(reorder(variable, -positive),positive/1976,fill=grouping))+
   geom_bar(stat = "identity", position = "dodge") +
@@ -964,8 +976,8 @@ backup <- testANAscoreMatched$management[, -7] %>%
       'q_522_o2'='100% oxygen';
       'q_522_beta2_inhal'='beta-2 mimetics inh.'"
           ),
-          Group = car::recode(Group, "'fraq_1'='IVA';
-                              'fraq_2'='non-IVA'")
+          Group = car::recode(Group, "'fraq_1'='VIA';
+                              'fraq_2'='non-VIA'")
           ) %>%
         ggplot(aes(reorder(variableName, -Proportion), Proportion, fill =
                      Group)) +
@@ -984,8 +996,8 @@ backup <- testANAscoreMatched$management[, -7] %>%
 upper_panel <-ggpubr::ggarrange(
       # ANAscore_matched %>%
       #   mutate(grouping = recode(grouping,
-      #                            'insects'='IVA',
-      #                            'other'='non-IVA'),
+      #                            'insects'='VIA',
+      #                            'other'='non-VIA'),
       #          d_522_adren_agg = recode(d_522_adren_agg,
       #                                  'no'='no adrenaline',
       #                                  'yes'='adrenaline given') ) %>%
@@ -1021,8 +1033,8 @@ ANAscore_matched %>%
   ) %>% unnest() %>%
   mutate(proportion = n/summed,
          grouping = recode(grouping,
-                           'insects'='IVA',
-                            'other'='non-IVA'))  %>%
+                           'insects'='VIA',
+                            'other'='non-VIA'))  %>%
   ggplot(aes(y = proportion, fill = grouping, x =
                q_540_why_autoinj_v5,
              label = n)) +
@@ -1582,7 +1594,7 @@ cardiac_ace <- function(s){
            !!s != "unknown",
            !is.na(grouping)) %>%
     mutate(grouping = car::recode(grouping,
-                                  "'insects'='IVA';'other'='non-IVA'")) %>%
+                                  "'insects'='VIA';'other'='non-VIA'")) %>%
     group_by(q_423_ace,
              !!s,
              grouping) %>%
@@ -1654,7 +1666,7 @@ cardiac_beta <- function(s){
            !!s != "unknown",
            !is.na(grouping)) %>%
     mutate(grouping = car::recode(grouping,
-                                  "'insects'='IVA';'other'='non-IVA'")) %>%
+                                  "'insects'='VIA';'other'='non-VIA'")) %>%
     group_by(q_423_beta,
              !!s,
              grouping) %>%
@@ -1755,7 +1767,7 @@ eli_green <-
   mutate(MOR = substr(b_reactiondate,4,5),
          q_340_insects = ifelse(
            is.na(q_340_insects),
-           "non-IVA",
+           "non-VIA",
            as.character(q_340_insects)
            ) %>%
            factor(
@@ -1766,11 +1778,11 @@ eli_green <-
                "horsefly",
                "mosquito",
                "other",
-               "non-IVA"))) %>%
+               "non-VIA"))) %>%
   filter(
     !is.na(q_340_insects),
     MOR!="00",
-    q_340_insects != "non-IVA") %>%
+    q_340_insects != "non-VIA") %>%
   mutate(MOR = car::recode(MOR,
                            "'01' = 'Jan';
                            '02' = 'Feb';
@@ -1815,7 +1827,7 @@ rare_spring_autumn <- rdbp %>%
   mutate(MOR = substr(b_reactiondate,4,5),
          q_340_insects = ifelse(
            is.na(q_340_insects),
-           "non-IVA",
+           "non-VIA",
            as.character(q_340_insects)
          ) %>%
            factor(
@@ -1826,11 +1838,11 @@ rare_spring_autumn <- rdbp %>%
                "horsefly",
                "mosquito",
                "other",
-               "non-IVA"))) %>%
+               "non-VIA"))) %>%
   filter(
     !is.na(q_340_insects),
     MOR!="00",
-    q_340_insects != "non-IVA") %>%
+    q_340_insects != "non-VIA") %>%
   mutate(MOR = car::recode(MOR,
                            "'01' = 'Jan';
                            '02' = 'Feb';
@@ -1852,8 +1864,8 @@ rare_spring_autumn <- rdbp %>%
 
 age_dens <- ggpubr::ggdensity(rdbp %>%
                     filter(!is.na(grouping)) %>%
-                    mutate(grouping = ifelse(grouping == "insects", "IVA","non-IVA")) %>%
-                    mutate(grouping = relevel(factor(grouping),"non-IVA")),
+                    mutate(grouping = ifelse(grouping == "insects", "VIA","non-VIA")) %>%
+                    mutate(grouping = relevel(factor(grouping),"non-VIA")),
                   x = "d_age",
                   fill = "grouping",
                   position = "fill",
@@ -1868,8 +1880,8 @@ age_dens <- ggpubr::ggdensity(rdbp %>%
 #dev.off()
 
 
-#png(width =700*2,height = 630*2,res = 300, filename = "IVAonly.png",pointsize = 10)
-IVAonly <- rdb %>%
+#png(width =700*2,height = 630*2,res = 300, filename = "VIAonly.png",pointsize = 10)
+VIAonly <- rdb %>%
   mutate(q_340_insects = as.character(q_340_insects) %>%
            factor(levels=c("yellow jacket",
                            "bee",
@@ -1888,7 +1900,7 @@ IVAonly <- rdb %>%
 
 
 right_panel <- ggpubr::ggarrange(age_dens,
-                  IVAonly,
+                  VIAonly,
                   nrow = 2,
                   ncol = 1,
                   heights = c(1,2),
@@ -1904,7 +1916,7 @@ fig_basic <- ggpubr::ggarrange(
 
 #dev.off()
 
-png(width =500*2,height = 630*2,res = 300, filename = "IVAcomplete.png",pointsize = 10)
+png(width =500*2,height = 630*2,res = 300, filename = "VIAcomplete.png",pointsize = 10)
 gridExtra::grid.arrange(
   #cowplot::plot_grid(
   rdbp %>%
@@ -1933,7 +1945,7 @@ gridExtra::grid.arrange(
     ggplot(aes(MOR,prop))+
     geom_bar(stat="identity")+
     theme_classic()+
-    labs(x = "Month of the year",y = "Fraction of IVA")+
+    labs(x = "Month of the year",y = "Fraction of VIA")+
     scale_fill_manual(values = rev(c("#E5F5E0", "#C7E9C0", "#A1D99B", "#74C476", "#41AB5D", "#238B45","#005A32"))),
   #theme(legend.position = c(0.01,.98),
   #      legend.justification = c(0,1)),
@@ -1949,8 +1961,8 @@ severity_joined <- full_join(
   rdb %>%
     mutate(d_severity_rm = d_severity_rm %>% factor(),
            grouping = car::recode(grouping,
-                                  "'insects'='IVA';
-                                  'other'='non-IVA'")
+                                  "'insects'='VIA';
+                                  'other'='non-VIA'")
            ) %>%
     filter(!is.na(d_severity_rm),
            !is.na(grouping)) %>%
@@ -1988,8 +2000,8 @@ severity_joined_brown <- full_join(
   rdb %>%
     mutate(d_severity_rm = severity_brown %>% factor(),
            grouping = car::recode(grouping,
-                                  "'insects'='IVA';
-                                  'other'='non-IVA'")
+                                  "'insects'='VIA';
+                                  'other'='non-VIA'")
            ) %>%
     filter(!is.na(d_severity_rm),
            !is.na(grouping)) %>%
@@ -2027,9 +2039,9 @@ severity_joined_brown <- full_join(
 
 
 check <- rbind(severity_joined %>%
-  filter(grouping %in% c("IVA","non-IVA")) %>%
+  filter(grouping %in% c("VIA","non-VIA")) %>%
   spread(grouping,n) %>%
-  {matrix(data = cbind(.$IVA,.$`non-IVA`),
+  {matrix(data = cbind(.$VIA,.$`non-VIA`),
           nrow = 4,ncol=2, byrow = F)} %>%
   t() %>%
   chisq.test() %>%
@@ -2061,9 +2073,8 @@ colnames(tempdf) <- c("skin",
                       "gastrologic",
                       "respiratory",
                       "cardiac",
-                      "atopic",
-                      "tryptase")
-rownames(tempdf) <- c("max","min","IVA","non-IVA")
+                      ">3 organ\nsystems")
+rownames(tempdf) <- c("max","min","VIA","non-VIA")
 
 names(tempdf)[2] <- "gastrointestinal"
 ########## FIGURE GOES HERE #######
@@ -2090,28 +2101,46 @@ fig_symptoms <- ggarrange(
                                              'q_113_rhinitis_v5' = 'rhinitis';
                                              'q_114_dizziness' = 'dizziness';
                                              'q_114_hypotension_collapse_v5' = 'hypotension'"
-           ),
+           ) %>% factor(levels = c("dizziness",
+                                   "hypotension",
+                                   "unconsciousness",
+                                   "reduced alertness",
+                                   "nausea",
+                                   "incontinence",
+                                   "abdominal pain",
+                                   "diarrhoea",
+                                   "throat tightness",
+                                   "expiratory distress",
+                                   "rhinitis")),
            group = car::recode(
              group,
-             "'fraq_1' = 'IVA';
-             'fraq_2' = 'non-IVA'"
+             "'fraq_1' = 'VIA';
+             'fraq_2' = 'non-VIA'"
            )),
-         aes(reorder(variableName,desc(counts_1)),Fraction, fill = group))+
+         aes(variableName,Fraction, fill = group))+
     geom_bar(stat = "identity", position = "dodge",na.rm = T)+
     theme_classic()+
     theme(axis.text.x = element_text(angle = 30,hjust =1, size = 15),
           legend.position = c(0.99,0.99),
           legend.justification = c(1,1),
-          axis.title.x.bottom = element_blank())+
+          axis.title.x.bottom = element_blank(),
+          legend.background = element_blank())+
     labs(x = "symptom",y = "proportion [%]", fill = "")+
     scale_fill_manual(values = c("#1f1f1f", "#848484"))+
+    annotate("text", x = 1:11,
+             y = c(0.48,0.46,.32,.22,.30,.11,.18,.14,.28,.14,.11),
+             label = "*", size = 8)+
+    geom_segment(aes(x = 1, xend = 4, y = .52,yend = .52), linetype =1 )+
+    geom_segment(aes(x = 5, xend = 8, y = .52,yend = .52), linetype =1 )+
+    geom_segment(aes(x = 9, xend = 11, y = .52,yend = .52), linetype =1 )+
+    annotate("text", x = c(2.5,6.5,10),y = .54,label = c("cardio.","gastro.","resp."))+
     scale_y_continuous(labels = scales::percent_format(accuracy = 1)),
 
   tempdf  %>%
-  {.[,c(2,1,5,3,4,6)]} %>%
+  {.[,c(2,1,5,3,4)]} %>%
     rownames_to_column( var = "group" ) %>%
     mutate_at(vars(-group),funs(rescale)) %>%
-    filter(group%in%c("IVA","non-IVA")) %>%
+    filter(group%in%c("VIA","non-VIA")) %>%
     ggradar(axis.label.offset = c(1.1),
             axis.label.size = 5,
             group.point.size = 3,
@@ -2168,7 +2197,7 @@ cof_fig<- ggarrange(
                factor(d_111_urti_flush,
                       labels = c("skin -","skin +")),
              grouping = factor(grouping,
-                               labels=c("IVA","non-IVA")),
+                               labels=c("VIA","non-VIA")),
              d_severity_rmr = factor(d_severity_rmr,
                                      labels = c("I+II","III+IV"))
              # tryptase_value_3cat = car::recode(
@@ -2222,7 +2251,7 @@ cof_fig<- ggarrange(
     summarize(n = n()) %>%
       ungroup() %>%
       mutate(grouping = car::recode(grouping,
-                                    "'insects' = 'IVA';'other'='non-IVA'")) %>%
+                                    "'insects' = 'VIA';'other'='non-VIA'")) %>%
     ggbarplot(x= "tryp_cat",
               fill = "d_severity_rmr",
               y = "n",
@@ -2237,7 +2266,7 @@ cof_fig<- ggarrange(
       cardiac_typtase_effect[[6]][[2]]$data %>%
         ungroup() %>%
         mutate(grouping = car::recode(grouping,
-                                      "'insects' = 'IVA';'other'='non-IVA'")) %>%
+                                      "'insects' = 'VIA';'other'='non-VIA'")) %>%
       ggbarplot(x = "q_114_cardiac_arrest",
                 y = "n",
                 fill = "tryp_cat",
@@ -2267,7 +2296,7 @@ cof_fig<- ggarrange(
       cardiac_typtase_effect[[2]][[2]]$data %>%
         ungroup() %>%
         mutate(grouping = car::recode(grouping,
-                                      "'insects' = 'IVA';'other'='non-IVA'")) %>%
+                                      "'insects' = 'VIA';'other'='non-VIA'")) %>%
       ggbarplot(x = "q_114_loss_of_consciousness",
                 y = "n",
                 fill = "tryp_cat",
@@ -3011,8 +3040,8 @@ skin_symptoms$masto_chisq <-
 
 skin_symptoms$severe_tab <-
 age_sex_matched %>%
-  mutate(grouping = car::recode(grouping, "'insects'='IVA';
-                                'other'='non-IVA'")) %>%
+  mutate(grouping = car::recode(grouping, "'insects'='VIA';
+                                'other'='non-VIA'")) %>%
   filter(q_111_urticaria != "unknown",
          q_410_masto_cur != "yes") %>%
   # select(grouping,q_111_urticaria,
@@ -3125,8 +3154,8 @@ skin_symptoms$plot_tryptase <- age_sex_matched %>%
          q_410_masto_cur != "yes"#,
          #q_212_tryptase_value_v5<25
          ) %>%
-  mutate(grouping = car::recode(grouping, "'insects'='IVA';
-                                'other'='non-IVA'")) %>%
+  mutate(grouping = car::recode(grouping, "'insects'='VIA';
+                                'other'='non-VIA'")) %>%
   ggpubr::ggboxplot(
     fill = "d_111_urti_flush",
     y = "q_212_tryptase_value_v5",
@@ -3241,8 +3270,8 @@ fig_symptoms2 <- ggpubr::ggarrange(
 
 plot_tryptase_in_cardio_cur <- age_sex_matched %>%
   mutate(grouping = car::recode(grouping,
-                           "'insects'='IVA';
-                           'other'='non-IVA'")) %>%
+                           "'insects'='VIA';
+                           'other'='non-VIA'")) %>%
   filter(q_410_masto_cur!="yes",
          !is.na(tryptase_value_3cat ),
          !is.na(d_severity_rm),
@@ -3414,7 +3443,7 @@ fig_adrenalineuse <- ggpubr::ggarrange(
   labels = c("A","B")
 )
 
-### Do we see tachycardia in patients with lesss severe anaphylaxis to IVA? ####
+### Do we see tachycardia in patients with lesss severe anaphylaxis to VIA? ####
 ANAscore_matched %>%
   filter(q_114_palpitations_cardiac_arrythmia_v5 %in% c("no","yes")) %>%
   count(grouping,d_severity_rmr, q_114_palpitations_cardiac_arrythmia_v5) %>%
