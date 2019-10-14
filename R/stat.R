@@ -491,6 +491,8 @@ symptTabAdults <- makeTests(rdb=rdb[rdb$d_age>=22,],
                           .$symptoms %>% mutate(subset = "over 22")
 ex <- full_join(symptTabKids,symptTabAdults)
 
+ex %>%
+  filter(variableName=="q_112_vomiting")
 # ggplot(ex %>% filter(pval<1e-10) %>%
 #          tidyr::gather(key = "group",value = "Fraction", c("fraq_1","fraq_2")) %>%
 #          arrange(pval),
@@ -3038,6 +3040,27 @@ skin_symptoms$masto_chisq <-
   matrix(nrow = 2, byrow = T) %>%
   chisq.test()
 
+skin_symptoms$masto_grouping_tab <-
+  age_sex_matched %>%
+  filter(q_111 != "unknown",
+         q_410_masto_cur != "unknown") %>%
+  #dplyr::select(d_111_urti_flush, q_410_masto_cur) %>%
+  #gather("var", "value") %>%
+  count(grouping,d_111_urti_flush, q_410_masto_cur) %>%
+  group_by(q_410_masto_cur,grouping) %>% # now required with changes to dplyr::count()
+  mutate(prop = prop.table(n))
+
+skin_symptoms$masto_grouping_plot <- ggbarplot(skin_symptoms$masto_grouping_tab %>%
+            filter(d_111_urti_flush == "no"),
+          #x = "d_111_urti_flush",
+          y = "prop",
+          x = "q_410_masto_cur",
+          fill = "grouping",
+          palette = palBW,
+          position = position_dodge2())+
+  labs(x = "concomitant mastocytosis",
+       y = "proportion of patients\n without skin symptoms")
+
 skin_symptoms$severe_tab <-
 age_sex_matched %>%
   mutate(grouping = car::recode(grouping, "'insects'='VIA';
@@ -3507,3 +3530,63 @@ common.legend = T,
 heights = c(1,1.4),
 labels = c("A","B")
 )
+
+fig_symptoms_3 <-
+  ggarrange(
+    fig_symptoms,
+    ggpubr::ggarrange(
+      ex %>%
+        filter(variableName=="q_114_hypotension_collapse_v5") %>%
+        dplyr::select(variableName,fraq_1,fraq_2,subset) %>%
+        gather(key = "group", value = "proportion",2:3) %>%
+        mutate(group = car::recode(group,"'fraq_1'='VIA';'fraq_2'='non-VIA'")) %>%
+        ggpubr::ggbarplot(
+          x = "subset",
+          y = "proportion",
+          fill = "group",
+          palette = palBW,
+          position = position_dodge2()
+        )+
+        labs(x = "hypotension") ,
+
+      ex %>%
+        filter(variableName=="q_112_vomiting") %>%
+        dplyr::select(variableName,fraq_1,fraq_2,subset) %>%
+        gather(key = "group", value = "proportion",2:3) %>%
+        mutate(group = car::recode(group,"'fraq_1'='VIA';'fraq_2'='non-VIA'")) %>%
+        ggpubr::ggbarplot(
+          x = "subset",
+          y = "proportion",
+          fill = "group",
+          palette = palBW,
+          position = position_dodge2()
+        )+
+        labs(x = "vomiting")+
+        theme(axis.title.y = element_blank()) ,
+
+      ex %>%
+        filter(variableName=="q_112") %>%
+        dplyr::select(variableName,fraq_1,fraq_2,subset) %>%
+        gather(key = "group", value = "proportion",2:3) %>%
+        mutate(group = car::recode(group,"'fraq_1'='VIA';'fraq_2'='non-VIA'")) %>%
+        ggpubr::ggbarplot(
+          x = "subset",
+          y = "proportion",
+          fill = "group",
+          palette = palBW,
+          position = position_dodge2()
+        )+
+        labs(x = "gastrointestinal symptoms")+
+        theme(axis.title.y = element_blank()),
+      nrow = 1,
+      ncol = 3,
+      common.legend = T
+
+    ),
+
+    nrow =2,
+    ncol =1,
+    heights = c(1,0.8)
+
+  )
+
