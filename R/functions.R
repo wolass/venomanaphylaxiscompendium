@@ -415,14 +415,14 @@ makeTests <- function(groups,rdb){
                  dplyr::select(variableName) %>% pull %>% as.character()]
   ts <- lapply(varDF, # Check which tables are givin an error with chisq test
                function(x){ # You may implement also fisher tests here later
-                 table(x,grouping)
+                 table(x,grouping)[1:2,] # get rid of the unknown row
                }) %>%
     lapply(function(x){
       length(which(x==0))
     }) %>% lapply(function(x){
-      ifelse(x==0,T,F)
+      ifelse(x==0,T,F) # Gives True output if there are no 0 counts in any table cells
     }) %>% unlist()
-  varDF[,ts]
+ # varDF[,ts]
   #ChiF(varDF[ts],grouping) # put this into the dataframe
   variableSelectionTab %<>% full_join(ChiF(varDF[,ts],grouping),
                                       by = c("variableName"="variables")
@@ -447,9 +447,10 @@ makeTests <- function(groups,rdb){
   }) %>% do.call(what=rbind) %>% as.data.frame() %>%
   {data.frame(variableName=rownames(.),.,stringsAsFactors = F)}
   # Join with the maind DF wit h substituting the missing values
-  variableSelectionTab %<>% full_join( ttsts, by = "variableName") %>%
-    mutate(pval = coalesce(pval.y, pval.x)) %>%
-    dplyr::select(-c(pval.x,pval.y))
+  variableSelectionTab %<>%
+    full_join( ttsts)
+    #mutate(pval = coalesce(pval.y, pval.x)) %>%
+    #dplyr::select(-c(pval.x,pval.y))
   # Perform Kruskall
   varDF <- rdb[,variableSelectionTab %>% filter(fun=="Kruskal-Wallis")
                %>% dplyr::select(variableName) %>% pull %>% as.character()]
@@ -480,9 +481,9 @@ makeTests <- function(groups,rdb){
     {data.frame(variableName=rownames(.),
                 .,
                 stringsAsFactors = F)}
-  variableSelectionTab %<>% full_join(ktest, by = "variableName") %>%
-    mutate(pval = coalesce(pval.y, pval.x)) %>%
-    dplyr::select(-c(pval.x,pval.y))
+  variableSelectionTab %<>% full_join(ktest) #%>%
+    #mutate(pval = coalesce(pval.y, pval.x)) %>%
+    #dplyr::select(-c(pval.x,pval.y))
   return(variableSelectionTab)
 }
 

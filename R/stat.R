@@ -580,7 +580,7 @@ checkVarTab(data = rdb,
 #### The most associated differences
 AssociatedVars <- testInsectsbinomial %>%
   arrange(desc(Cramer)) %>%
-  dplyr::select(-c(2:5,11:16)) %>%
+  dplyr::select(-c(2:5,12:16)) %>%
   filter(Cramer>0.25)
 
 #### Crammer Plot ####
@@ -877,6 +877,7 @@ ANAscore_matched <-
                    filter(d_522_adren_agg %in% c("yes", "no")),
                  grouping_var ="grouping",
                  matching_vars = c("ANAscore","d_age"),
+                 #matching_vars = c("d_severity_rm","d_age"),
                  grouping_var_level = "insects",
                  df = T)
 testANAscoreMatched <- makeTests(groups = "grouping",
@@ -889,6 +890,7 @@ testANAscoreMatched <- makeTests(groups = "grouping",
          {split(.,.$section)}
 
 
+
 countYesManagment <- function(var){
   tbl <- ANAscore_matched %>%
     group_by(grouping,!! sym(var))  %>%
@@ -899,11 +901,22 @@ countYesManagment <- function(var){
              nonVIA = tbl[2,3])
 }
 
-plotManagement <- testANAscoreMatched$management$variableName %>%
-  map(countYesManagment) %>%
-  do.call(what = rbind)  %>%
-  tidyr::gather(key = "grouping", value = "positive",2:3) %>%
-  filter(variable %in% c(
+countYesManagment2 <- function(var){
+  tbl <- ANAscore_matched %>%
+    group_by(grouping,!! sym(var))  %>%
+    summarize(n = n()) %>%
+    tidyr::spread(d_522_adren_agg,n)
+    filter(!!sym(var) == "yes")
+  data.frame(variable = names(tbl)[2],
+             VIA_no = tbl[tbl$grouping=="insects","no"],
+             nonVIA_no = tbl[2,3])
+}
+
+plotManagement <- {df_temp <- testANAscoreMatched$management %>%
+  #map(countYesManagment) %>%
+  #do.call(what = rbind)  %>%
+  #tidyr::gather(key = "grouping", value = "positive",2:3) %>%
+  filter(variableName %in% c(
     "d_522_adren_agg",
     "q_522_antih_iv",
     "q_522_cortico_iv",
@@ -915,7 +928,7 @@ plotManagement <- testANAscoreMatched$management$variableName %>%
   )) %>%
   mutate(
     variable = car::recode(
-      variable,
+      variableName,
       recodes = "'q_522_cortico_iv'='corticoids iv.';
             'q_522_antih_iv'='antihistamines iv.';
             'd_522_adren_agg'='adrenaline iv./im.';
@@ -924,10 +937,15 @@ plotManagement <- testANAscoreMatched$management$variableName %>%
             'q_522_beta2_inhal'='beta-2 mimetics inh.';
       'q_522_volume'='volume iv.';
       'q_561_hospital_admission_v6'='hospital admission';
-      'q_562_intensive_care_v6'='intensive care'"),
-    grouping = ifelse(grouping =="n", "VIA","non-VIA")
-    ) %>%
-  ggplot(aes(reorder(variable, -positive),positive/1976,fill=grouping))+
+      'q_562_intensive_care_v6'='intensive care'")
+    )
+ df_temp$pval %<>% p.adjust(method = "fdr")
+  df_temp %>%
+    mutate(significant = ifelse(pval <0.05,T,F)) %>%
+    gather(key = "group",value = "proportion",4:5) %>%
+    mutate(group = car::recode(group, "'fraq_1'='VIA';'fraq_2'='non-VIA'")) %>%
+  #ggpubr::ggbarplot()
+  ggplot(aes(reorder(variable, -counts_1),proportion,fill=group))+
   geom_bar(stat = "identity", position = "dodge") +
   theme_classic() +
   theme(
@@ -938,8 +956,13 @@ plotManagement <- testANAscoreMatched$management$variableName %>%
   labs(x = "Therapy", y = "proportion", fill = "") +
   scale_fill_manual(values = rev(c("#848484","#1f1f1f"))) +
   theme(axis.title.x = element_blank())+
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1))
-
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+  annotate("text",
+           x = 1:8,
+           y = c(.88,.77,.61,.40,.35,.25,.25,.25),
+           label = c(rep("*",4),"",rep("*",3)),
+           size = 8)
+}
 
 backup <- testANAscoreMatched$management[, -7] %>%
   tidyr::gather(value = "Proportion",
@@ -2186,57 +2209,57 @@ plot.Cramer(supraCramerFun(data =rdbp,
 
 require(ggpubr)
 cof_fig<- ggarrange(
-  ggarrange(
+  #ggarrange(
     ggplot()+
       background_image(png::readPNG("analysis/figures/figForestfinalrmr.png")),
-    age_sex_matched %>%
-      filter(q_410_masto_cur!="yes",
-             !is.na(tryptase_value_3cat ),
-             !is.na(d_severity_rmr)#,
-             #d_severity_rm %in% c("2","3")
-      ) %>%
-      mutate(d_111_urti_flush =
-               factor(d_111_urti_flush,
-                      labels = c("skin -","skin +")),
-             grouping = factor(grouping,
-                               labels=c("VIA","non-VIA")),
-             d_severity_rmr = factor(d_severity_rmr,
-                                     labels = c("I+II","III+IV"))
-             # tryptase_value_3cat = car::recode(
-             #   tryptase_value_3cat,
-             #   "'low'='<4';'medium'='<8';'high'='<11.5'"
-             # )
-      ) %>%
-      count(grouping,
-            d_111_urti_flush,
-            d_severity_rmr,
-            tryptase_value_3cat) %>%
-      group_by(grouping,d_111_urti_flush) %>%
-      mutate(prop = prop.table(n)) %>%
-      mutate(tryptase_value_3cat =
-               factor(tryptase_value_3cat,
-                      levels = c("low","medium","high",">11.5"),
-                      labels = c("<4","<8","<11.5",">11.5"))) %>%
-      ggpubr::ggbarplot(
-        y = "prop",
-        facet.by = c("grouping",
-                     "d_111_urti_flush"),
-        x = "tryptase_value_3cat",
-        fill = "d_severity_rmr",
-        position = position_fill(reverse = T),
-        palette = "grey"
-      )+
-      theme(axis.text.x = element_text(angle = 90, hjust = 1))+
-      guides(fill= guide_legend(ncol = 2,nrow = 2, byrow = F))+
-      labs(fill = "severity",
-           y = "proportion",
-           x = "BST [ng/ml]")
-      ,
-    widths = c(1,0.5),
-    ncol = 2,
-    nrow = 1,
-    labels = c("","B")
-  ),
+  #   age_sex_matched %>%
+  #     filter(q_410_masto_cur!="yes",
+  #            !is.na(tryptase_value_3cat ),
+  #            !is.na(d_severity_rmr)#,
+  #            #d_severity_rm %in% c("2","3")
+  #     ) %>%
+  #     mutate(d_111_urti_flush =
+  #              factor(d_111_urti_flush,
+  #                     labels = c("skin -","skin +")),
+  #            grouping = factor(grouping,
+  #                              labels=c("VIA","non-VIA")),
+  #            d_severity_rmr = factor(d_severity_rmr,
+  #                                    labels = c("I+II","III+IV"))
+  #            # tryptase_value_3cat = car::recode(
+  #            #   tryptase_value_3cat,
+  #            #   "'low'='<4';'medium'='<8';'high'='<11.5'"
+  #            # )
+  #     ) %>%
+  #     count(grouping,
+  #           d_111_urti_flush,
+  #           d_severity_rmr,
+  #           tryptase_value_3cat) %>%
+  #     group_by(grouping,d_111_urti_flush) %>%
+  #     mutate(prop = prop.table(n)) %>%
+  #     mutate(tryptase_value_3cat =
+  #              factor(tryptase_value_3cat,
+  #                     levels = c("low","medium","high",">11.5"),
+  #                     labels = c("<4","<8","<11.5",">11.5"))) %>%
+  #     ggpubr::ggbarplot(
+  #       y = "prop",
+  #       facet.by = c("grouping",
+  #                    "d_111_urti_flush"),
+  #       x = "tryptase_value_3cat",
+  #       fill = "d_severity_rmr",
+  #       position = position_fill(reverse = T),
+  #       palette = "grey"
+  #     )+
+  #     theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  #     guides(fill= guide_legend(ncol = 2,nrow = 2, byrow = F))+
+  #     labs(fill = "severity",
+  #          y = "proportion",
+  #          x = "BST [ng/ml]")
+  #     ,
+  #   widths = c(1,0.5),
+  #   ncol = 2,
+  #   nrow = 1,
+  #   labels = c("","B")
+  # ),
   ggarrange(
     plot_beta_cardiacs,
     plot_ace_cardiacs,
@@ -2330,7 +2353,7 @@ cof_fig<- ggarrange(
   nrow = 3,
   ncol=1,
   heights = c(1.2,0.65,0.7),
-  labels = c("A","C","D")
+  labels = c("A","B","C")
 )
 
 #### Heatmap Symptom+Therapy ####
@@ -2943,6 +2966,8 @@ ggarrange(
 #### previous reaction and the adrenaline treatemnt ####
 
 adren_prev <- ANAscore_matched %>%
+  mutate(grouping = car::recode(grouping, "'insects'='VIA';
+                                'other'='non-VIA'")) %>%
   group_by(d_522_adren_agg, grouping, q_160_ever_react) %>%
   filter(q_160_ever_react %in% c("no","yes")) %>%
   summarize(n = n()) %>%
@@ -2957,7 +2982,7 @@ adren_prev <- ANAscore_matched %>%
             palette = palBW)+
   labs(x = "",
        fill = "adrenaline\nadministered?",
-       y = "proportion [%]")
+       y = "proportion")
 
 adren_severity <- ANAscore_matched %>%
   group_by(d_522_adren_agg, grouping, d_severity_rmr) %>%
@@ -3444,8 +3469,17 @@ verification::roc.plot(
 ### Fig Adrenalineuse ####
 
 fig_adrenalineuse <- ggpubr::ggarrange(
-  plotManagement,
-
+  ggarrange(plotManagement,
+  adren_prev+
+    geom_segment(aes(x = 0.5,
+                     xend = 2.5,
+                     y = 0.33,
+                     yend = 0.33),
+                 color="white",
+                 linetype =2),
+  widths = c(1,0.75),
+  labels = c("A","B")
+),
   #lower_panel,
   matrix_venom$p+
     labs (x = "", y = "")+
@@ -3463,7 +3497,7 @@ fig_adrenalineuse <- ggpubr::ggarrange(
                      yend = c(34.5)), color = "red", linetype = 2  ),
   nrow = 2,
   heights = c(1.5,3),
-  labels = c("A","B")
+  labels = c("","C")
 )
 
 ### Do we see tachycardia in patients with lesss severe anaphylaxis to VIA? ####
@@ -3544,10 +3578,15 @@ fig_symptoms_3 <-
           x = "subset",
           y = "proportion",
           fill = "group",
-          palette = palBW,
+          palette = rev(palBW),
           position = position_dodge2()
         )+
-        labs(x = "hypotension") ,
+        theme(legend.position = "none")+
+        labs(x = "hypotension")+
+        annotate("text",x = c(1,2),
+                 y= c(0.35,.5),
+                 label = "*",
+                 size = 8),
 
       ex %>%
         filter(variableName=="q_112_vomiting") %>%
@@ -3558,11 +3597,16 @@ fig_symptoms_3 <-
           x = "subset",
           y = "proportion",
           fill = "group",
-          palette = palBW,
+          palette = rev(palBW),
           position = position_dodge2()
         )+
         labs(x = "vomiting")+
-        theme(axis.title.y = element_blank()) ,
+        theme(axis.title.y = element_blank(),
+              legend.position = "none")+
+        annotate("text",x = c(1,2),
+                 y= c(0.41,.21),
+                 label = "*",
+                 size = 8),
 
       ex %>%
         filter(variableName=="q_112") %>%
@@ -3573,14 +3617,19 @@ fig_symptoms_3 <-
           x = "subset",
           y = "proportion",
           fill = "group",
-          palette = palBW,
+          palette = rev(palBW),
           position = position_dodge2()
         )+
         labs(x = "gastrointestinal symptoms")+
-        theme(axis.title.y = element_blank()),
+        theme(axis.title.y = element_blank(),
+              legend.position = "none")+
+        annotate("text",x = c(1,2),
+                 y= c(0.58,.45),
+                 label = "*",
+                 size = 8),
       nrow = 1,
       ncol = 3,
-      common.legend = T
+      common.legend = F
 
     ),
 
@@ -3590,3 +3639,57 @@ fig_symptoms_3 <-
 
   )
 
+
+fig_skinsymptoms <- ggpubr::ggarrange(
+  ggarrange(skin_symptoms$severe_urti_flush_plot,
+            skin_symptoms$plot_tryptase,
+            labels = c("A","B"),
+            nrow =2,
+            ncol = 1),
+  age_sex_matched %>%
+    filter(q_410_masto_cur!="yes",
+           !is.na(tryptase_value_3cat ),
+           !is.na(d_severity_rmr)#,
+           #d_severity_rm %in% c("2","3")
+    ) %>%
+    mutate(d_111_urti_flush =
+             factor(d_111_urti_flush,
+                    labels = c("skin -","skin +")),
+           grouping = factor(grouping,
+                             labels=c("VIA","non-VIA")),
+           d_severity_rmr = factor(d_severity_rmr,
+                                   labels = c("I+II","III+IV"))
+           # tryptase_value_3cat = car::recode(
+           #   tryptase_value_3cat,
+           #   "'low'='<4';'medium'='<8';'high'='<11.5'"
+           # )
+    ) %>%
+    count(grouping,
+          d_111_urti_flush,
+          d_severity_rmr,
+          tryptase_value_3cat) %>%
+    group_by(grouping,d_111_urti_flush) %>%
+    mutate(prop = prop.table(n)) %>%
+    mutate(tryptase_value_3cat =
+             factor(tryptase_value_3cat,
+                    levels = c("low","medium","high",">11.5"),
+                    labels = c("<4","<8","<11.5",">11.5"))) %>%
+    ggpubr::ggbarplot(
+      y = "prop",
+      facet.by = c("grouping",
+                   "d_111_urti_flush"),
+      x = "tryptase_value_3cat",
+      fill = "d_severity_rmr",
+      position = position_fill(reverse = T),
+      palette = "grey"
+    )+
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+    #guides(fill= guide_legend(ncol = 2,nrow = 2, byrow = F))+
+    labs(fill = "severity",
+         y = "proportion",
+         x = "BST [ng/ml]"),
+  nrow =1,
+  ncol =2,
+  labels = c("","C")
+  #heights = c(1,0.8)
+)
