@@ -57,33 +57,29 @@ devtools::load_all('.',quiet = T) # Or use devtools::load_all('.', quiet = T) if
 
 
 # Abstract
-Insect-venom elicited anaphylaxis is a common hypersensitivity reaction which may be life-threatening. Using data from the European Anaphylaxis Registry (`r nrow(data)` cases) we identified `r {data$d_elicitor_gr5=="insects"} %>% sum()` with insect-venom elicited anaphylaxis and analyzed these in comparison to anaphylaxis triggered by other elicitors (n = `r {data$d_elicitor_gr5!="insects"} %>% sum()`).
+**Introduction:** Insect-venom elicited anaphylaxis is a common, life-threatening, hypersensitivity reaction. It is bound with specific: 1) symptom profile, 2) cofactors and 3) management. Identifying the diffeneces in subtypes of anaphylaxis is crucial for future management guidelines and personalized medicine approach.  
 
-The data show that `r {{rdb$q_340_insects=="yellow jacket"} %>% sum(na.rm=T)/sum({!is.na(rdb$q_340_insects)})*100} %>% {round(.,1)}`% of all insect elicited cases were elicited by yellow jackets, followed by bees (`r {{rdb$q_340_insects=="bee"} %>% sum(na.rm=T)/sum({!is.na(rdb$q_340_insects)})*100} %>% {round(.,1)}`%). The venom triggered cases occurred mostly in outdoor places (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(q_152_location) %>% summarize(n=n()) %>% {.[c(4),2] %>% sum()/(.[,2] %>% sum)*100} %>% round(1)`%) patients' homes (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(q_152_location) %>% summarize(n=n()) %>% {.[c(8),2] %>% sum()/(.[,2] %>% sum)*100} %>% round(1)`%) or urban places (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(q_152_location) %>% summarize(n=n()) %>% {.[c(5),2] %>% sum()/(.[,2] %>% sum)*100} %>% round(1)`%). 
+**Methods:** Using data from the European Anaphylaxis Registry (`r nrow(data)` cases) we identified `r length(which(data4$d_elicitor_gr5== "insects" & data4$reaction_type_brown=="anaphylaxis"))` with insect-venom elicited anaphylaxis and analyzed these in comparison to sex-and-age-matched anaphylaxis cases triggered by other elicitors (n = `r nrow(age_sex_matched %>% filter(grouping == "other"))`).
 
-Regarding the symptoms: skin, gastrointestinal and respiratory manifestations occurred less frequently in insect induced cases of anaphylaxis, but cardiovascular symptoms (with hypotension, collapse, and loss of consciousness) were more frequent.  Intramuscular adrenaline (as a first-line therapy) was administered significantly less often in insect venom elicited cases (`r rdb %>% filter(!is.na(q_340_insects)) %>% group_by(d_522_adren_agg) %>% summarize(n=n()) %>% {.[2,2]/(.[1,2])*100} %>% round(1)`% vs `r rdb %>% filter(is.na(q_340_insects)) %>% group_by(d_522_adren_agg) %>% summarize(n=n()) %>% {.[2,2]/(.[1,2])*100} %>% round(1)`, p < 0.0001). The mortality rate in insect anaphylaxis was comparable to other cases (0.295%, p = 0.174).
-
-Patients who experienced insect-venom anaphylaxis were older than patients with anaphylaxis elicited by other elicitors (p < 0.0001), more often had concomitant mastocytosis (p < 0.0001) and cardiac conditions (p < 0.0001) and females more often had concomitant thyroid diseases and less often suffered from a food allergy or atopic dermatitis. 
+**Results:** Venom induced anaphylaxis (VIA) more frequently involed over 3 organ systems and was associated with cardiovascular symptoms what was most prominently visible in patients under 22 years of age. Absence of skin symptoms during anaphylaxis correlated with baseline serum tryptase and was associated with an increased risk of severe reaction specificaly in VIA. Intramuscular or intravenous adrenaline was administered significantly less often in IVA especially without prior history of anaphylaxis. Subelevated baseline serum tryptase (8-11.5 ng-ml) was more frequently associated with severe anaphylaxis and this effect was most prominantly visible for IVA.
 
  <!-- MORE DISCUSSION!!!!!-->
-The data show that the management of insect-venom anaphylaxis may be improved. Patients with concomitant cardiovascular conditions and these with hyperreactive mast cells require intensified prophylactic measures.  
-
-
+**Conclusions:** Due to the specific symptom profile, frequently affecting cardiovascular system, patients undergoing IVA are undertreated with adrenaline. Lack of urticaria or flushing during previous anaphylaxis (especialy in combination with subelevated baseline serum tryptase levels) is associated with severe reactions. 
 
 # Introduction
 
 Hypersensitivity to insect venom is a systemic reaction (anaphylaxis) in up to 0.3--7.5% of the adult population [@Bil2008]. Venom induced anaphylaxis (VIA) can be fatal, and patients sometimes require lifelong systemic immunotherapy [@Sturm2017]. The need for a more precise description of the diagnosis, identification of biomarkers, and phenotypes of anaphylaxis is discussed [@JimenezRodriguez2018]. Nevertheless, in order to facilitate a precision-medicine approach [@Muraro2017] for the diagnosis of anaphylaxis --- a better understanding of its clinical subtypes is required.
 
-Controlled clinical trials in anaphylaxis are hardly possible due to the acuteness of this life-threatening condition and their infrequent and random occurence. Therefore registries, gathering clinical data from patients with a well documented (recent) history of anaphylaxis are a crucial tool in investigating this entity.
+Controlled clinical trials in anaphylaxis are hardly possible due to the acuteness of this life-threatening condition and their infrequent and random occurence. Therefore registries, gathering clinical data from patients with a well documented (recent) history of anaphylaxis are crucial in investigating this entity.
 
 This study aimed to identify clinical patterns of venom induced anaphylaxis (VIA) regarding symptoms, cofactors, and management by a case-control comparison with other types of anaphylaxis (non-VIA).
 
 
 # Methods
 
-We searched the European Anaphylaxis Registry [@Grabenhenrich2016] (status from March 2019) for anaphylaxis cases elicited by insect's venom. The flowchart in Fig. \@ref(fig:flow) represents the detailed case-selection process. 
+We searched the European Anaphylaxis Registry [@Grabenhenrich2016] (status from March 2019) for anaphylaxis cases elicited by insect's venom. The flowchart in Fig. \@ref(fig:flow)A represents the detailed case-selection process. 
 
-The diagnosis of anaphylaxis was based on the definition by NIAID/FAAN [@Sampson2006] and the severity according to Ring and Messmer Scale [@Ring1977]. Grades III and IV (presenting with significant hypoxia, hypotension, confusion, collapse and loss of consciousness, or incontinence or cardiac arrest) were considered severe. 
+The diagnosis of anaphylaxis was based on the definition by NIAID/FAAN [@Sampson2006] and the severity according to Ring and Messmer Scale [@Ring1977]. Grades III and IV (presenting with significant hypoxia, hypotension, confusion and loss of consciousness, or incontinence or cardiac arrest) were considered severe. 
 
 Due to a large number of documented reactions in the European Anaphylaxis Registry - we were able to match the VIA with non-VIA cases according to sex and age to reduce the comparison bias. 
 When we analyzed a density plot of VIA cases according to age - we determined a bimodal distribution forming two subsets of patients with a cutoff age of 22 (Fig \@ref(fig:flow)B). Subsequently, we compared the management in both groups and matched the control group according to the severity of a reaction. Propensity score matching has been performed using the "MatchIt" package for R [@matchit]. The results of the propensity score matching are in Fig. \@ref(fig:flow)B-D and supplementary Fig \@ref(fig:matchingresult). 
@@ -107,7 +103,7 @@ VIA displayed a specific symptom pattern. Patients, who underwent VIA, more ofte
 Although the pattern of organ involvement during anaphylaxis in both groups showed similarities in gastrologic, skin, and respiratory systems, VIA more frequently involved over three organ systems (`r compare(c(tempdf[3:4,">3 organ\nsystems"]))`,<!-- , and did not differ in the proportion of elevated baseline serum tryptase (> 8 ng/ml). Although, patients undergoing VIA  less often had concomitant atopic diseases  -->
 Fig. \@ref(fig:figsymptoms)B).
 
-Younger patients (under 22) presented even more prominent differences in hypotension symptoms and more frequently reported gastrointestinal symptoms (e.g. vomiting) **when the reaction was not triggered by insect venom**.(Fig. \@ref(fig:figsymptoms)C-E) 
+Younger patients (under 22) presented even more prominent differences in hypotension symptoms and significantly less frequently reported gastrointestinal symptoms (e.g. vomiting) when the reaction was triggered by insect venom.(Fig. \@ref(fig:figsymptoms)C-E) 
 
 
 ## Absence of skin symptoms during anaphylaxis is associated with more severe episodes of VIA
