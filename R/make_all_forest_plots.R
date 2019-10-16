@@ -1,7 +1,6 @@
 ### make all forest plots
 make_all_forest_plots <- function(){
 
-
 test1 <- makeDF(age_sex_matched,
                 c( "q_410_cur",
                    "q_410_asthma_cur",
@@ -76,10 +75,10 @@ forestplot(labeltext = makeTableText(test1),
 dev.off()
 
 png("analysis/figures/figForestfinalrmr.png",
-    height = 640,
-    width = 860,
+    height = 640*2,
+    width = 860*2,
     #res = 300,
-    pointsize = 30
+    pointsize = 30*2
     #units="px"
 )
 forestplot(labeltext = makeTableText(test2)[,1:2],
@@ -119,7 +118,7 @@ makeForestPlot(rdbp[rdbp$d_age<18,],
                testInsectsbinomial %>%
                  filter(section=="cofactors") %>%
                  arrange(pval) %>%
-                 select(variableName) %>% pull() %>% {c(.[c(1,2,6,7,15,18
+                 dplyr::select(variableName) %>% pull() %>% {c(.[c(1,2,6,7,15,18
                  )])},
                "grouping",
                "severity_brown",
@@ -131,7 +130,7 @@ makeForestPlot(rdbp[rdbp$d_age>18,],
                testInsectsbinomial %>%
                  filter(section=="cofactors") %>%
                  arrange(pval) %>%
-                 select(variableName) %>% pull() %>% {c(.[c(1,6,16,41,18,27
+                 dplyr::select(variableName) %>% pull() %>% {c(.[c(1,6,16,41,18,27
                  )])},
                "grouping",
                "severity_brown",

@@ -2,20 +2,20 @@
 <table style="text-align:center"><tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"></td><td><em>Dependent variable:</em></td></tr>
 <tr><td></td><td colspan="1" style="border-bottom: 1px solid black"></td></tr>
 <tr><td style="text-align:left"></td><td>d_severity_rmr</td></tr>
-<tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">groupingother</td><td>-0.221<sup>**</sup></td></tr>
+<tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">groupingother</td><td>-0.244<sup>***</sup></td></tr>
 <tr><td style="text-align:left"></td><td>(0.087)</td></tr>
 <tr><td style="text-align:left"></td><td></td></tr>
 <tr><td style="text-align:left">d_111_urti_flushyes</td><td>-0.625<sup>***</sup></td></tr>
 <tr><td style="text-align:left"></td><td>(0.074)</td></tr>
 <tr><td style="text-align:left"></td><td></td></tr>
-<tr><td style="text-align:left">groupingother:d_111_urti_flushyes</td><td>0.558<sup>***</sup></td></tr>
+<tr><td style="text-align:left">groupingother:d_111_urti_flushyes</td><td>0.586<sup>***</sup></td></tr>
 <tr><td style="text-align:left"></td><td>(0.105)</td></tr>
 <tr><td style="text-align:left"></td><td></td></tr>
 <tr><td style="text-align:left">Constant</td><td>0.123<sup>**</sup></td></tr>
 <tr><td style="text-align:left"></td><td>(0.060)</td></tr>
 <tr><td style="text-align:left"></td><td></td></tr>
-<tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Observations</td><td>6,900</td></tr>
-<tr><td style="text-align:left">Log Likelihood</td><td>-4,699.505</td></tr>
-<tr><td style="text-align:left">Akaike Inf. Crit.</td><td>9,407.011</td></tr>
+<tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Observations</td><td>6,910</td></tr>
+<tr><td style="text-align:left">Log Likelihood</td><td>-4,706.136</td></tr>
+<tr><td style="text-align:left">Akaike Inf. Crit.</td><td>9,420.272</td></tr>
 <tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"><em>Note:</em></td><td style="text-align:right"><sup>*</sup>p<0.1; <sup>**</sup>p<0.05; <sup>***</sup>p<0.01</td></tr>
 </table>

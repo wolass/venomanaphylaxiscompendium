@@ -511,8 +511,8 @@ makeDF <- function(data,variables,grouping,outcome){
     grB <- which(grouping==levels(grouping)[2])
     rbind(
       #c(makeOdds(data =data, var1 = x, var2 = outcome),S="all"),
-      c(makeOdds(data =data[grA,], var1 = x, var2 = outcome),S="IVA"),
-      c(makeOdds(data =data[grB,], var1 = x, var2 = outcome),S="non-IVA"),
+      c(makeOdds(data =data[grA,], var1 = x, var2 = outcome),S="VIA"),
+      c(makeOdds(data =data[grB,], var1 = x, var2 = outcome),S="non-VIA"),
       NA
     )
   }) %>% do.call(what=rbind) %>% data.frame()
