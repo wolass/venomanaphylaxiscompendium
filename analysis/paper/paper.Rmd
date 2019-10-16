@@ -105,14 +105,14 @@ VIA displayed a specific symptom pattern. Patients, who underwent VIA, more ofte
 Although the pattern of organ involvement during anaphylaxis in both groups showed similarities in gastrologic, skin, and respiratory systems, VIA more frequently involved over three organ systems (`r compare(c(tempdf[3:4,">3 organ\nsystems"]))`,<!-- , and did not differ in the proportion of elevated baseline serum tryptase (> 8 ng/ml). Although, patients undergoing VIA  less often had concomitant atopic diseases  -->
 Fig. \@ref(fig:figsymptoms)B).
 
-Younger patients (under 22) presented even more prominent differences in hypotension symptoms and significantly less frequently reported gastrointestinal symptoms (e.g. vomiting) when the reaction was triggered by insect venom.(Fig. \@ref(fig:figsymptoms)C-E) 
+Younger patients (under 22) presented even more prominent differences in hypotension symptoms and significantly less frequently reported gastrointestinal symptoms (e.g. vomiting) when the reaction was triggered by insect venom (Fig. \@ref(fig:figsymptoms)C-E).
 
 
 ## Absence of skin symptoms during anaphylaxis is associated with more severe episodes of VIA
 
-We found that `r (skin_symptoms$masto_tab$prop[c(2)]*100) %>% round(1)`% of patients with concomitant mastocytosis had anaphylaxis without skin symptoms (i.e. urticaria and flushing) which was significantly more compared to patients without diagnosed mastocytosis (`r (skin_symptoms$masto_tab$prop[c(1)]*100) %>% round(1)`%, `r pval(skin_symptoms$masto_chisq$p.value)`) and this observarion was most prominently seen in VIA (Fig. \@ref(fig:figskinsymptoms)).
+We found that `r (skin_symptoms$masto_tab$prop[c(2)]*100) %>% round(1)`% of patients with concomitant mastocytosis had anaphylaxis without skin symptoms (i.e. urticaria and flushing) which was significantly more compared to patients without diagnosed mastocytosis (`r (skin_symptoms$masto_tab$prop[c(1)]*100) %>% round(1)`%, `r pval(skin_symptoms$masto_chisq$p.value)`) and this observarion was most prominently seen in VIA.
 
-Similarily, in non-mastocytic patients undergoing VIA, urticaria or flushing as symptoms of anaphylaxis were present less often than if anaphylaxis was triggered by other elicitors (`r (skin_symptoms$tab$prop[2]*100) %>% round(1)`% vs `r (skin_symptoms$tab$prop[4]*100) %>% round(1)`% respectively, `r pval(skin_symptoms$chisq$p.value)`). Moreover, in this specific subgroup of patients (i.e. non-mastocytic and at the same time lacking urticaria or flushing) VIA was significantly more frequently severe (`r (skin_symptoms$severe_tab$prop[c(6,2)]*100) %>% round(1) %>% paste0(collapse="% in VIA vs. ")`%, `r pval(skin_symptoms$masto_chisq$p.value)`% in non-VIA).
+Similarily, in non-mastocytic patients undergoing VIA, urticaria or flushing as symptoms of anaphylaxis were present less often than if anaphylaxis was triggered by other elicitors (`r (skin_symptoms$tab$prop[2]*100) %>% round(1)`% vs `r (skin_symptoms$tab$prop[4]*100) %>% round(1)`% respectively, `r pval(skin_symptoms$chisq$p.value)`). Moreover, in this specific subgroup of patients (i.e. non-mastocytic and at the same time lacking urticaria or flushing) VIA was significantly more frequently severe (`r (skin_symptoms$severe_tab$prop[c(6,2)]*100) %>% round(1) %>% paste0(collapse="% in VIA vs. ")`%, `r pval(skin_symptoms$masto_chisq$p.value)`% in non-VIA,  Fig. \@ref(fig:figskinsymptoms)B).
 
 After performing a factorial logistic regression modelling we confirmed the significant interaction effect between the presence of skin symptoms and the trigger (VIA) on the severity of anaphylaxis (`r pval(skin_symptoms$severity_fit_skin_symptoms %>% coef %>% .[4,4])`). To recapitulate, non-mastocytic patients presenting without urticaria or flushing tended to have more severe anaphylaxis when it was triggered by insects, but not other elicitors of anaphylaxis (Fig. \@ref(fig:figskinsymptoms)C, and Tab. S \@ref(tab:factoriallogit)).
 
@@ -334,7 +334,7 @@ fig_symptoms_3
 
 ##### 
 
-```{r figskinsymptoms, fig.cap="Lack of skin symptoms during anaphylaxis is associated with more severe IVA.", fig.height=5}
+```{r figskinsymptoms, fig.cap="Lack of skin symptoms (i.e. urticara and flushing) during anaphylaxis is associated with more severe IVA. A: lack of skin symptoms and mastocytosis in VIA and non-VIA cases. B: Lack of skin symptoms according to severirty in both anaphylaxis groups. C: Relation of reaction severity according to the elicitor and the absence of skin symptoms in relation to categorized BST values. D: Continous values of BST according to severity in both non-VIA and VIA with subgrouping to skin symptoms.", fig.height=5}
 fig_skinsymptoms
 ```
 

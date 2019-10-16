@@ -3069,6 +3069,7 @@ skin_symptoms$masto_chisq <-
 
 skin_symptoms$masto_grouping_tab <-
   age_sex_matched %>%
+  mutate(grouping = car::recode(grouping,"'insects'='VIA'; 'other'='non-VIA'" )) %>%
   filter(q_111 != "unknown",
          q_410_masto_cur != "unknown") %>%
   #dplyr::select(d_111_urti_flush, q_410_masto_cur) %>%
@@ -3086,7 +3087,9 @@ skin_symptoms$masto_grouping_plot <- ggbarplot(skin_symptoms$masto_grouping_tab 
           palette = palBW,
           position = position_dodge2())+
   labs(x = "concomitant mastocytosis",
-       y = "proportion of patients\n without skin symptoms")
+       y = "proportion of patients\n without skin symptoms",
+       fill = "")+
+  annotate("text", x = 1.5, y = 0.5, label = "*", size = 8)
 
 skin_symptoms$severe_tab <-
 age_sex_matched %>%
@@ -3104,22 +3107,31 @@ age_sex_matched %>%
 
 skin_symptoms$severe_urti_flush_plot <-
   skin_symptoms$severe_tab %>%
+  filter(d_111_urti_flush == "no") %>%
   mutate(d_severity_rmr = ifelse(d_severity_rmr == "mild",
                                  "I+II",
                                  "III+IV")) %>%
   ggpubr::ggbarplot(
-    x = "d_111_urti_flush",
-    y = "n",
-    fill = "d_severity_rmr",
-    facet.by = "grouping",
-    position= position_fill(),
+    y = "prop",
+    x = "d_severity_rmr",
+    fill = "grouping",
+    position= position_dodge2(),
     palette = palBW
   ) +
-  labs(x = "urticaria or flush",
-       y = "proportion",
-       fill = "severity [R&M]")
+  labs(y = "proportion",
+       x = "severity [R&M]",
+       title = "non-mastocytic\npatients")+
+  theme(axis.title.y = element_blank(),
+        legend.position = "none")+
+  annotate("text",x = 1.5, y = 0.45, label = "*",
+           size = 8)
 
-
+fit1 <- glm(d_severity_rmr~grouping*d_111_urti_flush,
+    data = age_sex_matched %>%
+      mutate(d_severity_rmr = car::recode(d_severity_rmr,
+                                          "'mild'=0;'severe'=1")),
+    family = "binomial")
+summary(fit1)
 # age_sex_matched <- age_sex_matched %>%
 #   mutate(d_111_angio_or_urti = ifelse(
 #     q_111_urticaria=="yes"|
@@ -3643,9 +3655,13 @@ fig_symptoms_3 <-
 
 
 fig_skinsymptoms <- ggpubr::ggarrange(
-  ggarrange(skin_symptoms$severe_urti_flush_plot,
+  ggarrange(
+    ggarrange(skin_symptoms$masto_grouping_plot,
+              skin_symptoms$severe_urti_flush_plot,
+              labels = c("A","B")
+    ),
             skin_symptoms$plot_tryptase,
-            labels = c("A","B"),
+            labels = c("","D"),
             nrow =2,
             ncol = 1),
   age_sex_matched %>%
@@ -3692,6 +3708,9 @@ fig_skinsymptoms <- ggpubr::ggarrange(
          x = "BST [ng/ml]"),
   nrow =1,
   ncol =2,
+  widths = c(1.5,1),
   labels = c("","C")
   #heights = c(1,0.8)
 )
+
+
