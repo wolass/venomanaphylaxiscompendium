@@ -1107,24 +1107,26 @@ lower_panel <- ggpubr::ggarrange(
     #facet_grid(.~b_sex)+
     theme_classic()+
     theme(legend.position = "none")+
-    scale_fill_manual(values = rev(c("#c4c4c4", "#454545")))+
+    scale_fill_manual(values = palBW)+
     labs(y ="proportion",x = "Sex",fill = "elicitor"),
 
   ANAscore_matched  %>%
+    mutate(grouping = car::recode(grouping, "'insects'='VIA';'other'='non-VIA'")) %>%
     #select(grouping,d_severity_rm) %>%
     group_by(grouping,d_severity_rm) %>%
     summarize(n = n()) %>%
     ggplot(aes(x = as.factor(d_severity_rm),y=n, fill = grouping)) +
     geom_bar(stat="identity",position="dodge")+
     theme_classic()+
-    labs(x = "Severity grade [R&M]",fill = "R&M",y="cases [n]")+
-    theme(legend.position = "none")+
-    scale_fill_manual(values = rev(c("#c4c4c4", "#454545"))),
+    labs(x = "Severity grade [R&M]",fill = "",y="cases [n]")+
+    theme(legend.position = "bottom")+
+    scale_fill_manual(values = palBW),
 
-common.legend = T,
-legend = "right",
-align = "h",
-ncol = 3,
+common.legend = F,
+#legend = "right",
+align = "v",
+ncol = 1,
+heights = c(1,1,1.5),
 labels = c("B","C","D"))
 
 

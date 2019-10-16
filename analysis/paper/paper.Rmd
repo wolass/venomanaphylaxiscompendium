@@ -84,7 +84,7 @@ We searched the European Anaphylaxis Registry [@Grabenhenrich2016] (status from 
 The diagnosis of anaphylaxis was based on the definition by NIAID/FAAN [@Sampson2006] and the severity according to Ring and Messmer Scale [@Ring1977]. Grades III and IV (presenting with significant hypoxia, hypotension, confusion and loss of consciousness, or incontinence or cardiac arrest) were considered severe. 
 
 Due to a large number of documented reactions in the European Anaphylaxis Registry - we were able to match the VIA with non-VIA cases according to sex and age to reduce the comparison bias. 
-When we analyzed a density plot of VIA cases according to age - we determined a bimodal distribution forming two subsets of patients with a cutoff age of 22 (Fig \@ref(fig:flow)B). Subsequently, we compared the management in both groups and matched the control group according to the severity of a reaction. Propensity score matching has been performed using the "MatchIt" package for R [@matchit]. The results of the propensity score matching are in Fig. \@ref(fig:flow)B-D and supplementary Fig \@ref(fig:matchingresult). 
+When we analyzed a density plot of VIA cases according to age - we determined a bimodal distribution forming two subsets of patients with a cutoff age of 22 (Fig. \@ref(fig:flow)B). Subsequently, we compared the management in both groups and matched the control group according to the severity of a reaction. Propensity score matching has been performed using the "MatchIt" package for R [@matchit]. The results of the propensity score matching are in Fig. \@ref(fig:flow)B-D and supplementary Fig \@ref(fig:matchingresult). 
 
 The final database consisted of `r countries %>% summarise(sum(n))` cases of venom induced anaphylaxis reported from allergy centers in `r countries %>% summarize(length(n))` countries and sex-and-age matched control group. 
 We compared the frequency of various symptoms, cofactors --- known to increase the risk of severe anaphylaxis, [@Worm2018] and management in both groups. 
@@ -315,13 +315,13 @@ We thank all patients, parents, and their children for their support in providin
 # Figures
 
 
-```{r flow,fig.width=5.2,fig.height=6, fig.cap=" A) Flow-diagram illustrating the rationale for case inclusion and exclusion from the final analysis. B, C, D: Age, sex, and severity distribution was matched in cases in both groups to allow for comparable results between VIA and non-VIA cases. Two age-subsets of patients could be recognized based on the density plot of age (B)."}
+```{r flow,fig.width=7,fig.height=4.5, fig.cap=" A) Flow-diagram illustrating the rationale for case inclusion and exclusion from the final analysis. B, C, D: Age, sex, and severity distribution was matched in cases in both groups to allow for comparable results between VIA and non-VIA cases. Two age-subsets of patients could be recognized based on the density plot of age (B)."}
 ggarrange(ggplot()+
             background_image(png::readPNG("../figures/flow.png")),
           lower_panel,
-          ncol = 1,
-          nrow = 2,
-          heights = c(1,0.4),
+          ncol = 2,
+          nrow = 1,
+          widths = c(1,0.5),
           labels = c("A","")
 )
 ```
