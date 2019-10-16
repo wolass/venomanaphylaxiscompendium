@@ -70,6 +70,8 @@ devtools::load_all('.',quiet = T) # Or use devtools::load_all('.', quiet = T) if
 
 Hypersensitivity to insect venom is a systemic reaction (anaphylaxis) in up to 0.3--7.5% of the adult population [@Bil2008]. Venom induced anaphylaxis (VIA) can be fatal, and patients sometimes require lifelong systemic immunotherapy [@Sturm2017]. The need for a more precise description of the diagnosis, identification of biomarkers, and phenotypes of anaphylaxis is discussed [@JimenezRodriguez2018]. Nevertheless, in order to facilitate a precision-medicine approach [@Muraro2017] for the diagnosis of anaphylaxis --- a better understanding of its clinical subtypes is required.
 
+Anaphylaxis is a clinical diagnosis with a variety of trigger factors and clinical presentations. Symptom profiles and specific cofactors for venom induced anaphylaxis had previously been analysed in uncontrolled manner in relatively small cohorts [@LANTNER; @Ruff2009; @nittner2015insect]. 
+
 Controlled clinical trials in anaphylaxis are hardly possible due to the acuteness of this life-threatening condition and their infrequent and random occurence. Therefore registries, gathering clinical data from patients with a well documented (recent) history of anaphylaxis are crucial in investigating this entity.
 
 This study aimed to identify clinical patterns of venom induced anaphylaxis (VIA) regarding symptoms, cofactors, and management by a case-control comparison with other types of anaphylaxis (non-VIA).
@@ -87,12 +89,12 @@ When we analyzed a density plot of VIA cases according to age - we determined a 
 The final database consisted of `r countries %>% summarise(sum(n))` cases of venom induced anaphylaxis reported from allergy centers in `r countries %>% summarize(length(n))` countries and sex-and-age matched control group. 
 We compared the frequency of various symptoms, cofactors --- known to increase the risk of severe anaphylaxis, [@Worm2018] and management in both groups. 
 
-Based on the severity and symptom profile, we defined a sub-elevated baseline serum tryptase (BST) cut-off value of 8 - 11.5 ng/ml (Fig. \@ref(fig:figcofactors)B). 
+Based on the severity and symptom profile, we defined sub-elevated baseline serum tryptase (BST) values as 8 - 11.5 ng/ml (Fig. \@ref(fig:figcofactors)B). 
 
 <!-- ## Data handling and statistics -->
 We used the R Statistical Package [@R] for statistical analysis. A simple comparison of categorical variables was performed using either Chi^2^ test or Fisher's exact test (where the number of observation in a bin was less than 10). Continuous variables were analyzed using Mann-Whitney U test. In case of comparisons with two or more independent variables, we used Factorial ANOVA or Generalized Linear Models. We defined statistical significance as α = 0.05. Data, along with the analysis script, can be accessed online at https://github.com/wolass/venomanaphylaxiscompendium.
 
-We trained a random forest classifier (using the "randomForest" package for R [@rf]) in order to find therapeutic approaches that varied the most between VIA / non-VIA group and presented the results Gini importance [@Strobl2007]. We also performed an association study of therapeutic interventions and symptoms. The resulting phi values are presented in a heatmap with automatic clustering using Ward’s Agglomerative Hierarchical Clustering with Euclidean distances [@heatmaply].
+We trained a random forest classifier (using the "randomForest" package for R [@rf]) in order to find therapeutic approaches that varied the most between VIA / non-VIA group and presented the results as Gini importance [@Strobl2007]. We also performed an association analysis of therapeutic interventions and symptoms. The resulting phi values are presented in a heatmap with automatic clustering using Ward’s Agglomerative Hierarchical Clustering with Euclidean distances [@heatmaply].
 
 # Results
  
