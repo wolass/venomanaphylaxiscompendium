@@ -2143,8 +2143,23 @@ fig_symptoms <- ggarrange(
              group,
              "'fraq_1' = 'VIA';
              'fraq_2' = 'non-VIA'"
-           )),
+           )) %>%
+           filter(!is.na(variableName)),
          aes(variableName,Fraction, fill = group))+
+    geom_rect(fill = c("#E4E4E4"),
+              xmin = c(-Inf),
+              xmax = c(4.5),
+              ymin = -Inf,
+              ymax = Inf,
+              alpha = 0.1,
+              color = "white")+
+    geom_rect(fill = c("#E4E4E4"),
+              xmin = c(8.5),
+              xmax = c(Inf),
+              ymin = -Inf,
+              ymax = Inf,
+              alpha = 0.1,
+              color = "white")+
     geom_bar(stat = "identity", position = "dodge",na.rm = T)+
     theme_classic()+
     theme(axis.text.x = element_text(angle = 30,hjust =1, size = 15),
@@ -2157,9 +2172,9 @@ fig_symptoms <- ggarrange(
     annotate("text", x = 1:11,
              y = c(0.48,0.46,.32,.22,.30,.11,.18,.14,.28,.14,.11),
              label = "*", size = 8)+
-    geom_segment(aes(x = 1, xend = 4, y = .52,yend = .52), linetype =1 )+
-    geom_segment(aes(x = 5, xend = 8, y = .52,yend = .52), linetype =1 )+
-    geom_segment(aes(x = 9, xend = 11, y = .52,yend = .52), linetype =1 )+
+    #geom_segment(aes(x = 1, xend = 4, y = .52,yend = .52), linetype =1 )+
+    #geom_segment(aes(x = 5, xend = 8, y = .52,yend = .52), linetype =1 )+
+    #geom_segment(aes(x = 9, xend = 11, y = .52,yend = .52), linetype =1 )+
     annotate("text", x = c(2.5,6.5,10),y = .54,label = c("cardio.","gastro.","resp."))+
     scale_y_continuous(labels = scales::percent_format(accuracy = 1)),
 
@@ -3120,7 +3135,7 @@ skin_symptoms$severe_urti_flush_plot <-
   ) +
   labs(y = "proportion",
        x = "severity [R&M]",
-       title = "non-mastocytic\npatients")+
+       title = "non-mastocytosis\npatients")+
   theme(axis.title.y = element_blank(),
         legend.position = "none")+
   annotate("text",x = 1.5, y = 0.45, label = "*",
@@ -3482,6 +3497,11 @@ verification::roc.plot(
   predictions[,2])
 ### Fig Adrenalineuse ####
 
+anno <- data.frame(x1 = 1.5,
+                   y1 = 0.5,
+                   label1 = "*",
+                   `q_160_ever_react` = "no prev. ANA")
+
 fig_adrenalineuse <- ggpubr::ggarrange(
   ggarrange(plotManagement,
   adren_prev+
@@ -3490,7 +3510,12 @@ fig_adrenalineuse <- ggpubr::ggarrange(
                      y = 0.33,
                      yend = 0.33),
                  color="white",
-                 linetype =2),
+                 linetype =2)+
+    geom_text(data = anno,
+              aes(x = x1,
+                       y = y1,
+                       label = label1),
+              size = 8),
   widths = c(1,0.75),
   labels = c("A","B")
 ),
@@ -3579,6 +3604,9 @@ heights = c(1,1.4),
 labels = c("A","B")
 )
 
+ex <- ex %>%
+  mutate(subset = car::recode(subset, "'under 22' = '< 22';'over 22'='> 22'"))
+
 fig_symptoms_3 <-
   ggarrange(
     fig_symptoms,
@@ -3617,8 +3645,8 @@ fig_symptoms_3 <-
         labs(x = "vomiting")+
         theme(axis.title.y = element_blank(),
               legend.position = "none")+
-        annotate("text",x = c(1,2),
-                 y= c(0.41,.21),
+        annotate("text",x = c(1),
+                 y= c(0.41),
                  label = "*",
                  size = 8),
 
@@ -3637,8 +3665,8 @@ fig_symptoms_3 <-
         labs(x = "gastrointestinal symptoms")+
         theme(axis.title.y = element_blank(),
               legend.position = "none")+
-        annotate("text",x = c(1,2),
-                 y= c(0.58,.45),
+        annotate("text",x = c(1),
+                 y= c(0.58),
                  label = "*",
                  size = 8),
       nrow = 1,
@@ -3649,7 +3677,8 @@ fig_symptoms_3 <-
 
     nrow =2,
     ncol =1,
-    heights = c(1,0.8)
+    heights = c(1,0.8),
+    labels = c("","C")
 
   )
 
