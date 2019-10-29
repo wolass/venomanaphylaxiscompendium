@@ -15,10 +15,7 @@ nodes <-
              paste0("Formal anaphylaxis definition met\n",
                     format(length(which(data4$reaction_type_brown=="anaphylaxis")),
                            big.mark = ",")),
-             paste0("Sex- and age-matching of venom induced\nanaphylaxis and other known elicitors\n",
-                    format(nrow(age_sex_matched %>%
-                                  filter(grouping == "other")),
-                           big.mark = ",")),
+             paste0("Sex- and age-matching of venom induced\nanaphylaxis and other known elicitors\n"),
              paste0("Insects as elicitors\n\n",
                     format(length(which(data4$d_elicitor_gr5== "insects" &
                                    data4$reaction_type_brown=="anaphylaxis")),

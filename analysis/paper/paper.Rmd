@@ -172,7 +172,7 @@ ttadren1 <- ANAscore_matched %>%
   pval()
 ```
 
-Patients who underwent VIA significantly less often received adrenaline treatment than in other anaphylaxis cases (26.9% vs 34.6%, `r test_adrenuse1$p.value %>% pval()`). After adjusting both groups for similar age, sex, and severity distribution - the difference in adrenaline use was still significant irrespective of the administration route (`r ttadren1`, Fig \@ref(fig:adrenalineuse)B). 
+Patients who underwent VIA significantly less often received adrenaline treatment than in other anaphylaxis cases (26.9% vs 34.6%, `r test_adrenuse1$p.value %>% pval()`). After adjusting both groups for similar severity - the difference in adrenaline use was still significant irrespective of the administration route (`r ttadren1`, Fig \@ref(fig:adrenalineuse)B). 
 <!-- Antihistaminic drugs, on the other hand, were given more often in cases of VIA when compared to non-VIA. -->
 ```{r }
 pvaladrenprev <- adren_prev$data %>% 
@@ -187,7 +187,7 @@ pvaladrenprev_no <- adren_prev$data %>%
 ```
 
 A positive history of anaphylaxis influenced the therapy of a current episode as well. Adrenaline as a first-line treatment was given less often in VIA cases when compared to other cases **if patients did not report a previous history of anaphylaxis** (`r pvaladrenprev_no`), but in patients reporting previous reactions, there was no difference in adrenaline therapy (`r pvaladrenprev`, Fig. \@ref(fig:adrenalineuse)B). 
-Similarly, there were no differences in the adrenaline use between VIA and non-VIA when only severe reactions were taken into consideration (`r adren_severity_sev`). However, when we restricted the analysis to mild anaphylaxis cases --- non-VIA patients received adrenaline more frequently than VIA (`r adren_severity_mild`). 
+Similarly, there were no differences in the adrenaline use between VIA and non-VIA when only severe reactions were taken into consideration (`r adren_severity_sev`). However, when we restricted the analysis to moderate anaphylaxis cases --- non-VIA patients received adrenaline more frequently than VIA (`r adren_severity_mild`). 
 
 Patients with VIA received corticosteroids and antihistamines significantly more frequently than patients with anaphylaxis to other elicitors. On the other hand, adrenaline, beta-2 mimetics, and oxygen were given more often to patients suffering from non-VIA  (Fig. \@ref(fig:adrenalineuse)A, Fig. S\@ref(fig:rfplot)).
 
