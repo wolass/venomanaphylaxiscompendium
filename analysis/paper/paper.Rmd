@@ -1,5 +1,5 @@
 ---
-title: "Phenotype and risk assessment of insect venom anaphylaxis: a case - control study of the European Anaphylaxis Registry"
+title: "Phenotype and risk factors of venom induced anaphylaxis: a case - control study of the European Anaphylaxis Registry"
 author:
   - Wojciech Francuzik^1^
   - Franziska Ruëff^2^ 
@@ -52,6 +52,19 @@ Phone: +49 30 450 529 005;      Fax: +49 30 450 529 902
 **Document statistics:**
   Word count, figures, tables, references
 
+**Funding/ supporting grants:**
+
+**Conflict of interest:**
+
+R. Treudler reports grants and personal fees from Sanofi-Genzyme, ALK-Abello, Takeda,  Novartis, grants from Hautnetz Leipzig and Fraunhofer-IZI Leipzig, outside the submitted work.
+V. Cardona  reports personal fees from ALK, Allergopharma, Allergy Therapeutics, Diater, LET, Thermofisher and Stallergens outside the submitted work. 
+
+
+**List of abbreviations:**
+- VIA - Venom induced anaphylaxis
+- BST -Baseline Serum Tryptase
+
+
 
 
 
@@ -67,28 +80,30 @@ knitr::opts_chunk$set(
 
 devtools::load_all('.',quiet = T) # Or use devtools::load_all('.', quiet = T) if your code is in script files, rather than as functions in the `/R` diretory
 ###### SETUP
-
-```
+pacman::p_load(stargazer)
+``` 
 
 
 # Abstract
-**Introduction:** Insect-venom elicited anaphylaxis is a common, potentially life-threatening hypersensitivity reaction associated with specific: 1) symptom profile, 2) cofactors, and 3) management. Identifying the differences in subtypes of anaphylaxis is crucial for future management guidelines and the development of a personalized medicine approach.  
+**Introduction:** Venom induced anaphylaxis (VIA) is a common, potentially life-threatening hypersensitivity reaction associated with specific: 1) symptom profile, 2) cofactors, and 3) management. Identifying the differences in subtypes of anaphylaxis is crucial for future management guidelines and the development of a personalized medicine approach.  
 
-**Methods:** Using data from the European Anaphylaxis Registry (`r nrow(data)` cases) we identified `r length(which(data4$d_elicitor_gr5== "insects" & data4$reaction_type_brown=="anaphylaxis"))` with insect-venom elicited anaphylaxis and analyzed these in comparison to sex-and-age-matched anaphylaxis cases triggered by other elicitors (n = `r nrow(age_sex_matched %>% filter(grouping == "other"))`).
+**Aim:** This study aimed to evaluate the phenotype and risk factors of venom induced anaphylaxis in comparison to other elicitors of anaphylaxis.
 
-**Results:** Venom induced anaphylaxis (VIA) more frequently involved more than three organ systems and was associated with cardiovascular symptoms. The absence of skin symptoms during anaphylaxis correlated with baseline serum tryptase and was associated with an increased risk of a severe reaction. Intramuscular or intravenous adrenaline was administered significantly less often in VIA, in particular in patients without prior history of anaphylaxis. Baseline serum tryptase (8-11.5 ng-ml) was more frequently associated with severe anaphylaxis.
+**Methods:** Using data from the European Anaphylaxis Registry (`r nrow(data)` cases) we identified `r length(which(data4$d_elicitor_gr5== "insects" & data4$reaction_type_brown=="anaphylaxis"))` with VIA and analyzed these in comparison to sex-and-age-matched anaphylaxis cases triggered by other elicitors (non-VIA n = `r nrow(age_sex_matched %>% filter(grouping == "other"))`).
 
-**Conclusions:** Due to a specific symptom profile, frequently affecting the cardiovascular system, patients undergoing VIA are undertreated with adrenaline. The lack of skin symptoms (i.e. urticaria or flushing) during anaphylaxis (especially in combination with baseline serum tryptase levels within upper normal limits) is associated with severe reactions. 
+**Results:** Venom induced anaphylaxis (VIA) more frequently involved more than three organ systems and was associated with cardiovascular symptoms. The absence of skin symptoms during anaphylaxis correlated with baseline serum tryptase (BST) and was associated with an increased risk of a severe reaction. Intramuscular or intravenous adrenaline was administered significantly less often in VIA, in particular in patients without prior history of anaphylaxis. BST (8-11.5 ng/ml) was more frequently associated with severe anaphylaxis compared to BST values of < 8 ng/ml.
+
+**Conclusions:** Regarding the fact that VIA frequently affects the cardiovascular system, VIA patients were undertreated with adrenaline. The lack of skin symptoms (i.e. urticaria or flushing) during anaphylaxis (especially in combination with BST levels within upper normal limits) is associated with severe reactions. 
 
 # Introduction
 
-Hypersensitivity to insect venom is a systemic reaction (anaphylaxis) in up to 0.3--7.5% of the adult population [@Bil2008]. Venom induced anaphylaxis (VIA) can be fatal, and patients sometimes require lifelong systemic immunotherapy [@Sturm2017]. There is a need for a more precise description of the diagnosis, identification of biomarkers, and better definition of phenotypes of anaphylaxis [@JimenezRodriguez2018]. Nevertheless, in order to facilitate a precision-medicine approach [@Muraro2017] for the diagnosis of anaphylaxis --- a better understanding of its clinical subtypes is required.
+Hypersensitivity to insect venom presents as a systemic reaction (anaphylaxis) in up to 0.3--7.5% of the adult population [@Bil2008]. Venom induced anaphylaxis (VIA) can be fatal, and patients sometimes require lifelong venom immunotherapy [@Sturm2017]. There is a need for a more precise description of the diagnosis, identification of biomarkers, and better definition of phenotypes of anaphylaxis [@JimenezRodriguez2018]. Nevertheless, in order to facilitate a precision-medicine approach [@Muraro2017] for the diagnosis of anaphylaxis --- a better understanding of its clinical subtypes is required.
 
-Anaphylaxis is a clinical diagnosis with a variety of trigger factors and clinical presentations. Symptom profiles and specific cofactors for venom-induced anaphylaxis had previously been analyzed in an uncontrolled manner albeit relatively small cohorts [@LANTNER; @Ruff2009; @nittner2015insect]. 
+Anaphylaxis is a clinical diagnosis with a variety of trigger factors and clinical presentations. Symptom profiles and specific cofactors for venom-induced anaphylaxis (VIA) had previously been analyzed in an uncontrolled manner albeit relatively small cohorts [@LANTNER; @Ruff2009; @nittner2015insect]. 
 
-Controlled clinical trials in anaphylaxis are hardly possible due to the acuteness of this life-threatening condition and its infrequent and random occurrence. Therefore registries, gathering clinical data from patients with a well documented (recent) history of anaphylaxis are crucial in investigating this entity.
+Controlled clinical trials in anaphylaxis are hardly possible due to the acuteness of this life-threatening condition and its infrequent and random occurrence. Therefore registries, gathering clinical data from patients with a well-documented (recent) history of anaphylaxis are crucial in investigating this entity.
 
-This study aimed to identify clinical patterns of venom-induced anaphylaxis (VIA) regarding symptoms, cofactors, and management by a case-control comparison with other types of anaphylaxis (non-VIA) based on the the data from the European Anaphylaxis Registry.
+This study aimed to identify clinical patterns of VIA regarding symptoms, cofactors, and management by a case-control comparison with other types of anaphylaxis (non-VIA) based on the data from the European Anaphylaxis Registry.
 
 # Methods
 
@@ -113,9 +128,9 @@ We trained a random forest classifier (using the "randomForest" package for R [@
  
 ## VIA is more frequently associated with cardiovascular symptoms 
 
-VIA displayed a specific symptom pattern. Patients, who underwent VIA, more often experienced cardiovascular symptoms (dizziness, hypotension, unconsciousness, reduced alertness) than patients with anaphylaxis due to other elicitors and less often presented with expiratory distress, rhinitis or diarrhea (Fig. \@ref(fig:figsymptoms)A). 
+VIA displayed a specific symptom pattern. Patients, who underwent VIA, more often experienced cardiovascular symptoms (dizziness, hypotension, unconsciousness, reduced alertness) than patients with anaphylaxis due to other elicitors and less often presented with respiratory distress, rhinitis or diarrhea (Fig. \@ref(fig:figsymptoms)A). 
 
-Although the pattern of organ involvement during anaphylaxis in both groups showed similarities in gastrologic, skin, and respiratory systems, VIA more frequently involved more than three organ systems (`r compare(c(tempdf[3:4,">3 organ\nsystems"]))`,<!-- , and did not differ in the proportion of elevated baseline serum tryptase (> 8 ng/ml). Although, patients undergoing VIA  less often had concomitant atopic diseases  -->
+Although the pattern of organ involvement during anaphylaxis in both groups showed similarities in gastrointestinal, skin, and respiratory systems, VIA more frequently involved more than three organ systems (`r compare(c(tempdf[3:4,">3 organ\nsystems"]))`,<!-- , and did not differ in the proportion of elevated baseline serum tryptase (> 8 ng/ml). Although, patients undergoing VIA  less often had concomitant atopic diseases  -->
 Fig. \@ref(fig:figsymptoms)B).
 
 Younger patients (under 22) presented even more prominent differences in hypotension symptoms and significantly less frequently reported gastrointestinal symptoms (e.g., vomiting) when the reaction was triggered by insect venom (Fig. \@ref(fig:figsymptoms)C-E).
@@ -125,18 +140,17 @@ Younger patients (under 22) presented even more prominent differences in hypoten
 
 We found that `r (skin_symptoms$masto_tab$prop[c(2)]*100) %>% round(1)`% of patients with concomitant mastocytosis had anaphylaxis without skin symptoms (i.e. urticaria and flushing) which was significantly more frequent compared to patients without diagnosed mastocytosis (`r (skin_symptoms$masto_tab$prop[c(1)]*100) %>% round(1)`%, `r pval(skin_symptoms$masto_chisq$p.value)`). This finding was most prominently seen in VIA (Fig. \@ref(fig:figskinsymptoms)A).
 
-Similarily, in non-mastocytosis patients undergoing VIA skin smptoms(i.e. urticaria or flushing) were less often present than if anaphylaxis was triggered by other elicitors (`r (skin_symptoms$tab$prop[2]*100) %>% round(1)`% vs `r (skin_symptoms$tab$prop[4]*100) %>% round(1)`% respectively, `r pval(skin_symptoms$chisq$p.value)`). Moreover, in this specific subgroup of patients (i.e. non-mastosis patients lacking skin symptoms) VIA was significantly more frequently severe (`r (skin_symptoms$severe_tab$prop[c(6,2)]*100) %>% round(1) %>% paste0(collapse="% in VIA vs. ")`%, `r pval(skin_symptoms$masto_chisq$p.value)`,  Fig. \@ref(fig:figskinsymptoms)B).
+Similarly, in non-mastocytosis patients undergoing VIA, skin symptoms (i.e. urticaria or flushing) were less often present than if anaphylaxis was triggered by other elicitors (`r (skin_symptoms$tab$prop[2]*100) %>% round(1)`% vs `r (skin_symptoms$tab$prop[4]*100) %>% round(1)`% respectively, `r pval(skin_symptoms$chisq$p.value)`). Moreover, in this specific subgroup of patients (i.e. non-mastocytosis patients lacking skin symptoms) VIA was significantly more frequently severe (`r (skin_symptoms$severe_tab$prop[c(6,2)]*100) %>% round(1) %>% paste0(collapse="% in VIA vs. ")`%, `r pval(skin_symptoms$masto_chisq$p.value)`,  Fig. \@ref(fig:figskinsymptoms)B).
 
-By applying factorial logistic regression modeling, we confirmed a significant interaction effect between the presence of skin symptoms and insect venom on the severity of anaphylaxis (`r pval(skin_symptoms$severity_fit_skin_symptoms %>% coef %>% .[4,4])`). In other words, non-mastosis patients presenting without urticaria or flushing tended to have more severe anaphylaxis when triggered by insects, but not other elicitors of anaphylaxis (Fig. \@ref(fig:figskinsymptoms)B, and Tab. S1).
+By applying factorial logistic regression modeling, we confirmed a significant interaction effect between the presence of skin symptoms and insect venom on the severity of anaphylaxis (`r pval(skin_symptoms$severity_fit_skin_symptoms %>% coef %>% .[4,4])`). In other words, non-mastocytosis patients presenting without urticaria or flushing tended to have more severe anaphylaxis when triggered by insects. (Fig. \@ref(fig:figskinsymptoms)B, and Tab. S1).
 
 ## Absence of skin symptoms correlates with BST levels and increases the risk of severe anaphylaxis specifically in VIA
 
-Next, we investigated the association of skin symptoms with the tryptase levels in non-mastocytosis patients. For this model, we excluded the cases with known mastocytosis and with BST above 11.5 ng/ml, potentially indicating non-diagnosed mastocytosis. Similarily, 1) tryptase levels were higher in VIA patients, 2) correlated with the severity of anaphylaxis, and 3) this effect was significant in VIA (`r skin_symptoms$fit_tryp[[1]][4,5] %>% pval()`) but not in the non-VIA group (Fig. \@ref(fig:figskinsymptoms)C-D).
+Next, we investigated the association of skin symptoms with the tryptase levels in non-mastocytosis patients. For this model, we excluded the cases with known mastocytosis and with BST above 11.5 ng/ml, potentially indicating non-diagnosed mastocytosis. Similarly, 1) tryptase levels were higher in VIA patients, 2) correlated with the severity of anaphylaxis, and 3) this effect was significant in VIA (`r skin_symptoms$fit_tryp[[1]][4,5] %>% pval()`) but not in the non-VIA group (Fig. \@ref(fig:figskinsymptoms)C-D).
 
-## Baseline serum tryptase over 8 ng/ml and concomitant cardiovascular conditions increase the risk of severe VIA.
+## BST over 8 ng/ml and concomitant cardiovascular conditions increase the risk of severe VIA
 
-Cofactors acn promote the onset and increase severity of anaphylaxis. 
-Therefore we evaluated a variety of known cofactors regarding their impact to increase the risk of severe VIA. As expected, the cofactor most prominently associated with an increased risk of severe anaphylaxis was mastocytosis (Fig. \@ref(fig:figcofactors)). Concomitant mastocytosis increased the risk for 1) cardiac arrest and 2) loss of consciousness in patients undergoing VIA significantly more than in patients undergoing anaphylaxis due to other triggers (Fig. \@ref(fig:figcofactors)C and Fig. S\@ref(fig:supplement)A).    
+The cofactor most prominently associated with an increased risk of severe anaphylaxis was mastocytosis (Fig. \@ref(fig:figcofactors)). Concomitant mastocytosis increased the risk for 1) cardiac arrest and 2) loss of consciousness in patients undergoing VIA significantly more than in patients undergoing anaphylaxis due to other triggers (Fig. \@ref(fig:figcofactors)C and Fig. S\@ref(fig:supplement)A).    
 
 In line with the findings above, BST levels also correlated with the severity of anaphylaxis (on the Ring and Messmer scale) and, most importantly, sub-elevated BST was more prominently associated with increasing the risk of severe anaphylaxis in VIA than in non-VIA (Fig. \@ref(fig:figsymptoms)D and Fig. \@ref(fig:figcofactors)B).
 
@@ -144,11 +158,11 @@ Concomitant cardiovascular diseases were more prevalent in VIA than in non-VIA c
 
 ## Other cofactors of severe reactions 
 
-Severe reactions of VIA were more prevalent in patients above 22 years of age, and in VIA cases vs. other elicitors (Fig. S\@ref(fig:sev)). There were no differences in severity of reactions elicited by yellow-jackets and other 
+Severe reactions of VIA were more prevalent in patients above 22 years of age, and in VIA cases vs. non-VIA cases (Fig. S\@ref(fig:sev)). There were no differences in severity of reactions elicited by yellow-jackets and other 
 insect species (p = 0.4128).
 
 The effect of using ACE-I (as well as beta-blockers) on the risk of severe anaphylaxis correlated with the coexisting cardiovascular pathologies. ACE-I use was, however, more often associated with cardiac arrests in all anaphylaxis cases (`r ace_tab %>% filter(q_114_cardiac_arrest =="yes") %>% dplyr::select(prop) %>% pull() %>% rev() %>% compare()`, `r pval(ace_tab %>% dplyr::select(-prop) %>% spread(q_114_cardiac_arrest,n) %>% {chisq.test(.[,2:3])$p.value})`) regardless of the elicitor  (Fig. \@ref(fig:figcofactors)C). 
-Beta-blocker use was associated with a higher severity of anaphylaxis and with the onset of cardiovascular symptoms (cardiac arrest, chest pain), but was comparable between `r summary(beta_fit)[["coefficients"]][3,4] %>% pval()`). Surprisingly, arrhythmia was more frequently reported in patients with VIA and concomitant beta-blockers (Fig. \@ref(fig:figcofactors)C). 
+Beta-blocker use was associated with a higher severity of anaphylaxis and with the onset of cardiovascular symptoms (cardiac arrest, chest pain), but was comparable between both VIA and non-VIA`r summary(beta_fit)[["coefficients"]][3,4] %>% pval()`). Surprisingly, arrhythmia was more frequently reported in patients with VIA and concomitant beta-blockers (Fig. \@ref(fig:figcofactors)C). 
 
 
 ## One-third of VIA patients experience repeated reactions
@@ -158,7 +172,7 @@ treact <- table(rdb$grouping,rdb$q_160_ever_react)[,1:2] %>% prop.table(1)*100
 p <- table(rdb$grouping,rdb$q_160_ever_react)[,1:2] %>% summary() %>% {.$p.value}
 ```
 
-`r treact[1,2] %>% round(1)`% of patients with insect allergy had experienced venom anaphylaxis in the past. If the reaction was elicited by other elcitors (i.e. non-VIA) --- previous reactions were more frequently seen (`r treact[2,2]%>% round(1)`%, `r p %>% pval()`).  We observed `r sum(repeated_reaction_in_Reg)` patients with at least two fully-documented reactions. Out of these `r sum(greater_same[,2])` (`r (sum(greater_same[,2])/sum(repeated_reaction_in_Reg)*100)%>% round(1)`%) had insect elicited anaphylaxis and in `r greater_same[1,2]` of them (`r (greater_same[1,2]/sum(greater_same[,2])*100 )%>%round(1) `%) the following reaction was more severe than before. In `r greater_same[3,2]` out of the `r greater_same[1,2]` (`r (greater_same[3,2]/sum(greater_same[,2])*100) %>% round(1)`%) cases the reaction was similar in severity.
+`r treact[1,2] %>% round(1)`% of patients with insect allergy had experienced venom anaphylaxis in the past. If the reaction was elicited by other elicitors (i.e. non-VIA) --- previous reactions were more frequently seen (`r treact[2,2]%>% round(1)`%, `r p %>% pval()`).  We observed `r sum(repeated_reaction_in_Reg)` patients with at least two fully-documented reactions. Out of these `r sum(greater_same[,2])` (`r (sum(greater_same[,2])/sum(repeated_reaction_in_Reg)*100)%>% round(1)`%) had insect elicited anaphylaxis and in `r greater_same[1,2]` of them (`r (greater_same[1,2]/sum(greater_same[,2])*100 )%>%round(1) `%) the following reaction was more severe than before. In `r greater_same[3,2]` (`r (greater_same[3,2]/sum(greater_same[,2])*100) %>% round(1)`%) cases the reaction was similar in severity.
 
 
 ## VIA patients receive adrenaline less often than non-VIA
@@ -192,10 +206,10 @@ Similarly, there were no differences in the adrenaline use between VIA and non-V
 Patients with VIA received corticosteroids and antihistamines significantly more frequently than patients with anaphylaxis to other elicitors. On the other hand, adrenaline, beta-2 mimetics, and oxygen were given more often to patients suffering from non-VIA  (Fig. \@ref(fig:adrenalineuse)A, Fig. S\@ref(fig:rfplot)).
 
 
-Next, we asked wether specific symptom clusters and treatment profiles could be identified within our cohort (association measured using phi coefficient). We found that patients dysplaing cardiovascular symptoms (cardiac arrest, hypotension, loss of consciousness) and urticaria were treated differently than patients with respiratory or gastrointestinal symptoms (Fig. \@ref(fig:adrenalineuse)C). The treatment of the former symptoms consisted of adrenaline autoinjector (AAI) use, i.v. adrenaline in multiple doses, 100% oxygen inhalation, an initial dose of antihistamines, and inhaled β-2 agonists. Corticosteroids, i.v. volume replacement, and i.v. β-2 agonists formed another therapy mode. 
+Next, we asked whether specific symptom clusters and treatment profiles could be identified within our cohort (association measured using phi coefficient). We found that patients displaying cardiovascular symptoms (cardiac arrest, hypotension, loss of consciousness) and urticaria were treated differently than patients with respiratory or gastrointestinal symptoms (Fig. \@ref(fig:adrenalineuse)C). The treatment of the former symptoms consisted of adrenaline autoinjector (AAI) use, i.v. adrenaline in multiple doses, 100% oxygen inhalation, an initial dose of antihistamines, and inhaled β-2 agonists. Corticosteroids, i.v. volume replacement, and i.v. β-2 agonists formed another therapy mode. 
 
 
-## Hymenoptera anaphylaxis is a seasonal disease (may be moved to supplement).
+## Venom anaphylaxis is a seasonal disease (may be moved to supplement).
 
 Insect venom elicited anaphylaxis in contrast to other elicitors showed a significant seasonal fluctuation and was most frequently reported from May to October. Their proportion of VIA to anaphylaxis cases elicited by other triggers during the summer seasons reached 60% and was below 1% of cases during winter. Nevertheless, `r rare_spring_autumn$n %>% sum` cases of VIA (bee -- *Apis mellifera* in Spring; yellow jacket -- *Vespula spp.* in Autumn) were triggered in March, April, and November. Yellow-jacket was the most prominent VIA-causing insect followed by bees. The VIA-causing insects differed in European countries with hornets (*Vespa crabro*) being more prominent in southern Europe. 
 
@@ -237,22 +251,27 @@ ttexercise1 <- age_sex_matched %>%
 
 <!-- DONE Top view findings -->
 
-In this study, we identified distinct symptom-profile and treatment patterns of venom-induced anaphylaxis. The data unravel phenotypes of VIA, which may support to the development of tools incorporating clinical <!--- and biomarker--->data for predicting the severity of future episodes of anaphylaxis.
+In this study, we identified distinct symptom-profile and treatment patterns of venom-induced anaphylaxis. The data unravel phenotypes of VIA, which may support the development of tools incorporating clinical <!--- and biomarker--->data for predicting the severity of future episodes of anaphylaxis.
 
 <!-- Symptoms -->
+
+Cofactors acn promote the onset and increase severity of anaphylaxis. 
+Therefore we evaluated a variety of known cofactors regarding their impact to increase the risk of severe VIA. As expected, t
+
+
 <!-- Cardio symptoms phenomenon -->
 VIA was more often associated with cardiovascular symptoms than non-VIA.
 Previous studies suggest an essential link between the cardiovascular system and insect sting hypersensitivity [@Worm2018; @nittner2015insect; @Bonadonna2010]. 
 VIA has been associated with Kounis syndrome (coronary arterial spasm induced by the release of mast cell mediators [@CDT1609; @sinkiewicz2008allergic]) and cardiac arrhythmias usually occurring in patients with preexisting heart disease [@Sharma2016].
 
-The rate of concomitant cardiovascular diseases was higher in VIA than non-VIA. They are an essential cofactor increasing the risk of a severe reaction **if insects elicited the anaphylaxis**. This association was not significant in anaphylaxis elicited by other triggers.  Notably, cardiac arrest occurred more frequently in patients with elevated BST (> 8 ng/ml), especially in VIA. 
+The rate of concomitant cardiovascular diseases was higher in VIA than non-VIA. They are an essential cofactor increasing the risk of a severe reaction **if hymenoptera elicited the anaphylaxis**. This association was not significant in anaphylaxis elicited by other triggers.  Notably, cardiac arrest occurred more frequently in patients with elevated BST (> 8 ng/ml), especially in VIA. 
 Nevertheless, the pathomechanism promoting cardiovascular symptoms in VIA requires further investigation. 
 
 As the onset of cardiovascular symptoms like hypotension, collapse, or cardiac arrest lead to a higher grade on the Ring and Messmer scale than skin or gastrointestinal symptoms, VIA (being associated with cardiovascular symptoms) is likely to be associated with more severe anaphylaxis.  
 
-Importantly, the absence of skin symptoms was associated with more severe VIA, which was still present after excluding patients with a known diagnosis of mastocytosis. Subsequently, the corellation of BST levels with severity of anaphylaxis lead us to identify an interaction between the absence of skin symptoms and VIA using generalized linear regression.
+Importantly, the absence of skin symptoms was associated with more severe VIA, which was still present after excluding patients with a known diagnosis of mastocytosis. Subsequently, the correlation of BST levels with severity of anaphylaxis lead us to identify an interaction between the absence of skin symptoms and VIA using generalized linear regression.
 
-Our findings indicate that patients with BST of over 8 ng/ml are prone to severe anaphylaxis to insect venom. Patients with normal BST in the range of 8-11.4 ng/ml may have indolent systemic mastocytosis or concomitant undiagnosed mast cell activation syndrome (MCAS) [@Valent2019]. Zanotti et al. identified mast cell disorders in 17 out of 22 patients with VIA lacking skin symptoms  and concluded that patients with BST of 7.95 ng/ml and VIA should undergo extensive diagnostic procedures [@Zanotti2015]. We recently identified that elederly patient undergoing anaphylaxis without concomitant skin symptoms tended to have more severe reactions [@Aurich2019]
+Our findings indicate that patients with BST of over 8 ng/ml are prone to severe anaphylaxis to insect venom. Patients with normal BST in the range of 8-11.4 ng/ml may have indolent systemic mastocytosis or concomitant undiagnosed mast cell activation syndrome (MCAS) [@Valent2019]. Zanotti et al. identified mast cell disorders in 17 out of 22 patients with VIA lacking skin symptoms  and concluded that patients with BST of 7.95 ng/ml and VIA should undergo extensive diagnostic procedures [@Zanotti2015]. We recently identified that elderly patient undergoing anaphylaxis without concomitant skin symptoms tended to have more severe reactions [@Aurich2019]
 
 
 
@@ -260,16 +279,15 @@ Based on these and previous findings [@Ruff2009;@Zanotti2015;@JaraAcevedo2015] w
 
 <!-- Age -->
 
-Regarding the factors increasing the risk of VIA - adult patients experienced VIA more frequently. Young patients mainly suffer from food-induced anaphylaxis [@Grabenhenrich2016]. 
+Adult patients experienced VIA more frequently. Young patients mainly suffer from food-induced anaphylaxis [@Grabenhenrich2016]. 
 
 Emergency room (ER) admission data indicate that the frequency of insect stings hypersensitivity reactions in children is comparable to food hypersensitivity reactions (12-15% of cases of hypersensitivity reactions admitted to the ER), but pediatric anaphylaxis is triggered significantly more often by food elicitors (56% of food hypersensitivity cases vs. 5.3% of sting cases seen in the ER) [@Braganza2005]. Senior patients, on the other hand, suffer from drug-related hypersensitivity more often than insect sting hypersensitivity [@Aurich2019].  <!-- Risk factors - Concomitant disease -->
-Similarly, we observed less VIA in patients with concomitant atopic diseases, as these patients more often present with food anaphylaxis [@Tham2019]. 
+Similarly, we observed less VIA in patients with concomitant atopic diseases (Fig. ) , as these patients more often present with food anaphylaxis [@Tham2019]. 
 
-The role of cardiovascular medication can not be isolated from the effect of concomitant cardiovascular conditions; therefore, we can not state wether ACE-I and beta-blockers increase the severity of anaphylaxis. However, we did observe that there were no significant differences between VIA and non-VIA cases regarding the symptoms and severity of an episode with concomitant use of ACE-I or beta-blockers.  
+The role of cardiovascular medication cannot be isolated from the effect of concomitant cardiovascular conditions; therefore, we cannot state whether ACE-I and beta-blockers increase the severity of anaphylaxis. However, we did observe that there were no significant differences between VIA and non-VIA cases regarding the symptoms and severity of an episode with concomitant use of ACE-I or beta-blockers.  
 
 <!-- Therapy  -->
-Cases of VIA had been treated with adrenaline less often than the age- sex- and severity-matched cases of non-VIA. Moreover, the administration of adrenaline did not depend on the trigger if the patient experienced anaphylaxis previously, but was significantly less often used if the patient experienced their first episode of VIA. The difference between groups was prominent for milder cases of anaphylaxis. 
-The reason for this observation is unclear. To our knowledge, this is the only data on the comparative adrenaline usage in a case-controlled group of VIA vs. non-VIA.  
+Cases of VIA had been treated with adrenaline less often than the age- sex- and severity-matched cases of non-VIA. Moreover, the administration of adrenaline did not depend on the trigger if the patient experienced anaphylaxis previously, but was significantly less often used if the patient experienced their first episode of VIA (in comparison to non-VIA). The difference between groups was prominent for milder cases of anaphylaxis. The reason for this observation is unclear. One explanation could be that emergency team more often attributed the IVA symptoms to anxiety, whereas in non-IVA, they were more often suspecting anaphylaxis. To our knowledge, this is the only data on the comparative adrenaline usage in a case-controlled group of VIA vs. non-VIA.  
 
 Nevertheless, international guidelines of anaphylaxis state that adrenaline (i.m.) is the first-line agent in all diagnosed cases of anaphylaxis [@Muraro2014]. Clinicians should not undermine the less severe VIA cases and treat them with adrenaline accordingly.
 
@@ -294,6 +312,7 @@ When evaluating the risk of future severe episodes - patients with BST over 8 ng
 
 # Acknowledgements
 We thank all patients, parents, and their children for their support in providing data on the occurrence of anaphylaxis for this study. We thank the study personnel for patients counseling and data entry, and we thank the members of The European Anaphylaxis Registry in detail:
+Dr. Stephanie Aurich (Leipzig)
 
 
 ##### 
@@ -320,7 +339,7 @@ ggarrange(ggplot()+
 
 ##### 
 
-```{r figsymptoms, fig.cap="Symptoms of insect venom anaphylaxis (VIA) compared to other elicitors. A: Proportional presentation of specific reaction symptoms in VIA and non-VIA according to cardiovascular (cardio.), gastroenterologic (gastro.), and respiratory (resp.) organ systems. B: High-level overview of involved organ systems and selected cofactors in the form of a radar plot. C: difference in symptoms of VIA among patients under 22 and over 22 years of age. * denotes significant differences between groups.", fig.width=8.5, fig.height = 6.2}
+```{r figsymptoms, fig.cap="Symptoms of venom induced anaphylaxis (VIA) compared to other elicitors. A: Proportional presentation of specific reaction symptoms in VIA and non-VIA according to cardiovascular (cardio.), gastroenterologic (gastro.), and respiratory (resp.) organ systems. B: High-level overview of involved organ systems and selected cofactors in the form of a radar plot. C: difference in symptoms of VIA among patients under 22 and over 22 years of age. * denotes significant differences between groups.", fig.width=8.5, fig.height = 6.2}
 fig_symptoms_3
 ```
 
@@ -447,6 +466,21 @@ nrow = 2,
 ncol = 1,
 heights = c(2,1.8)
 )
+```
+
+```{r sup_cofactors, fig.cap="Cofactors of anaphylaxis."}
+age_sex_matched %>% group_by(grouping,atopy) %>% dplyr::count() %>% 
+  filter(!is.na(atopy)) %>% 
+  ggpubr::ggbarplot(
+    x = "atopy",
+    y = "n",
+    fill = "grouping",
+    palette = palBW,
+    position = position_fill()
+  )+
+  annotate("text", x = 1.5,y = .5,label = "*",size= 9)+
+  
+
 ```
 
 ```{r trypcardiocur, fig.cap="Tryptase levels in patients with concomitant cardiovascular diseases. "}

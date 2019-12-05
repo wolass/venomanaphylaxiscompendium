@@ -651,7 +651,7 @@ funtempspider <- function(var){
     mutate(variable = deparse(var)) %>%
     group_by(grouping) %>%
     nest() %>%
-    mutate(prop = map(data,function(x){
+    mutate(prop = purrr::map(data,function(x){
       x$n/sum(x$n)
     })
     ) %>% unnest() %>%

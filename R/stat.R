@@ -1,20 +1,28 @@
 #####Setup####
-require(dplyr)
-require(magrittr)
-require(ggplot2)
-require(forestplot)
-require(summarytools)
-require(vcd)
-require(MatchIt)
-require(tidyr)
-library(ggradar)
-library(tibble)
-library(scales)
-require(ggpubr)
-require(rlang)
-library(forcats)
-require(fmsb)
-require(purrr)
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(dplyr,magrittr,ggplot2,forestplot,summarytools,
+               vcd,MatchIt,tidyr,ggradar,tibble,scales,ggpubr,rlang,
+               forcats,fmsb,purrr,DiagrammeR,DiagrammeRsvg,rsvg,
+               DescTools,optmatch,randomForest,ggfortify,heatmaply,verification)
+install.packages("questionr")
+#
+# require(dplyr)
+# require(magrittr)
+# require(ggplot2)
+# require(forestplot)
+# require(summarytools)
+# require(vcd)
+# require(MatchIt)
+# require(tidyr)
+# library(ggradar)
+# library(tibble)
+# library(scales)
+# require(ggpubr)
+# require(rlang)
+# library(forcats)
+# require(fmsb)
+# require(purrr)
 
 
 #### GET THE DATA ########
@@ -444,10 +452,10 @@ temp2 <- temp1 %>%
 
 temp <- temp %>% t()
 
-colnames(temp) <- temp[5,]
+colnames(temp) <- temp[4,]
 
 tempdf <- temp %>% data.frame(stringsAsFactors = F) %>%
-{rbind(rep(1,length(.)),rep(0,length(.)),.[2,],temp2 %>% t() %>% {.[2,]})}
+{rbind(rep(1,length(.)),rep(0,length(.)),.[5,],temp2 %>% t() %>% {.[5,]})}
 tempdf<- tempdf %>%
   mutate_if(is.character,as.numeric)
 # tempdf <- age_sex_matched %>%
@@ -715,17 +723,21 @@ F1$data[["dt"]]  <-
   })) %>%
   tidyr::unnest()
 
+
+# this introduces an error ! nest needs now cols!
 F1$data[["dt2"]] <- F1$data$dt %>%
   group_by(b_patient_code) %>%
-  tidyr::nest() %>%
-  mutate(compare_r = map(data,function(df){
+  nest() %>%
+  mutate(compare_r = purrr::map(data,function(df){
   ifelse(df$d_severity_rm[df$reaction=="last"]<df$d_severity_rm[df$reaction=="prev"],
          "reduction",
          "no reduction")
-})) %>%
-  tidyr::unnest(compare_r) %>%
-  group_by(compare_r) %>%
-  summarize(n=n())
+})) #%>%
+F1$data[["dt2"]] <-  unlist(F1$data$dt2$compare_r) %>% factor() %>% summary()
+  # unnest(cols = compare_r)
+  # tidyr::unnest(cols = c(compare_r)) %>%
+  # group_by(compare_r) %>%
+  # summarize(n=n())
 
 
 ### Plot
@@ -913,7 +925,7 @@ countYesManagment2 <- function(var){
 }
 
 plotManagement <- {df_temp <- testANAscoreMatched$management %>%
-  #map(countYesManagment) %>%
+  #purrr::map(countYesManagment) %>%
   #do.call(what = rbind)  %>%
   #tidyr::gather(key = "grouping", value = "positive",2:3) %>%
   filter(variableName %in% c(
@@ -1052,10 +1064,11 @@ ANAscore_matched %>%
   group_by(grouping) %>%
   nest() %>%
   mutate(summed =
-  map(data,.f=function(tab){
+  purrr::map(data,.f=function(tab){
     rep(sum(tab$n),4)
   })
   ) %>% unnest() %>%
+  ungroup() %>%
   mutate(proportion = n/summed,
          grouping = recode(grouping,
                            'insects'='VIA',
@@ -1216,7 +1229,7 @@ symptomsdf <- data.frame( symptoms=c("q_111_angioedema",                        
 # Use only the maximum severe symptom.
 #
 # data$ANAscore <- (1:length(data[,1])) %>%
-#   map(function(x){
+#   purrr::map(function(x){
 #     data[x,] %>%
 #       select(as.character(symptomsdf[,1])) %>%
 #       tidyr::gather(key="symptom",value = "val") %>%
@@ -1305,7 +1318,7 @@ data %>%
 #   facet_grid(relevel(severity_brown,"severe")~d_severity_rm)
 #
 
-# purrr::map(symptomsdf[,1] %>% as.character,
+# purrr::purrr::map(symptomsdf[,1] %>% as.character,
 #            function(x){
 #   rdb %>%
 #   select(q_116_VAS_v7,!!!x) %>%
@@ -1523,7 +1536,7 @@ tryp_assoc <- function(symptom){
   test <- tryp_ROA %>% spread(key=!!symptom,value = n) %>%
     group_by(grouping) %>%
     nest() %>%
-    {map(.$data,function(x){
+    {purrr::map(.$data,function(x){
       x[,2:3] %>% chisq.test
     })}
   return(list(tab,plot,test))
@@ -1531,7 +1544,7 @@ tryp_assoc <- function(symptom){
 
 cardiac_typtase_effect <- names(data) %>% broom::tidy() %>%
   filter(grepl(x,pattern = "q_114")) %>% pull() %>%
-  map(function(x){
+  purrr::map(function(x){
     tryp_assoc(as.name(x))
   })
 
@@ -1595,7 +1608,7 @@ tryp_assoc_insect <- function(symptom){
   test <- tryp_ROA %>% spread(key=!!symptom,value = n) %>%
     group_by(d_insect_gr4) %>%
     nest()# %>%
-    #{map(.$data,function(x){
+    #{purrr::map(.$data,function(x){
     #  x[,2:3] %>% chisq.test
     #})}
   return(list(tab,plot,test))
@@ -1603,7 +1616,7 @@ tryp_assoc_insect <- function(symptom){
 
 cardiac_typtase_insect_effect <- names(data) %>% broom::tidy() %>%
   filter(grepl(x,pattern = "q_114")) %>% pull() %>%
-  map(function(x){
+  purrr::map(function(x){
     tryp_assoc_insect(as.name(x))
   })
 
@@ -1638,7 +1651,7 @@ cardiac_ace <- function(s){
 
 cardiac_ace_plots <- names(data) %>% broom::tidy() %>%
   filter(grepl(x,pattern = "q_114")) %>% pull() %>%
-  map(function(x){
+  purrr::map(function(x){
     cardiac_ace(as.name(x))
   })
 
@@ -1710,7 +1723,7 @@ cardiac_beta <- function(s){
 
 cardiac_beta_plots <- names(data) %>% broom::tidy() %>%
   filter(grepl(x,pattern = "q_114")) %>% pull() %>%
-  map(function(x){
+  purrr::map(function(x){
     cardiac_beta(as.name(x))
   })
 
@@ -1755,7 +1768,7 @@ cardiac_masto <- function(s){
 
 cardiac_masto_plots <- names(data) %>% broom::tidy() %>%
   filter(grepl(x,pattern = "q_114")) %>% pull() %>%
-  map(function(x){
+  purrr::map(function(x){
     cardiac_masto(as.name(x))
   })
 
@@ -2177,7 +2190,7 @@ fig_symptoms <- ggarrange(
     #geom_segment(aes(x = 9, xend = 11, y = .52,yend = .52), linetype =1 )+
     annotate("text", x = c(2.5,6.5,10),y = .54,label = c("cardio.","gastro.","resp."))+
     scale_y_continuous(labels = scales::percent_format(accuracy = 1)),
-
+#2
   tempdf  %>%
   {.[,c(2,1,5,3,4)]} %>%
     rownames_to_column( var = "group" ) %>%
@@ -2373,14 +2386,14 @@ cof_fig<- ggarrange(
   labels = c("A","B","C")
 )
 
-#### Heatmap Symptom+Therapy ####
+#### Heatpurrr::map Symptom+Therapy ####
 #### For all cases
 require(gplots)
 # x <- rdb %>%
 #   select(starts_with("q_1"),
 #          starts_with("q_5")
 #          ) %>%
-#   map(function(x){
+#   purrr::map(function(x){
 #     ifelse(is.na(x), 0,ifelse(x=="yes",1,0))
 #   }) %>%
 #   do.call(what = cbind) %>% as.matrix()
@@ -2392,7 +2405,7 @@ require(gplots)
 #   #ladderize %>%
 #   #color_branches(k=4)
 #
-# heatmap.2(x,
+# heatpurrr::map.2(x,
 #           density.info = "none",
 #             trace = "none",
 #           Rowv = dendr,
@@ -2431,7 +2444,7 @@ x <- age_sex_matched %>%
         starts_with("q_5"),
          -"q_522_unknown"
   ) %>%
-  map(function(x){
+  purrr::map(function(x){
     ifelse(is.na(x), 0,ifelse(x=="yes",1,0))
   }) %>%
   do.call(what = cbind) %>% as.matrix()
@@ -2464,7 +2477,7 @@ vars <- importance(fit_rf) %>%
 
 x <- age_sex_matched %>%
   dplyr::select(vars$.rownames) %>%
-  map(function(x){
+  purrr::map(function(x){
     ifelse(is.na(x), 0,ifelse(x=="yes",1,0))
   }) %>%
   do.call(what = cbind) %>% as.matrix()
@@ -2540,7 +2553,7 @@ age_sex_matched %>%
     # starts_with("q_5"),
     # -"q_522_unknown"
   ) %>%
-  map(function(x){
+  purrr::map(function(x){
     ifelse(is.na(x), 0,ifelse(x=="yes",1,0))
   }) %>%
   do.call(what = cbind) %>% as.matrix()
@@ -2549,7 +2562,7 @@ age_sex_matched %>%
 pca1 <- age_sex_matched %>%
   dplyr::select(#starts_with("q_1"),
          starts_with("q_5")) %>%
-  map(function(x){
+  purrr::map(function(x){
     ifelse(is.na(x), 0,ifelse(x=="yes",1,0))
   }) %>%
   do.call(what = cbind) %>%
@@ -2642,8 +2655,8 @@ multiphi_f <- function(data,
                        grouping_var_val,
                        vars1,
                        vars2){
-  o <- map(vars2,function(treat){
-    map(vars1,function(sympt){
+  o <- purrr::map(vars2,function(treat){
+    purrr::map(vars1,function(sympt){
       phi_f(data,
             grouping_var,
             grouping_var_val,
@@ -3741,5 +3754,9 @@ fig_skinsymptoms <- ggpubr::ggarrange(
   labels = c("","C")
   #heights = c(1,0.8)
 )
+
+#### sIgE check !
+
+## Check if sIgE in these patients who did not have skin symptoms was positive or negative
 
 
