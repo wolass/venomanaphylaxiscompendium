@@ -5,7 +5,7 @@ pacman::p_load(dplyr,magrittr,ggplot2,forestplot,summarytools,
                vcd,MatchIt,tidyr,ggradar,tibble,scales,ggpubr,rlang,
                forcats,fmsb,purrr,DiagrammeR,DiagrammeRsvg,rsvg,
                DescTools,optmatch,randomForest,ggfortify,heatmaply,verification)
-install.packages("questionr")
+#install.packages("questionr")
 #
 # require(dplyr)
 # require(magrittr)
@@ -171,6 +171,7 @@ data4 <- data4 %>%
 
 data4 <- data4 %>%
   mutate(d_organ_sum_binom = ifelse(d_organ_sum<4,"1-3","4-5") %>% factor)
+
 ##### FINAL DATABASE RDB ######
 
 rdb <- data4[data4$reaction_type_brown=="anaphylaxis",]
@@ -179,6 +180,7 @@ countries <-rdb %>%
   dplyr::select(d_centres_country) %>%
   group_by(d_centres_country) %>%
   summarize(n=n())%>% arrange(desc(n))
+rdb <- rdb %>% filter(!q_340_insects%in%c("horse fly","mosquito"))
 
 #### Grouping variable insects vs no insects #####
 grouping <- ifelse(rdb$d_elicitor_gr5=="insects",
@@ -761,46 +763,46 @@ F2<- list(rationale = "We saw that patients who were treated for anaphylaxis aft
 
 F2$plot[["RM"]] <- rdb %>%
   filter(!is.na(d_severity_rm),
-         !is.na(d_522_adren_agg),
+         !is.na(d_520_adren1),
          !is.na(grouping),
-         d_522_adren_agg!="unknown") %>%
+         d_520_adren1!="unknown") %>%
   group_by(d_severity_rm,grouping) %>%
-  summarize(n =mean(d_522_adren_agg=="yes")) %>%
+  summarize(n =mean(d_520_adren1=="yes")) %>%
   ggplot(aes(d_severity_rm,n,fill = grouping))+
   geom_bar(stat="identity",position="dodge")
 
 
 F2$test <- rdb %>%
   filter(!is.na(d_severity_rm),
-         !is.na(d_522_adren_agg),
+         !is.na(d_520_adren1),
          !is.na(grouping),
-         d_522_adren_agg!="unknown") %>%
-  {glm(d_522_adren_agg~grouping*d_severity_rm,family = "binomial",data =.)} %>%
+         d_520_adren1!="unknown") %>%
+  {glm(d_520_adren1~grouping*d_severity_rm,family = "binomial",data =.)} %>%
   summary()
 
 
 F2$plot[["brown"]] <- rdb %>%
   filter(!is.na(severity_brown),
-         !is.na(d_522_adren_agg),
+         !is.na(d_520_adren1),
          !is.na(grouping),
-         d_522_adren_agg!="unknown") %>%
+         d_520_adren1!="unknown") %>%
   group_by(severity_brown,grouping) %>%
-  summarize(n =mean(d_522_adren_agg=="yes")) %>%
+  summarize(n =mean(d_520_adren1=="yes")) %>%
   ggplot(aes(severity_brown,n,fill = grouping))+
   geom_bar(stat="identity",position="dodge")
 
 
 F2$plot[["insectvsother"]] <- rdb %>%
   filter(!is.na(d_severity_rm),
-         !is.na(d_522_adren_agg),
+         !is.na(d_520_adren1),
          !is.na(grouping),
-         d_522_adren_agg!="unknown") %>%
+         d_520_adren1!="unknown") %>%
    # select(#d_elicitor_gr5,
   #    d_522_adren_agg,
    #   d_severity_rm,
     #  grouping)
   #pull() %>%
-  ggplot(aes(d_severity_rm,fill=d_522_adren_agg))+
+  ggplot(aes(d_severity_rm,fill=d_520_adren1))+
   geom_bar(position = "fill")+
   facet_grid(.~grouping)
   #group_by(grouping,severity) %>%
@@ -876,9 +878,9 @@ ggplot(temp$post_data, aes(grouping, q_116_VAS_v7))+
 #temp <-
 rdb %>%
   #filter(d_AAI_prescribed!="no") %>%
-  group_by(grouping, d_AAI_prescribed,d_522_adren_agg) %>%
+  group_by(grouping, d_AAI_prescribed,d_520_adren1) %>%
   summarize(n = n()) %>%
-  ggplot(aes(y=n, x = d_AAI_prescribed,fill=d_522_adren_agg))+
+  ggplot(aes(y=n, x = d_AAI_prescribed,fill=d_520_adren1))+
   geom_bar(stat = "identity",position ="fill")+
   facet_grid(.~grouping)
 
@@ -886,7 +888,7 @@ rdb %>%
 
 ANAscore_matched <-
   match_patients(data = rdb %>%
-                   filter(d_522_adren_agg %in% c("yes", "no")),
+                   filter(d_520_adren1 %in% c("yes", "no")),
                  grouping_var ="grouping",
                  matching_vars = c("ANAscore","d_age"),
                  #matching_vars = c("d_severity_rm","d_age"),
@@ -917,7 +919,7 @@ countYesManagment2 <- function(var){
   tbl <- ANAscore_matched %>%
     group_by(grouping,!! sym(var))  %>%
     summarize(n = n()) %>%
-    tidyr::spread(d_522_adren_agg,n)
+    tidyr::spread(d_520_adren1,n)
     filter(!!sym(var) == "yes")
   data.frame(variable = names(tbl)[2],
              VIA_no = tbl[tbl$grouping=="insects","no"],
@@ -929,7 +931,7 @@ plotManagement <- {df_temp <- testANAscoreMatched$management %>%
   #do.call(what = rbind)  %>%
   #tidyr::gather(key = "grouping", value = "positive",2:3) %>%
   filter(variableName %in% c(
-    "d_522_adren_agg",
+    "d_520_adren1",
     "q_522_antih_iv",
     "q_522_cortico_iv",
     "q_522_o2",
@@ -943,7 +945,7 @@ plotManagement <- {df_temp <- testANAscoreMatched$management %>%
       variableName,
       recodes = "'q_522_cortico_iv'='corticoids iv.';
             'q_522_antih_iv'='antihistamines iv.';
-            'd_522_adren_agg'='adrenaline iv./im.';
+            'd_520_adren1'='adrenaline iv./im.';
             'q_522_adren_iv'='adrenaline iv.';
             'q_522_o2'='100% oxygen';
             'q_522_beta2_inhal'='beta-2 mimetics inh.';
@@ -987,7 +989,7 @@ backup <- testANAscoreMatched$management[, -7] %>%
       "q_521_beta2_v5",
       "q_521_antih_v5",
       "q_521_cortic_v5",
-      "d_522_adren_agg",
+      "d_520_adren1",
       "q_522_adren_im",
       "q_522_adren_iv")
     #   "d_520_adren1",
@@ -1148,9 +1150,9 @@ labels = c("B","C","D"))
 # dev.off()
 
 test_adrenuse1<- ANAscore_matched %>%
-  group_by(grouping,d_522_adren_agg) %>%
+  group_by(grouping,d_520_adren1) %>%
   summarize(n = n()) %>%
-  spread(key = d_522_adren_agg, value = n) %>%
+  spread(key = d_520_adren1, value = n) %>%
   {chisq.test(.[,2:3])}
 
 ###### Test if me see less skin symptoms in mastocytosis patients #####
@@ -1815,8 +1817,8 @@ eli_green <-
                "yellow jacket",
                "bee","hornet",
                "bumble-bee",
-               "horsefly",
-               "mosquito",
+          #     "horse fly",
+          #     "mosquito",
                "other",
                "non-VIA"))) %>%
   filter(
@@ -2998,15 +3000,16 @@ ggarrange(
 adren_prev <- ANAscore_matched %>%
   mutate(grouping = car::recode(grouping, "'insects'='VIA';
                                 'other'='non-VIA'")) %>%
-  group_by(d_522_adren_agg, grouping, q_160_ever_react) %>%
+  group_by(d_520_adren1, grouping, q_160_ever_react) %>%
   filter(q_160_ever_react %in% c("no","yes")) %>%
   summarize(n = n()) %>%
+  filter(d_520_adren1 !="unknown") %>%
   mutate(q_160_ever_react = car::recode(q_160_ever_react,
                                         "'no'='no prev. ANA';
                                         'yes'='reacted previously'")) %>%
   ggbarplot(x = "grouping",
             y = "n",
-            fill = "d_522_adren_agg",
+            fill = "d_520_adren1",#"d_522_adren_agg",
             position = position_fill(),
             facet.by = "q_160_ever_react",
             palette = palBW)+
@@ -3015,12 +3018,12 @@ adren_prev <- ANAscore_matched %>%
        y = "proportion")
 
 adren_severity <- ANAscore_matched %>%
-  group_by(d_522_adren_agg, grouping, d_severity_rmr) %>%
+  group_by(d_520_adren1, grouping, d_severity_rmr) %>%
   #filter(d_severity_rmr %in% c("no","yes")) %>%
   summarize(n = n()) %>%
   ggbarplot(x = "grouping",
             y = "n",
-            fill = "d_522_adren_agg",
+            fill = "d_520_adren1",
             position = position_fill(),
             facet.by = "d_severity_rmr",
             palette = palBW)+
@@ -3040,7 +3043,7 @@ adren_severity_mild <- adren_severity$data %>%
 
 
 ANAscore_matched %>%
-  group_by(d_522_adren_agg, grouping, d_severity_rmr,q_561_hospital_admission_v6) %>%
+  group_by(d_520_adren1, grouping, d_severity_rmr,q_561_hospital_admission_v6) %>%
   summarize(n())
 
 
@@ -3760,3 +3763,135 @@ fig_skinsymptoms <- ggpubr::ggarrange(
 ## Check if sIgE in these patients who did not have skin symptoms was positive or negative
 
 
+### see if we can see skin symptoms in patients who never reacted and had adrenaline given
+
+skin_sympt_adrenaline <- ANAscore_matched %>%
+  mutate(grouping = car::recode(grouping,
+                          "'insects'='VIA';'other'='non-VIA'")) %>%
+  mutate(q_111 = car::recode(q_111,"'yes'='skin sympt. +';'no'='skin sympt. -'")) %>%
+  group_by(d_520_adren1, grouping, q_160_ever_react,q_111,d_severity_rmr) %>%
+  filter(q_160_ever_react %in% c("no"),
+         q_111!="unknown",
+         d_severity_rmr=="mild") %>%
+  summarize(n = n()) %>%
+  ggpubr::ggbarplot(
+    x = "grouping",
+    y = "n",
+    fill = "d_520_adren1",
+    facet.by = "q_111",
+    position = position_fill(),
+    palette = "lancet"
+  )
+
+cardio_sympt_adrenaline <- ANAscore_matched %>%
+  mutate(grouping = car::recode(grouping,
+                                "'insects'='VIA';'other'='non-VIA'")) %>%
+  group_by(d_520_adren1, grouping, q_160_ever_react,q_410_cardio_cur,d_severity_rmr) %>%
+  filter(q_160_ever_react %in% c("no"),
+         q_111!="unknown",
+         d_severity_rmr=="mild") %>%
+  summarize(n = n()) %>%
+  ggpubr::ggbarplot(
+    x = "grouping",
+    y = "n",
+    fill = "d_520_adren1",
+    facet.by = "q_410_cardio_cur",
+    position = position_fill(),
+    palette = "lancet"
+  )
+
+
+age_sex_matched %>%
+  group_by(d_severity_rmr,grouping,q_210_sIgE) %>%
+  count() %>%
+  ggbarplot(
+    x = "grouping",
+    fill = "d_severity_rmr",
+    facet.by = "q_210_sIgE",
+    #position = position_fill(),
+    y = "n"
+  )
+
+plot_lab <- function(y){
+  #y <- !!!var
+  #if(class(x)=="character"){
+  #  y <- parse_expr(x)
+  #} else {
+    y <- enquo(y)
+  #}
+
+  d <- age_sex_matched %>%
+  group_by(d_severity_rmr,grouping,!!y) %>%
+  count() %>%
+    filter(!!y %in%c("positive","negative"))
+
+  ggarrange(ggbarplot(d,
+    x = "grouping",
+    fill = "d_severity_rmr",
+    facet.by = rlang::as_name(y),
+    #position = position_fill(),
+    y = "n"
+  ),
+  ggbarplot(d,
+            facet.by = "grouping",
+            fill = "d_severity_rmr",
+            x = rlang::as_name(y),
+            position = position_fill(),
+            y = "n"
+  ),
+  ggboxplot(
+    age_sex_matched %>%
+      filter(!!y %in%c("positive","negative")),
+    fill = rlang::as_name(y),
+    y = "ANAscore",
+    x = "grouping"
+  ),nrow = 1 )
+}
+
+plot_lab2 <- function(y){
+  #y <- !!!var
+  #if(class(x)=="character"){
+  #  y <- parse_expr(x)
+  #} else {
+  y <- enquo(y)
+  #}
+
+  d <- age_sex_matched %>%
+    filter(grouping == "insects") %>%
+    group_by(d_severity_rmr,!!y) %>%
+    count() %>%
+    filter(!!y %in%c("positive","negative"))
+
+
+  ggbarplot(d,
+            fill = "d_severity_rmr",
+            x = rlang::as_name(y),
+            position = position_fill(),
+            y = "n")
+
+}
+
+
+names(age_sex_matched) %>% {.[grepl(.,pattern = "q_211")]}
+
+plot_lab(q_211_skintest_v4)
+#plot_lab(q_211_provocation_v4)
+#plot_lab(q_211_sIgE_v4)
+plot_lab(q_211_sIgE_extract_v6)
+
+plot_lab(q_211_sIgE_recombinant_v6)
+#plot_lab(q_211_provocation_v4)
+
+#plot_lab(q_211_cast_v6)
+
+plot_lab(q_211_IgG4_venom_marker_v6)
+
+plot_lab(q_211_intraderm_v5)
+plot_lab(q_211_baso_v5)
+
+ggarrange(plot_lab2(q_211_sIgE_extract_v6),
+          plot_lab2(q_211_sIgE_recombinant_v6),
+          plot_lab2(q_211_IgG4_venom_marker_v6),
+          plot_lab2(q_211_baso_v5),
+          nrow = 1
+)
