@@ -1126,11 +1126,13 @@ lower_panel <- ggpubr::ggarrange(
     labs(y ="proportion",x = "Sex",fill = "elicitor"),
 
   ANAscore_matched  %>%
-    mutate(grouping = car::recode(grouping, "'insects'='VIA';'other'='non-VIA'")) %>%
+    #filter(severity_rmr)
+    mutate(grouping = car::recode(grouping, "'insects'='VIA';'other'='non-VIA'"),
+           d_severity_rmr = car::recode(d_severity_rmr, "'mild'='2';'severe'='3 & 4'")) %>%
     #select(grouping,d_severity_rm) %>%
-    group_by(grouping,d_severity_rm) %>%
+    group_by(grouping,d_severity_rmr) %>%
     summarize(n = n()) %>%
-    ggplot(aes(x = as.factor(d_severity_rm),y=n, fill = grouping)) +
+    ggplot(aes(x = as.factor(d_severity_rmr),y=n, fill = grouping)) +
     geom_bar(stat="identity",position="dodge")+
     theme_classic()+
     labs(x = "Severity grade [R&M]",fill = "",y="cases [n]")+
@@ -3463,7 +3465,7 @@ rffit <- randomForest(d_severity_rmr~
                         q_114_hypotension_collapse_v5
                         ,
              data = d %>% filter(subsets==1) %>%
-               dplyr:::select(-subsets),
+               dplyr::select(-subsets),
              importance = T,
              mtry = 3,
              ntree = 500,

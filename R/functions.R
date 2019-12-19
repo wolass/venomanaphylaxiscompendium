@@ -93,15 +93,19 @@ unknown_to_na <- function(vect){
   )
 }
 
-compare <- function(x,percent =T,rounding =1){
-  if(percent == T){
+compare <- function(x,y = NULL,type ="percent",rounding =1){
+  if(type == "percent"){
     paste0(round(x[1]*100,rounding),
            "% vs. ",
            round(x[2]*100,rounding),"%")
-  } else {
+  } else if (type == "absolute"){
     paste0(round(x[1],rounding),
            " vs. ",
            round(x[2],rounding))
+  } else if (type == "both"){
+    paste0(round(x[1],rounding), " (",round(y[1]*100,rounding),"%)",
+           " vs. ",
+           round(x[2],rounding)," (",round(y[2]*100,rounding),"%)")
   }
 }
 
