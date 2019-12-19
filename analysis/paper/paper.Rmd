@@ -1,5 +1,5 @@
 ---
-title: "Phenotype and risk factors of venom-induced anaphylaxis: a case - control study of the European Anaphylaxis Registry"
+title: "Phenotype and risk factors of venom-induced anaphylaxis: a case-control study of the European Anaphylaxis Registry"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
     #bookdown::html_document2:
@@ -563,15 +563,18 @@ ggarrange(
   #hypotension2,
   #  nrow = 1,
   #  ncol = 2
-age_sex_matched %>% group_by(grouping,atopy) %>% dplyr::count() %>%
-  filter(!is.na(atopy)) %>%
+age_sex_matched %>% filter(grouping=="insects") %>% 
+  mutate(age_g = ifelse(d_age <22,"<22",">21")) %>% 
+  filter(q_114_hypotension_collapse_v5!="unknown") %>% 
+  group_by(age_g,q_114_hypotension_collapse_v5) %>% dplyr::count() %>%
   ggpubr::ggbarplot(
-    x = "atopy",
+    fill = "q_114_hypotension_collapse_v5",
     y = "n",
-    fill = "grouping",
+    x = "age_g",
     palette = palBW,
     position = position_fill()
   )+
+  labs(x = "age group [years]", fill = "hypotension")+
   annotate("text", x = 1.5,y = .5,label = "*",size= 9)),
 cramV,
 nrow = 2, 
