@@ -3388,7 +3388,7 @@ plot_tryptase_in_cardio_cur <- age_sex_matched %>%
     position = position_fill(reverse = T),
     palette = "grey"
   )+
-  labs(x = "concomitant\ncardiovascualr disease",
+  labs(x = "concomitant\ncardiovascular disease",
        fill = "baseline\nserum\ntryptase\ncategory",
        y = "proportion")+
   theme(legend.position = "right")
