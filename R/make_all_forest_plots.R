@@ -1,3 +1,6 @@
+root <- rprojroot::is_r_package
+R <- root$make_fix_file()
+
 ### make all forest plots
 make_all_forest_plots <- function(){
 
@@ -54,7 +57,7 @@ test2 <- test2[-c(2:4,20:25),]
 #or_plot(test1)
 
 
-png("analysis/figures/figForestfinalb.png",
+png(R("analysis/figures/figForestfinalb.png"),
     height = 800,
     width = 1000,
     #res = 300,
@@ -74,13 +77,14 @@ forestplot(labeltext = makeTableText(test1),
            lwd.zero = 4)
 dev.off()
 
-png("analysis/figures/figForestfinalrmr.png",
-    height = 640*2,
-    width = 860*2,
+png(R("analysis/figures/figForestfinalrmr.png"),
+    height = 600*3,
+    width = 860*3,
     #res = 300,
-    pointsize = 30*2
+    pointsize = 30*3
     #units="px"
 )
+
 forestplot(labeltext = makeTableText(test2)[,1:2],
            mean = test2[,"mean"] %>% unlist,
            lower = test2[,"lower"] %>% unlist,
@@ -90,9 +94,9 @@ forestplot(labeltext = makeTableText(test2)[,1:2],
            clip=c(0.2,4),
            xlog=TRUE,
            col=fpColors(box="#1f1f1f",line="gray", summary="royalblue"),
-           lwd.xaxis = 5,
-           lwd.ci = 4,
-           lwd.zero = 4,
+           lwd.xaxis = 5*4,
+           lwd.ci = 4*4,
+           lwd.zero = 4*4,
            hrzl_lines = T,
            grid = T,
            txt_gp = fpTxtGp(ticks = gpar(cex = 0.8)))
@@ -101,7 +105,7 @@ dev.off()
 
 
 
-png("analysis/figures/figForest.png")
+png("analysis/figures/figForest.png" %>% R)
 makeForestPlot(age_sex_matched,
                c( "q_410_masto_cur",
                   "q_410_asthma_cur",
@@ -113,7 +117,7 @@ makeForestPlot(age_sex_matched,
                "d_severity_rmr")
 dev.off()
 
-png("analysis/figures/kidsForest.png")
+png("analysis/figures/kidsForest.png" %>% R)
 makeForestPlot(rdbp[rdbp$d_age<18,],
                testInsectsbinomial %>%
                  filter(section=="cofactors") %>%
@@ -125,7 +129,7 @@ makeForestPlot(rdbp[rdbp$d_age<18,],
                cLow= 0.3,
                cHigh = 4)
 dev.off()
-png("analysis/figures/adultsForest.png")
+png("analysis/figures/adultsForest.png" %>% R)
 makeForestPlot(rdbp[rdbp$d_age>18,],
                testInsectsbinomial %>%
                  filter(section=="cofactors") %>%

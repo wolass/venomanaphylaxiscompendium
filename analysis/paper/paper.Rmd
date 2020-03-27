@@ -1,13 +1,12 @@
 ---
 title: "Phenotype and risk factors of venom-induced anaphylaxis: a case-control study of the European Anaphylaxis Registry"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
     #bookdown::html_document2:
     bookdown::word_document2:
       fig_caption: yes
       reference_docx: "../templates/template.docx" # Insert path for the DOCX file
 bibliography: references.bib
-csl: "../templates/american-medical-association.csl" # Insert path for the bib-style
+csl: "../templates/vancouver.csl" # Insert path for the bib-style
 ---
 
 Wojciech Francuzik^1^,
@@ -32,6 +31,19 @@ Nicola Wagner^23^,
 Bettina Wedi^24^,
 Margitta Worm^1^
 
+**Conflict of interest:**
+
+A. Bauer reports personal fees from ALK, Allergopharma, Allergy Therapeutics, Diater, LETI, Thermofisher, and Stallergens outside the submitted work
+N. Wagner reports personal fees from ALK outside the submitted work.
+R. Treudler reports grants and personal fees from Sanofi-Genzyme, ALK-Abello, Takeda,  Novartis, grants from Hautnetz Leipzig and Fraunhofer-IZI Leipzig, outside the submitted work.
+V. Cardona  reports personal fees from ALK, Allergopharma, Allergy Therapeutics, Diater, LET, Thermofisher and Stallergens outside the submitted work. 
+M. B. Bilò reports personal fees from ALK outside the submitted work.
+K. Scherer reports personal fees from Allergopharma, Sanofi-Aventis, and Shire outside submitted work. 
+Franziska Ruëff reports personal fees outside the submitted work from ALK-Abelló, Allergopharma, Bencard, Boehringer Ingelheim, Bristol Myers Squibb, Circassia, Dermira, DST, LEO Pharma, Lilly, Dr. Gerhard Mann chem.-pharm. Fabrik GmbH, Mylan, Novartis, Pfizer, Thermo Fisher Scientific and UCB
+Claudia Pföhler performed clinical studies for Allergy Therapeutics and received speaker honoraria and
+travel support from Bencard, Novartis and ALK. The rest of the authors declare that they have no relevant conflicts of interest.
+
+**Affiliations:**
 
 ^1^ Division of Allergy and Immunology, Department of Dermatology, Venerology, and Allergology, Charité – Universitätsmedizin Berlin, corporate member of Freie Universität Berlin, Humboldt-Universität zu Berlin, and Berlin Institute of Health, Germany
 
@@ -94,18 +106,7 @@ Phone: +49 30 450 529 005;      Fax: +49 30 450 529 902
 **Document statistics:**
 2838 words, 5 figures, 0 tables, 29 references
 
-**Conflict of interest:**
 
-
-A. Bauer reports personal fees from ALK, Allergopharma, Allergy Therapeutics, Diater, LETI, Thermofisher, and Stallergens outside the submitted work
-N. Wagner reports personal fees from ALK outside the submitted work.
-R. Treudler reports grants and personal fees from Sanofi-Genzyme, ALK-Abello, Takeda,  Novartis, grants from Hautnetz Leipzig and Fraunhofer-IZI Leipzig, outside the submitted work.
-V. Cardona  reports personal fees from ALK, Allergopharma, Allergy Therapeutics, Diater, LET, Thermofisher and Stallergens outside the submitted work. 
-M. B. Bilò reports personal fees from ALK outside the submitted work.
-K. Scherer reports personal fees from Allergopharma, Sanofi-Aventis, and Shire outside submitted work. 
-Franziska Ruëff reports personal fees outside the submitted work from ALK-Abelló, Allergopharma, Bencard, Boehringer Ingelheim, Bristol Myers Squibb, Circassia, Dermira, DST, LEO Pharma, Lilly, Dr. Gerhard Mann chem.-pharm. Fabrik GmbH, Mylan, Novartis, Pfizer, Thermo Fisher Scientific and UCB
-Claudia Pföhler performed clinical studies for Allergy Therapeutics and received speaker honoraria and
-travel support from Bencard, Novartis and ALK.
 
 
 **List of abbreviations:**
@@ -182,15 +183,17 @@ This study aimed to identify clinical patterns of VIA regarding symptoms, cofact
 
 We searched the European Anaphylaxis Registry [@Grabenhenrich2016] (status until March 2019) for anaphylaxis cases elicited by insect venom. The flowchart in Fig. \@ref(fig:flow)A represents the detailed case-selection process. 
 
-The diagnosis of anaphylaxis was based on the definition by NIAID/FAAN [@Sampson2006] and the severity according to the Ring and Messmer Scale [@Ring1977]. Grades III and IV (presenting with significant hypoxia, hypotension, confusion, and loss of consciousness, or incontinence or cardiac arrest) were considered severe. Mastocytosis patients were defined as having a documented diagnosis of mastocytosis prior to the reaction. The Registry is designed for reporting cases of moderate to severe anaphylaxis (Ring and Messmer grades II-IV). 
+The diagnosis of anaphylaxis was based on the definition by NIAID/FAAN [@Sampson2006] and the severity according to the Ring and Messmer Scale [@Ring1977]. Reactions of grade II were considered mild and grades III and IV (presenting with significant hypoxia, hypotension, confusion, and loss of consciousness, or incontinence or cardiac arrest) were considered severe. Mastocytosis patients were defined as having a documented diagnosis of mastocytosis in medical history prior to the reaction. The Registry is designed for reporting cases of moderate to severe anaphylaxis (Ring and Messmer grades II-IV). 
 
-Due to a large number of documented reactions in the European Anaphylaxis Registry, we were able to match the VIA with non-VIA cases according to sex and age to reduce the comparison bias. 
-When we analyzed a density plot of VIA cases according to age, we determined a bimodal distribution forming two subsets of patients with a cutoff age of 22 (Fig. \@ref(fig:flow)B). Subsequently, we compared the management in both groups and matched the control group according to the severity of a reaction. Propensity score matching has been performed using the "MatchIt" package for R [@matchit]. The results of the propensity score matching are illustrated in Fig. \@ref(fig:flow)B-D and supplementary Fig \@ref(fig:matchingresult). 
+Due to a large number of documented reactions in the European Anaphylaxis Registry, we were able to match the VIA with non-VIA cases according to sex and age. 
+When we analyzed a density plot of VIA cases according to age, we determined a bimodal distribution forming two subsets of patients with a cutoff age of 22 (Fig. \@ref(fig:flow)B). Subsequently, we compared the management in both groups and matched the control group according to the severity of a reaction. 
+
+Cases were matched according to sex, age, and reaction severity in order to reduce the comparison bias by propensity score matching. Propensity score is a statistical approach to quantify the simmilarity between two unrelated cases. Propensity scores were calculated using the "MatchIt" package for R [@matchit]. MatchIt uses logistic regression to reduce the bias due to multiple confounding variables (i.e. sex and age) by weighing them and choosing cases with minimal differences in both groups. The results of the propensity score matching are illustrated in Fig. \@ref(fig:flow)B-D and supplementary Fig \@ref(fig:matchingresult). 
 
 The final database included `r countries %>% summarise(sum(n))` cases of venom-induced anaphylaxis reported from allergy centers in `r countries %>% summarize(length(n))` countries and sex- and age-matched control group. 
 We compared the frequency of various symptoms, cofactors --- known to increase the risk of severe anaphylaxis, [@Worm2018], and management in both groups. 
 
-Based on the severity and symptom profile and the previous reports [@Ruff2009], we defined sub-elevated baseline serum tryptase (BST) values as 8 - 11.5 ng/ml (Fig. \@ref(fig:figskinsymptoms)B). 
+Based on the severity and symptom profile and the previous reports [@Ruff2009], we defined sub-elevated baseline serum tryptase (BST) values as 8 - 11.5 ng/ml (Fig. \@ref(fig:figskinsymptoms)C-D). 
 
 <!-- ## Data handling and statitics -->
 We used the R Statistical Package [@R] for statistical analysis. A simple comparison of categorical variables was performed using either the Chi^2^ test or Fisher's exact test (where the number of observations in a bin was less than 10). Continuous variables were analyzed using the Mann-Whitney U test. In case of comparisons with two or more independent variables, we used Factorial ANOVA or Generalized Linear Models. We defined statistical significance as α = 0.05. Data, along with the analysis script, can be accessed online at https://github.com/wolass/venomanaphylaxiscompendium.
@@ -203,7 +206,7 @@ We developed a Random Forest classifier (using the "randomForest" package for R 
 
 VIA displayed a specific symptom pattern. Patients, who underwent VIA, more often experienced cardiovascular symptoms (dizziness, hypotension, unconsciousness, reduced alertness) than patients with anaphylaxis due to other elicitors and less often presented with respiratory distress, rhinitis or diarrhea (Fig. \@ref(fig:figsymptoms)A). 
 
-Although the pattern of organ involvement during anaphylaxis in both groups showed similarities in gastrointestinal, skin, and respiratory systems, VIA more frequently involved more than three organ systems (`r compare(x = funtempspider(quo(d_organ_sum_binom))[c(2,5),3] %>% as.numeric(),y = c(tempdf[3:4,">3 organ\nsystems"]),type = "both")`,<!-- , and did not differ in the proportion of elevated baseline serum tryptase (> 8 ng/ml). Although, patients undergoing VIA  less often had concomitant atopic diseases  -->
+Although the pattern of organ involvement during anaphylaxis in both groups showed similarities in gastrointestinal, skin, and respiratory systems, VIA more frequently involved more than three organ systems (`r compare(x = funtempspider(quo(d_organ_sum_binom))[c(2,5),3] %>% as.numeric(),y = c(tempdf[3:4,">3 organ\nsystems"]),type = "both")`, `r pval(p_organ$p.value)`), and predominantly involved cardiovascular system (`r compare(x = funtempspider(quo(q_114))[c(2,5),3] %>% as.numeric(),y = c(tempdf[3:4,"cardiac"]),type = "both")` `r pval(p_card$p.value)`<!-- , and did not differ in the proportion of elevated baseline serum tryptase (> 8 ng/ml). Although, patients undergoing VIA  less often had concomitant atopic diseases  -->
 Fig. \@ref(fig:figsymptoms)B).
 
 Younger patients (under 22) presented even more prominent differences in hypotension symptoms and significantly less frequently reported gastrointestinal symptoms (e.g., vomiting) when the reaction was triggered by insect venom (Fig. \@ref(fig:figsymptoms)C-E).
@@ -219,6 +222,7 @@ By applying factorial logistic regression modeling, we confirmed a significant i
 
 ## Absence of skin symptoms correlates with BST levels and increases the risk of severe anaphylaxis specifically in VIA
 
+BST levels were significantly higher in patients with a prior diagnosis of mastocytosis \@ref(fig:BST). 
 Next, we investigated the association of skin symptoms with the tryptase levels in non-mastocytosis patients. For this model, we excluded the cases with known mastocytosis and with BST above 11.5 ng/ml, potentially indicating non-diagnosed mast cell activation disorders. Similarly, 1) tryptase levels were higher in VIA patients, 2) correlated with the severity of anaphylaxis, and 3) this effect was significant in VIA (`r skin_symptoms$fit_tryp[[1]][4,5] %>% pval()`) but not in the non-VIA group (Fig. \@ref(fig:figskinsymptoms)C-D).
 
 ## BST over 8 ng/ml and concomitant cardiovascular conditions increase the risk of severe VIA
@@ -237,6 +241,41 @@ insect species (p = 0.4128).
 The effect of using ACE-I (as well as beta-blockers) on the risk of severe anaphylaxis correlated with coexisting cardiovascular diseases. ACE-I use was, however, more often associated with cardiac arrests in all anaphylaxis cases (`r ace_tab %>% filter(q_114_cardiac_arrest =="yes") %>% dplyr::select(prop) %>% pull() %>% rev() %>% compare( x = ace_tab %>% filter(q_114_cardiac_arrest =="yes") %>% dplyr::select(n) %>% pull() %>% rev(), type = "both")`, `r pval(ace_tab %>% dplyr::select(-prop) %>% spread(q_114_cardiac_arrest,n) %>% {chisq.test(.[,2:3])$p.value})`) regardless of the elicitor  (Fig. \@ref(fig:figcofactors)C). 
 Beta-blocker use was associated with a higher severity of anaphylaxis and with the onset of cardiovascular symptoms (cardiac arrest, chest pain), but was comparable between both VIA and non-VIA`r summary(beta_fit)[["coefficients"]][3,4] %>% pval()`). Surprisingly, arrhythmia was more frequently reported in patients with VIA and concomitant beta-blockers (Fig. \@ref(fig:figcofactors)C). 
 
+
+```{r}  
+df_sev_time <- age_sex_matched %>%
+    filter(!is.na(q_120_time_between_v4)) %>%
+    mutate(time_r = ifelse(q_120_time_between_v4=="10","<10",">10")) %>%
+    group_by(time_r,d_severity_rmr,grouping) %>%
+    count() %>% 
+  #ggbarplot(fill = "d_severity_rmr",
+  #          x="time_r",
+  #          facet.by = "grouping", 
+  #          y = "n",
+  #          position= position_fill())
+  pivot_wider( names_from = d_severity_rmr,names_prefix = "grade_",values_from = n)
+
+sev_time<-list()
+sev_time$insects <- df_sev_time %>%
+  filter(grouping =="insects") %>%
+  {.[,c(3:4)]}  %>% as.matrix() %>% prop.table(margin = 1)
+#chisq.test()
+sev_time$insects_p <- df_sev_time %>%
+  filter(grouping =="insects") %>%
+  {.[,c(3:4)]}  %>% as.matrix() %>% chisq.test() %>% {.$p.value} %>% round(4) 
+
+sev_time$others <- df_sev_time %>%
+  filter(grouping =="other") %>%
+  {.[,c(3:4)]} %>% as.matrix() %>%  prop.table(margin = 1)
+#  chisq.test()
+
+sev_time$others_p <- df_sev_time %>%
+  filter(grouping =="other") %>%
+  {.[,c(3:4)]}  %>% as.matrix() %>% chisq.test() %>% {.$p.value} %>% round(4) 
+
+```
+
+IVA was more often severe if the reaction occured in the first 10 minutes after exposure to venom (`r sev_time$insects[1,2] %>% {.*100} %>% round(2)`% of Ring and Messmer grade III or IV cases) then when the reaction occured after 10 minutes post exposure (`r sev_time$insects[2,2] %>% {.*100} %>% round(2)`% p = `r sev_time$insects_p`).
 
 ## One-third of VIA patients experience repeated reactions
 
@@ -327,8 +366,8 @@ In this study, we identified distinct symptom-profile and treatment patterns of 
 
 <!-- Symptoms -->
 
-Cofactors can promote the onset and increase the severity of anaphylaxis. 
-Therefore we evaluated a variety of known cofactors regarding their impact to increase the risk of severe VIA. As expected, t
+<!-- Cofactors can promote the onset and increase the severity of anaphylaxis.  -->
+<!-- Therefore we evaluated a variety of known cofactors regarding their impact to increase the risk of severe VIA. As expected, t -->
 
 
 <!-- Cardio symptoms phenomenon -->
@@ -336,34 +375,34 @@ VIA was more often associated with cardiovascular symptoms than non-VIA.
 Previous studies suggest an essential link between the cardiovascular system and insect sting hypersensitivity [@Worm2018; @nittner2015insect; @Bonadonna2010]. 
 VIA has been associated with Kounis syndrome (coronary arterial spasm induced by the release of mast cell mediators [@CDT1609; @sinkiewicz2008allergic]) and cardiac arrhythmias usually occurring in patients with preexisting heart disease [@Sharma2016].
 
-The rate of concomitant cardiovascular diseases was higher in VIA than non-VIA. They are an essential cofactor increasing the risk of a severe reaction **if Hymenoptera elicited the anaphylaxis**. This association was not significant in anaphylaxis elicited by other elicitors.  Notably, cardiac arrest occurred more frequently in patients with elevated BST (> 8 ng/ml), especially in VIA. 
+The rate of concomitant cardiovascular diseases was higher in VIA than non-VIA. They are an essential cofactor increasing the risk of a severe reaction if Hymenoptera elicited the anaphylaxis. This association was not significant in anaphylaxis elicited by other elicitors.  Notably, cardiac arrest occurred more frequently in patients with elevated BST (> 8 ng/ml), especially in VIA. 
 Nevertheless, the pathomechanism promoting cardiovascular symptoms in VIA requires further investigation. 
 
-As the onset of cardiovascular symptoms like hypotension, collapse, or cardiac arrest lead to a higher grade on the Ring and Messmer scale than skin or gastrointestinal symptoms, VIA (being associated with cardiovascular symptoms) is likely to be associated with more severe anaphylaxis.  
+As cardiovascular symptoms like hypotension, collapse, or cardiac arrest lead to a higher grade on the Ring and Messmer scale than skin or gastrointestinal symptoms, VIA (being associated with cardiovascular symptoms) is likely to be associated with more severe anaphylaxis.  
 
-Importantly, the absence of skin symptoms was associated with more severe VIA, which was still present after excluding patients with a known diagnosis of mastocytosis. Subsequently, the correlation of BST levels with the severity of anaphylaxis lead us to identify an interaction between the absence of skin symptoms and VIA using generalized linear regression.
+Importantly, the absence of skin symptoms was associated with more severe VIA, which was still present after excluding patients with a known diagnosis of mastocytosis. Previous studies also observed this phenomenon [@Stoevesandt2012;@Fehr2019]. Subsequently, the correlation of BST levels with the severity of anaphylaxis lead us to identify an interaction between the absence of skin symptoms and VIA using generalized linearf regression.
 
-Our findings indicate that patients with BST above 8 ng/ml are prone to severe anaphylaxis to insect venom. Patients with normal BST in the range of 8-11.4 ng/ml may have indolent systemic mastocytosis or concomitant undiagnosed mast cell activation syndrome (MCAS) [@Valent2019]. Zanotti et al. identified mast cell disorders in 17 out of 22 patients with VIA lacking skin symptoms  and concluded that patients with BST above 7.95 ng/ml and VIA should undergo extensive diagnostic procedures [@Zanotti2015]. We recently identified that elderly patient undergoing anaphylaxis without concomitant skin symptoms tended to have more severe reactions [@Aurich2019]
+Our findings indicate that patients with BST above 8 ng/ml are prone to severe anaphylaxis to insect venom. Patients with normal BST in the range of 8-11.4 ng/ml may have indolent systemic mastocytosis or concomitant undiagnosed mast cell activation syndrome (MCAS) [@Valent2019]. Zanotti et al. identified mast cell disorders in 17 out of 22 patients with VIA lacking skin symptoms  and concluded that patients with BST above 7.95 ng/ml and VIA should undergo extensive diagnostic procedures [@Zanotti2015]. We recently identified that elderly patient undergoing anaphylaxis without concomitant skin symptoms tended to have more severe reactions [@Aurich2019]. Our finding are in corcondance with a recent retrospective study from Fehr et al. [@Fehr2019] who identified lack of skin symptoms as a risk factor for severe VIA.  
 
 
-
-Based on these and previous findings [@Ruff2009;@Zanotti2015;@JaraAcevedo2015] we propose to perform a peripheral blood KIT D816V mutation test in cases of BST of above 8 ng/ml and with a history of anaphylaxis presenting without urticaria or flushing. 
+Based on these and previous findings [@Ruff2009;@Zanotti2015;@JaraAcevedo2015] we propose to perform a peripheral blood KIT D816V mutation test in cases of BST of above 8 ng/ml and with a history of anaphylaxis presenting without urticaria or flushing. Previous studies showed 92% sensitivity of this test in patients with hymenoptera anaphylaxis, presenting without skin symptoms and with tryptase under 20 ng/ml [@Kristensen2017].
 
 <!-- Age -->
 
-Adult patients experienced VIA more frequently. Young patients mainly suffer from food-induced anaphylaxis [@Grabenhenrich2016]. 
-Emergency room (ER) admission data indicate that the frequency of insect stings hypersensitivity reactions in children is comparable to food hypersensitivity reactions (12-15% of cases of hypersensitivity reactions admitted to the ER), but pediatric anaphylaxis is triggered significantly more often by food elicitors (56% of food hypersensitivity cases vs. 5.3% of sting cases seen in the ER) [@Braganza2005]. Senior patients, on the other hand, suffer from drug-related hypersensitivity more often than insect sting hypersensitivity [@Aurich2019].  <!-- Risk factors - Concomitant disease -->
+Age is an important risk factor for severe anaphylaxis [@Stoevesandt2019]. Adult patients experienced VIA more frequently. Young patients mainly suffer from food-induced anaphylaxis [@Grabenhenrich2016]. 
+Emergency room (ER) admission data indicate that the frequency of insect stings hypersensitivity reactions in children is comparable to food hypersensitivity reactions (12-15% of cases of hypersensitivity reactions admitted to the ER), but pediatric anaphylaxis is triggered significantly more often by food elicitors (56% of food hypersensitivity cases vs. 5.3% of sting cases seen in the ER) [@Braganza2005]. Senior patients, on the other hand, suffer from drug-related hypersensitivity more often than insect sting hypersensitivity [@Aurich2019]. <!-- Risk factors - Concomitant disease -->
 Similarly, we observed less VIA in patients with concomitant atopic diseases (Fig. \@ref(fig:supplement)) , as these patients more often present with food anaphylaxis [@Tham2019]. 
 
 The role of cardiovascular medication cannot be isolated from the effect of concomitant cardiovascular conditions; therefore, we cannot state whether ACE-I and beta-blockers increase the severity of anaphylaxis. However, we did observe that there were no significant differences between VIA and non-VIA cases regarding the symptoms and severity of an episode with concomitant use of ACE-I or beta-blockers.  
 
 <!-- Therapy  -->
-Cases of VIA had been treated with epinephrine less often than the age- sex- and severity-matched cases of non-VIA. Moreover, the administration of epinephrine did not depend on the trigger if the patient experienced anaphylaxis previously, but was significantly less often used if the patients experienced their first episode of VIA (in comparison to non-VIA). The difference between groups was prominent for milder cases of anaphylaxis. The reason for this observation is unclear. One explanation could be that emergency team more often attributed the VIA symptoms to anxiety, whereas in non-VIA, they were more often suspecting anaphylaxis. To our knowledge, this is the only data on the comparative epinephrine usage in a case-controlled group of VIA vs. non-VIA.  
+Cases of VIA had been treated with epinephrine less often than the age- sex- and severity-matched cases of non-VIA. Moreover, the administration of epinephrine did not depend on the trigger if the patient experienced anaphylaxis previously, but was significantly less often used if the patients experienced their first episode of VIA (in comparison to non-VIA). The difference between groups was prominent for milder cases of anaphylaxis. The reason for this observation is unclear. One explanation could be that emergency team more often attributed the VIA symptoms to anxiety, whereas in non-VIA, they were more often suspecting anaphylaxis. A second possibility could be that many physicians fail to diagnose anaphylaxis when no skin symptoms are present. To our knowledge, this is the only data on the comparative epinephrine usage in a case-controlled group of VIA vs. non-VIA.  
 
-Nevertheless, international guidelines of anaphylaxis state that epinephrine (i.m.) is the first-line agent in all diagnosed cases of anaphylaxis [@Muraro2014]. Clinicians should not undermine the less severe VIA cases and treat them with epinephrine accordingly.
+Nevertheless, international guidelines of anaphylaxis state that epinephrine (i.m.) is the first-line agent in all diagnosed cases of anaphylaxis [@Muraro2014]. Clinicians should not underestimate the less severe VIA cases and treat them with epinephrine accordingly.
 
-Although there are no absolute contraindications for using epinephrine in anaphylaxis, one potential scenario where clinicians tend to be reluctant to using epinephrine is a hypersensitivity reaction presenting with high blood pressure and tachycardia, which may be present at the initial phase of VIA, due to a psychologic reflex. In theory, these less severe cases of VIA may display some form of stress-related blood pressure increase. As we lack data to confirm or discard this theory, future analysis of this question is of great clinical value. 
+Although there are no absolute contraindications for using epinephrine in anaphylaxis, one potential scenario where clinicians tend to be reluctant to using epinephrine is a hypersensitivity reaction presenting with high blood pressure and tachycardia, which may be present at the initial phase of VIA. Nevertheless, the three exceptionally well documented cases of anaphylaxis upon sting challenge showed that the initial transient increase in blood presure should not be interpreted as a contraindication to andrenaline and it could be safely given even if the heart rate was above 120 beats per minute [@Smith1980]. 
 
+IVA patients had a documented history of anaphylaxis in 28% of the cases, and systemic immunotherapy has not been initiated in these patients, what is against latest management guidelines, although this fraction may be slowly decreasing it is of utmost importance to recommend SIT to all patients who experienced VIA. 
 <!-- DONE Seasonality -->
 
 Based on our findings, insects are the most probable elicitor of anaphylaxis in Europe during summer-season, with VIA cases extending from early spring to the end of autumn. Detailed information on the seasonality of insect-elicited hypersensitivity reactions is scarce [@old]. The activity of *Vespula germanica* depends on the climate, and in invaded regions (e.i. Australia), it can even extend throughout the year [@Spradbery_1992]. The changing climate in Europe may influence the activity of Hymenoptera in this region in the upcoming years. However, in the period from 2007 - 2019, the perennial ratio of VIA to non-VIA cases has remained unchanged (data not shown). 
@@ -378,7 +417,7 @@ Nevertheless, because the European Anaphylaxis Registry has until now gathered o
 
 Based on our results, VIA is a distinctive phenotype of anaphylaxis, with a specific symptom profile and risk factors. VIA cases should undergo therapy according to the international management guidelines, and epinephrine should be given more often in VIA. 
 
-When evaluating the risk of future severe episodes - patients with BST above 8 ng/ml should undergo extensive diagnostic tests to exclude indolent systemic mastocytosis or MCAS and should be provided with two EAIs for acute self-management.
+All cases should undergo appropriate allergologic testing and indication for SIT should be evaluated. Patients with BST above 8 ng/ml should undergo extensive diagnostic tests to exclude indolent systemic mastocytosis or MCAS and should be provided with two EAIs for acute self-management. 
 
 
 
@@ -420,7 +459,8 @@ We thank all patients, parents, and their children for their support in providin
 
 
 ```{r flow,fig.width=7,fig.height=4.5, fig.cap=" A) Flow-diagram illustrating the rationale for case inclusion and exclusion from the final analysis. B, C, D: Age, sex, and severity distribution was matched in cases in both groups to allow for comparable results between VIA and non-VIA cases. Two age-subsets of patients could be recognized based on the density plot of age (B)."}
-ggarrange(ggplot()+
+
+fig1<-ggarrange(ggplot()+
             background_image(png::readPNG("../figures/flow.png")),
           lower_panel,
           ncol = 2,
@@ -428,7 +468,17 @@ ggarrange(ggplot()+
           widths = c(1,0.5),
           labels = c("A","")
 )
+
+fig1
 ```
+
+```{r,include=F}
+tiff("fig1.tiff", width = 7, height = 4.5,units = 'in', res = 300)
+fig1
+dev.off()
+```
+
+
 
 ##### 
 
@@ -436,10 +486,22 @@ ggarrange(ggplot()+
 fig_symptoms_3
 ```
 
+```{r,include=F}
+tiff("fig2.tiff", width = 8.5, height = 6.2,units = 'in', res = 300)
+fig_symptoms_3
+dev.off()
+```
+
 ##### 
 
 ```{r figskinsymptoms, fig.cap="Lack of skin symptoms (i.e., urticaria and flushing) during anaphylaxis is associated with more severe VIA. A: lack of skin symptoms and mastocytosis in VIA and non-VIA cases. B: Lack of skin symptoms, according to the severity in both anaphylaxis groups. C: Relation of reaction severity according to the elicitor and the absence of skin symptoms concerning categorized BST values. D: Continous values of BST according to the severity in both non-VIA and VIA with subgrouping to skin symptoms.", fig.width = 8.5, fig.height=5.5}
 fig_skinsymptoms
+```
+
+```{r,include=F}
+tiff("fig3.tiff", width = 8.5, height = 5.5,units = 'in', res = 300)
+fig_skinsymptoms
+dev.off()
 ```
 
 ##### 
@@ -449,6 +511,11 @@ fig_skinsymptoms
 cof_fig
 ```
 
+```{r,include=F}
+tiff("fig4.tiff", width = 6.6, height = 9,units = 'in', res = 300)
+cof_fig
+dev.off()
+```
 
 ##### 
 
@@ -469,6 +536,12 @@ fig_adrenalineuse
 
 ```
 
+```{r,include=F}
+tiff("fig5.tiff", width = 7, height = 9,units = 'in', res = 300)
+fig_adrenalineuse
+dev.off()
+```
+
 #####
 
 
@@ -478,15 +551,31 @@ fig_adrenalineuse
 
 VIA in contrast to other elicitors showed a significant seasonal fluctuation and was most frequently reported from May to October. The proportion of VIA to anaphylaxis cases elicited by other elicitors during the summer seasons reached 60% and was below 1% of cases during winter. Nevertheless, `r rare_spring_autumn$n %>% sum` cases of VIA (bee -- *Apis mellifera* in spring; yellow jacket -- *Vespula spp.* in autumn) were triggered in March, April, and November. Yellow-jacket was the most prominent VIA-causing insect followed by bees. The VIA-causing insects differed in European countries with hornets (*Vespa crabro*) being more prominent in southern Europe.
 
-```{r insectstime, fig.cap="A: Proportion of anaphylaxis cases elicited by specific insects according to the month in which the reaction occurred. Less common insect species grouped as 'other'. B: The density distribution of VIA cases to cases elicited by other elicitors considering the patient's age. C: Geographical differences in the most common elicitors of VIA. Countries which reported less than 10 VIA cases were not illustrated in this figure.", fig.height=4, fig.width = 7}
+```{r insectstime, fig.cap="A: Proportion of anaphylaxis cases elicited by specific insects according to the month in which the reaction occurred. Less common insect species grouped as 'other'. B: The density distribution of VIA cases to cases elicited by other elicitors considering the patient's age. C: Geographical differences in the most common elicitors of VIA. Countries which reported less than 10 VIA cases were not illustrated in this figure. Fire ants and insectsthat could not be identified formed the 'other' group.", fig.height=4, fig.width = 7}
 fig_basic
+```
+
+
+
+```{r,include=F}
+tiff("figS1.tiff", width = 7, height = 4.5,units = 'in', res = 300)
+fig_basic
+dev.off()
 ```
 
 #####
 
-```{r matchingresult, fig.cap="Results of matching the cohort according to sex and age in order to perform a case-controlled study. A: The original distribution of VIA and non-VIA cases according to age group and sex. B: The distribution of VIA and non-VIA after age and sex matching with the use of MatchIt package for R."}
+```{r matchingresult, fig.cap="Results of matching the cohort according to sex and age in order to perform a case-controlled study. A: The original distribution of VIA and non-VIA cases according to age group and sex. Please note the uneaven distribution of VIA and non-VIA cases in age groups. B: The distribution of VIA and non-VIA after age and sex matching with the use of MatchIt package for R. Please notice how the ratio of VIA to non-VIA cases is approaching 50% indicating balanced matching according to sex and age variables."}
+
 matching.result 
 ```
+
+```{r,include=F}
+tiff("figS2.tiff", width = 7, height = 5,units = 'in', res = 300)
+matching.result 
+dev.off()
+```
+
 
 #####
 
@@ -555,7 +644,7 @@ cramV <- tests_matched %>%
     theme(legend.justification = c(0,0))
 
 
-ggarrange(
+figS3<-ggarrange(
   ggarrange(
   cardiac_masto_plots[[6]]+
               labs(x = "cardiac arrest",
@@ -581,6 +670,15 @@ nrow = 2,
 ncol = 1
 #widths = c(1,1.8)
 )
+
+figS3
+```
+
+
+```{r,include=F}
+tiff("figS3.tiff", width = 7, height = 5,units = 'in', res = 300)
+figS3
+dev.off()
 ```
 
 <!-- # ```{r supcofactors, fig.cap="Cofactors of anaphylaxis."}
@@ -600,14 +698,18 @@ ncol = 1
 plot_tryptase_in_cardio_cur
 ```
 
-
+```{r,include=F}
+tiff("figS4.tiff", width = 7, height = 4,units = 'in', res = 300)
+plot_tryptase_in_cardio_cur
+dev.off()
+```
 
 ```{r treatmentmatrixother}
 #matrix_other
 ```
 
 ```{r sev, fig.cap="Severity of anaphylaxis in subgroups. The severity of patients with VIA in two age groups (left), according to elicitor type (center) and according to the responsible insect species (right)"}
-severity_joined_brown %>%
+figS5 <- severity_joined_brown %>%
     ggbarplot(x = "grouping",
               y = "n",
               fill = "d_severity_rm",
@@ -625,11 +727,15 @@ severity_joined_brown %>%
     guides(color = F)
 ```
 
-
+```{r,include=F}
+tiff("figS5.tiff", width = 7, height = 4,units = 'in', res = 300)
+figS5
+dev.off()
+```
 
 
 ```{r rfplot, fig.cap="Therapy of anaphylaxis. A: Patients who presented with skin symptoms and VIA less often received epinephrine than if skin symptoms were absent during the reaction. B: Variable importance in the unsupervised classification between VIA and non-VIA using Random Forest classifier.", fig.height=3.5, fig.width=7.1}
-ggarrange(
+figS6 <- ggarrange(
   # adren_prev+
   #   geom_segment(aes(x = 0.5,
   #                    xend = 2.5,
@@ -644,6 +750,25 @@ ggarrange(
   labels=c("A","B"),
   widths = c(1,1.3)
 )
+```
+
+```{r,include=F}
+tiff("figS6.tiff", width = 7., height = 3.5,units = 'in', res = 300)
+figS6
+dev.off()
+```
+
+
+```{r BST, fig.cap="Levels of baseline serum tryptase in patinent with VIA and non-VIA. Significant difference in BST between patients with concomitant mastocytosis and other patients (***). There was no significant difference between anaphylaxis elicited by insects and other elicitors (NS). Tested by two way ANOVA."}
+
+BST_masto$plot
+
+```
+
+```{r,include=F}
+tiff("figS7.tiff", width = 7, height = 4,units = 'in', res = 300)
+BST_masto$plot
+dev.off()
 ```
 
 #####

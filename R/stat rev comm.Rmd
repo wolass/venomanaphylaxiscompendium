@@ -1,0 +1,663 @@
+---
+title: "Point-by-point reply to Reviewers' comments on the manusctipt JACI-D-20-00147"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+    #bookdown::html_document2:
+    bookdown::word_document2:
+      fig_caption: yes
+      reference_docx: "../analysis/templates/template.docx" # Insert path for the DOCX file
+bibliography: "../analysis/paper/references.bib"
+csl: "../analysis/templates/american-medical-association.csl" # Insert path for the bib-style
+---
+
+## Reviewer #1
+
+**The authors have important observations on the concomitant use of beta-blockers and ACE inhibitors and mores severe anaphylaxis; possibly a profound biostatistical analysis of this aspect could help to find  out whether this is just due to the "premorbidity of this patients" or an effect of these drugs.**
+
+This is a very important question, but very difficult to analyze as patients with relevant cardiovascular diseases (mainly hypertension) are taking these drugs according to the current guidelines [@Mallat2013]. 
+
+We were previously able to demonstrate the influence of ACE inhibitors and beta-blockers on the severity of anaphylaxis in a mouse model and found evidence that beta-blocker and ACE-I increased the activation of human mast cells in vitro, whereas these drugs had a lower effect when used alone [@Nassiri2015].
+
+Taking all these findings together with this analysis we do not anticipate that premorbidity is the primary cause for our observations, but can, of course, be an additional exacerbating factor.
+
+In another study regarding the general risk factors of anaphylaxis, we have also identified a correlation between ACE-I and beta-blockers use and an increased risk of severe anaphylaxis [@Worm2018]. Also there it was not possible to dissect the effect of concomitant cardiologic conditions from the effects of drugs. Therefore a different experimental approach is needed to address this question in humans.
+
+Nevertheless, due to our interest in this topic and to partially answer the reviewer’s question - we have re-analyzed the effects of cardiologic drugs on the severity of anaphylaxis. Patients who were taking cardiologic drugs (i.e ASA, ACE-I, and beta-blockers) more often had severe anaphylaxis if they were taking these drugs in combination, when compared to monotherapy. This is in concordance with the above-mentioned observations.
+
+```{r, warning =F,echo =FALSE, include = F}
+knitr::opts_chunk$set(echo = F, warning = F,message = F)
+pacman::p_load("rprojroot")
+root <- rprojroot::is_r_package
+R <- root$make_fix_file()
+
+source(R("R/stat.R"))
+cardio_drugs <- age_sex_matched %>%
+  filter(!is.na(d_severity_rm),
+         d_severity_rm!="1") %>%
+  rowwise() %>%
+  mutate(ace_beta= ifelse(q_423_beta=="yes"&q_423_ace=="yes"&q_423_asa=="yes",
+                          "ACE-ASA-Beta",
+                          ifelse(q_423_beta=="yes"&q_423_ace=="yes"&q_423_asa=="no",
+                                 "ACE-Beta",
+                                 ifelse(q_423_beta=="no"&q_423_ace=="yes"&q_423_asa=="yes",
+                                        "ACE-ASA",
+                                        ifelse(q_423_beta=="yes"&q_423_ace=="no"&q_423_asa=="yes",
+                                               "ASA-Beta",
+                                               ifelse(q_423_beta=="no"&q_423_ace=="yes"&q_423_asa=="no",
+                                                      "ACE",
+                                                      ifelse(q_423_beta=="no"&q_423_ace=="no"&q_423_asa=="yes",
+                                                             "ASA",
+                                                             ifelse(q_423_beta=="yes"&q_423_ace=="no"&q_423_asa=="no",
+                                                                    "Beta",
+                                                                     "none"
+                                                                    ))))))) %>%
+           factor(levels=c("none","ASA","ACE","Beta","ASA-Beta","ACE-Beta","ACE-ASA","ACE-ASA-Beta"))
+         ) %>%
+  group_by(ace_beta,d_severity_rm,grouping) %>%
+  count() %>%
+  ungroup() %>%
+  filter(!is.na(ace_beta)) %>%
+  mutate(d_severity_rm = factor(d_severity_rm))
+
+cardio_drugs_df <- cardio_drugs %>%
+  group_by(ace_beta,grouping) %>%
+  summarise(sums = sum(n))
+cardio_drugs_df$y <- 0.85
+cardio_drugs_df$x <- lapply(1:8,rep,2) %>% unlist()
+```
+
+```{r fig.cap="Combination of cardiologic drugs and the severity of anaphylxis"}
+ggbarplot(cardio_drugs,
+          y ="n",
+            fill ="d_severity_rm",
+            x = "ace_beta",
+            position = position_fill(),
+            palette = "Greys",
+            facet.by = "grouping")+
+    labs(x = "Concomitant cardiologic drugs", y = "proportion", fill = "Severity [R&M]")+
+  theme(axis.text.x = element_text(angle = 50, hjust =1)) +
+  geom_text(data =cardio_drugs_df,aes(y =y, label = sums),inherit.aes = T,angle = 90)
+
+```
+
+
+**Are there any data available on the latency time between sting and symptoms in correlation with the severity of the reaction?**
+
+We thank the reviewer for this interesting question. Indeed we did not provide data on time between elicitor exposure and the onset of anaphylaxis symptoms. We have analyzed the data and it is now mentioned in the text. 
+
+```{r}  
+df_sev_time <- age_sex_matched %>%
+    filter(!is.na(q_120_time_between_v4)) %>%
+    mutate(time_r = ifelse(q_120_time_between_v4=="10","<10",">10")) %>%
+    group_by(time_r,d_severity_rmr,grouping) %>%
+    count() %>% 
+  #ggbarplot(fill = "d_severity_rmr",
+  #          x="time_r",
+  #          facet.by = "grouping", 
+  #          y = "n",
+  #          position= position_fill())
+  pivot_wider( names_from = d_severity_rmr,names_prefix = "grade_",values_from = n)
+
+sev_time<-list()
+sev_time$insects <- df_sev_time %>%
+  filter(grouping =="insects") %>%
+  {.[,c(3:4)]}  %>% as.matrix() %>% prop.table(margin = 1)
+#chisq.test()
+sev_time$insects_p <- df_sev_time %>%
+  filter(grouping =="insects") %>%
+  {.[,c(3:4)]}  %>% as.matrix() %>% chisq.test() %>% {.$p.value} %>% round(4) 
+
+sev_time$others <- df_sev_time %>%
+  filter(grouping =="other") %>%
+  {.[,c(3:4)]} %>% as.matrix() %>%  prop.table(margin = 1)
+#  chisq.test()
+
+sev_time$others_p <- df_sev_time %>%
+  filter(grouping =="other") %>%
+  {.[,c(3:4)]}  %>% as.matrix() %>% chisq.test() %>% {.$p.value} %>% round(4) 
+
+```
+
+*Patients with insect venom anaphylaxis had more often severe anaphylaxis if the reaction occured in the first 10 minutes after exposure to venom (`r sev_time$insects[1,2] %>% {.*100} %>% round(2)`% of Ring and Messmer grade III or IV cases) then when the reaction occured after 10 minutes post exposure (`r sev_time$insects[2,2] %>% {.*100} %>% round(2)`% p = `r sev_time$insects_p`).*     
+
+
+```{r, fig.cap="Time between exposure to an elicitor and first anaphylaxis symptoms. Patients undergoing anaphylaxis due to insects more often had a quick reaction during the first 10 minutes, whereas patients with non-VIA reacted more often after 10 minutes. In the Insect venom anaphylaxis, we saw a decrease in severity in these patients that reacted after 10 minutes."}
+pacman::p_load(ggmosaic)
+
+sum_time_df <- age_sex_matched %>% 
+    mutate(d_severity_rm = d_severity_rm %>%factor()) %>% 
+  filter(d_severity_rm!=1,
+         !is.na(q_120_time_between_v4),
+         grouping =="insects"
+         ) %>%
+    group_by(q_120_time_between_v4) %>% 
+    count()
+sum_time_df$y = 0.8
+sum_time_df$x = 1:5
+
+  age_sex_matched %>% 
+    mutate(d_severity_rm = d_severity_rm %>%factor()) %>% 
+  filter(d_severity_rm!=1,
+         !is.na(q_120_time_between_v4),
+         grouping =="insects"
+         ) %>%
+    group_by(q_120_time_between_v4,d_severity_rm) %>% 
+    count() %>% 
+    ggpubr::ggbarplot(
+      x = "q_120_time_between_v4",
+      fill = "d_severity_rm",
+      y = "n",
+      position = position_fill(),
+      palette = "Greys"
+    )+
+  geom_text(data =sum_time_df,aes(y =y, label = n,x = x),inherit.aes = T,angle = 90)+
+  theme_classic()+
+    theme(legend.position = "top")+
+    labs(x = "Time between exposure and anaphylaxis [min]", y = "proportion", fill = "Severity [R&M]")
+```
+
+
+**In the supplementary material (also very interesting) the authors mention in Fig 1 other insects. It would be good to mention briefly in the text what insects these were (imported fire ants? others?)**
+
+```{r}
+n_unknown_insects <- data[which(data$q_340_insects=="insects"&data$d_centres_country!="not EU"),
+                          c("d_390_other_elicitor_from_free","d_centres_country")] %>% 
+  nrow() 
+
+per_unk_insects <- (n_unknown_insects/nrow(age_sex_matched %>% filter(grouping =="insects"))*100) %>% round(2)
+```
+
+Indeed the mentioned "other insects" were fire ants reported from the center in Brazil. We included this information in the figure description. 7 were mosquitos and 5 horse flies. The rest of the other insects' species were not be identified by history (n = `r n_unknown_insects`, `r per_unk_insects`% of all insect cases).     
+
+
+**References: there are 2 newer publications focussing on similar topics, possibly they could be added:**
+
+**1. Risk factors and indicators of severe systemic insect sting reactions. Stoevesandt J, Sturm GJ, Bonadonna P, Oude Elberink JNG, Trautmann A. Allergy. 2019 Jun 13. doi: 10.1111/all.13945**
+
+**2. Risk factors for severe systemic sting reactions in wasp (Vespula spp.) and honeybee (Apis mellifera) venom allergic patients. Fehr D, Micaletto S, Moehr T, Schmid-Grendelmeier P. Clin Transl Allergy. 2019 Oct 11;9:54.**
+
+We have added these publications in the discussion.
+
+
+## REVIEWER #2
+**MAJOR COMMENTS:
+The study "Phenotype and risk factors of VIA: a case-control study of the European Anaphylaxis registry" evaluates in a meaningful number of patients including children and adults with VIA and non-VIA. The paper is a descriptive clinical study evaluating the severity of anaphylaxis, involved organs, levels of BST and treatment models and comparing these parameters between VIA and non-VIA.
+The study is a clinical descriptive study which does not bring a new concept or mechanistic innovative finding. My opinion is that the study is more appropriate for a journal with a clinical perspective as JACIP, etc.
+The major strength of the study is the high number of the participants, It is well designed as a clinical and observational study,**
+
+Major Concerns:
+**1. The method part includes a very short information about propensity score matching done by MatchIT package for R and the eFig 2 shows different ratio, it needs more information to understand the propensity score.**
+
+We agree that the propensity score matching has not been in detail explained in our methods. We added additional information to address this issue in the methods: 
+
+*"Cases were matched according to sex, age, and reaction severity to reduce the comparison bias by propensity score matching. The propensity score is a statistical approach to quantify the similarity between two unrelated cases. Propensity scores were calculated using the "MatchIt" package for R [@matchit]. MatchIt uses logistic regression to reduce the bias due to multiple confounding variables (i.e. sex and age) by weighing them and choosing cases with minimal differences in both groups."*
+
+The supplementary figure caption also has been changed to:
+
+"Results of matching the cohort according to sex and age to perform a case-controlled study. A: The original distribution of VIA and non-VIA cases according to age group and sex. The distribution of VIA and non-VIA cases in age groups is uneven. B: The distribution of VIA and non-VIA after age and sex matching with the use of MatchIt package for R. The ratio of VIA to non-VIA cases is approaching 50% indicating more balanced matching according to sex and age variables."
+
+**2. Some of the patients registered were previously diagnosed as mastocytosis, what was the baseline tryptase level at these patients and which type of mastocytosis was the diagnosis and which criteria were positive for these pts?**
+
+Thank you for this suggestion. The levels of BST are illustrated in the figure below. We mention the data in the text and added this figure to the supplementary material.
+
+```{r BST, fig.cap="Levels of baseline serum tryptase in patients with VIA and non-VIA. A significant difference in BST between patients with concomitant mastocytosis and other patients (***). There was no significant difference between anaphylaxis elicited by insects and other elicitors (NS). Tested by two-way ANOVA."}
+
+BST_masto$plot
+
+```
+
+When patients present in a participating allergy center after the reaction we ask if they had a previous diagnosis of mastocytosis. We do not include further questions about the classification of mastocytosis nor consider specific diagnosis criteria in our questionaire.
+
+We agree with the reviewer that additional information regarding concomitant mastocytosis would provide data for novel analysis opportunities, however, this data is not available in the Anaphylaxis Registry. 
+
+We now mention in the text that the diagnosis of mastocytosis was based on the patients' history.
+
+**4. Fig 2B shows the odd ratio of different factors for a severe reaction. Surprisingly the concomitant asthma is not significant for both VIA and non-VIA. How argue the authors this finding?**
+
+Figure 2B illustrates the involvement of organ systems during VIA and non-VIA cases. We suppose that the reviewer meant figure 4A.
+
+Although concomitant asthma has been previously suggested as a potential factor increasing the risk of anaphylaxis [@Niggemann2014] we have failed to confirm this observation in our data. We previously found that the influence of asthma varied greatly depending on which severity grading was used in a statistical model [@Worm2018]. Nevertheless, there are reports of asthma being a significant risk factor for fatal food anaphylaxis [@Smith2015]. We also recently showed asthma to be more often present in refractory anaphylaxis cases [@Francuzik2019]. It seems that asthma plays a role in life-threatening anaphylaxis, but its effect is insignificant when comparing mild-to-moderate vs. severe anaphylaxis. 
+
+```{r, fig.cap="Concomitant asthma and anaphylaxis severity. Number of observations per bar is reported vertically."}
+age_sex_matched %>% 
+  filter (q_410_asthma_cur !="unknown",
+          !is.na(d_severity_rm),
+          d_severity_rm!=1) %>%
+  mutate(d_severity_rm = d_severity_rm %>% factor()) %>% 
+  group_by(q_410_asthma_cur,grouping,d_severity_rm) %>% 
+  count() %>% 
+  ggbarplot(x = "q_410_asthma_cur",
+      fill = "d_severity_rm",
+      y = "n",
+      position = position_fill(),
+      palette = "Greys",
+      facet.by = "grouping"
+    )+
+  geom_text(data =age_sex_matched %>% 
+  filter (q_410_asthma_cur !="unknown") %>%
+  group_by(q_410_asthma_cur,grouping) %>% 
+  count() %>% cbind (y = rep(0.7,4)) ,
+  aes(y =y, label = n ),inherit.aes = T,angle = 90)+
+  theme_classic()+
+    theme(legend.position = "top")+
+    labs(x = "Concomitant asthma", y = "proportion", fill = "Severity [R&M]")
+```
+
+
+
+**5. Fig 2 b shows more cardiac involvement in VIA than non-VIA and this important finding is not mentioned in the results part line 168-170.**
+
+Thank you for your comment, we added the information about the cardiac involvement accordingly.
+
+*"Although the pattern of organ involvement during anaphylaxis in both groups showed similarities in gastrointestinal, skin, and respiratory systems, VIA more frequently involved more than three organ systems (`r compare(x = funtempspider(quo(d_organ_sum_binom))[c(2,5),3] %>% as.numeric(),y = c(tempdf[3:4,">3 organ\nsystems"]),type = "both")`, `r pval(p_organ$p.value)`), and predominantly involved cardiovascular system (`r compare(x = funtempspider(quo(q_114))[c(2,5),3] %>% as.numeric(),y = c(tempdf[3:4,"cardiac"]),type = "both")` `r pval(p_card$p.value)`"*
+
+**6. Fig 4 B and C compare the proportion of pts with cardiac arrest, arrhythmia, etc between VIA and non-VIA and between with beta-blockers and without beta-blockers. The pts in the VIA group using beta-blockers or BST higher than 8 have more cardiac symptoms, is this finding statistically significant?**
+
+The significance of these comparisons is difficult to show in the figures. These relationships are multivariable and there often are interactions between variables that are significant. 
+
+Using factorial logistic regression we can confirm that beta-blockers are significantly more frequently taken in patients that presented with cardiac arrest upon anaphylaxis, and this effect was diminished when anaphylaxis was elicited by insects.
+
+There were no significant differences in arrhythmia occurrence in regards to beta-blockers use.
+Intake of beta-blockers was associated with chest pain and angina symptoms upon anaphylaxis, independently of the elicitor. 
+
+```{r, include =F}
+glm1 <- glm(q_114_cardiac_arrest~grouping*q_423_beta,
+    data = age_sex_matched %>%
+    filter(!is.na(q_423_beta),
+           q_423_beta!="unknown",
+           q_114_cardiac_arrest != "unknown",
+           !is.na(grouping)) %>%
+    mutate(grouping = car::recode(grouping,
+                                  "'insects'='VIA';'other'='non-VIA'")),
+    family = "binomial") %>% summary()
+
+age_sex_matched %>%
+    filter(!is.na(q_423_beta),
+           q_423_beta!="unknown",
+           q_114_cardiac_arrest != "unknown",
+           !is.na(grouping)) %>%
+    mutate(grouping = car::recode(grouping,
+                                  "'insects'='VIA';'other'='non-VIA'")) %>% 
+ggplot(aes(fill = q_114_cardiac_arrest, x = q_423_beta))+
+  geom_mosaic(aes(x = product(q_423_beta),fill = factor(q_114_cardiac_arrest))
+    )+
+  facet_grid(.~grouping,scales ="free")+
+  theme_classic()+
+    theme(legend.position = "top")+
+    labs(x = "Time between exposure and anaphylaxis [min]", y = "Severity [R&M]", fill = "Severity [R&M]")+
+    scale_fill_brewer(palette = "YlOrRd")
+
+```
+
+```{r, include = F}
+glm2 <- glm(q_114_palpitations_cardiac_arrythmia_v5~grouping*q_423_beta,
+    data = age_sex_matched %>%
+    filter(!is.na(q_423_beta),
+           q_423_beta!="unknown",
+           q_114_palpitations_cardiac_arrythmia_v5 != "unknown",
+           !is.na(grouping)) %>%
+    mutate(grouping = car::recode(grouping,
+                                  "'insects'='VIA';'other'='non-VIA'")),
+    family = "binomial") %>% summary()
+```
+
+```{r, include = F}
+glm3 <- glm(q_114_chest_pain_angina_v5~grouping*q_423_beta,
+    data = age_sex_matched %>%
+    filter(!is.na(q_423_beta),
+           q_423_beta!="unknown",
+           q_114_chest_pain_angina_v5 != "unknown",
+           !is.na(grouping)) %>%
+    mutate(grouping = car::recode(grouping,
+                                  "'insects'='VIA';'other'='non-VIA'")),
+    family = "binomial") %>% summary()
+```
+
+```{r, include = F}
+glm4 <-glm(q_114_cardiac_arrest~grouping*q_423_ace,
+    data = age_sex_matched %>%
+    filter(!is.na(q_423_ace),
+           q_423_ace!="unknown",
+           q_114_cardiac_arrest != "unknown",
+           !is.na(grouping)) %>%
+    mutate(grouping = car::recode(grouping,
+                                  "'insects'='VIA';'other'='non-VIA'")),
+    family = "binomial") %>% summary()
+```
+
+```{r, include = F}
+
+
+glm6 <- glm(q_114_cardiac_arrest~grouping*tryp_cat,
+    data =    age_sex_matched %>%
+    filter(!is.na(d_severity_rmr),
+           !is.na(tryp_cat)) %>%
+    mutate(d_severity_rmr = d_severity_rmr %>%
+             factor(labels = c("II","III+IV"))) %>%
+#    group_by(grouping,q_114_cardiac_arrest,tryp_cat) %>%
+#    summarize(n = n()) %>%
+#      ungroup() %>%
+      mutate(grouping = car::recode(grouping,
+                                    "'insects' = 'VIA';'other'='non-VIA'")),
+    family = "binomial") %>% summary()
+
+glm7 <- glm(q_114_loss_of_consciousness~grouping*tryp_cat,
+    data =    age_sex_matched %>%
+    filter(!is.na(d_severity_rmr),
+           !is.na(tryp_cat)) %>%
+    mutate(d_severity_rmr = d_severity_rmr %>%
+             factor(labels = c("II","III+IV"))) %>%
+#    group_by(grouping,q_114_cardiac_arrest,tryp_cat) %>%
+#    summarize(n = n()) %>%
+#      ungroup() %>%
+      mutate(grouping = car::recode(grouping,
+                                    "'insects' = 'VIA';'other'='non-VIA'")),
+    family = "binomial") %>% summary()
+
+
+ age_sex_matched %>%
+    filter(!is.na(q_423_beta),
+           q_423_beta!="unknown",
+            q_114_hypotension_collapse_v5 != "unknown",
+           !is.na(grouping)) %>%
+    mutate(grouping = car::recode(grouping,
+                                  "'insects'='VIA';'other'='non-VIA'")) %>%
+    group_by(q_423_beta,
+              q_114_hypotension_collapse_v5,
+             grouping) %>%
+    summarize(n=n()) %>%
+    ggbarplot(x = "q_423_beta",
+              fill = "q_114_hypotension_collapse_v5",
+              y = "n",
+              facet.by = "grouping",
+              position = position_fill(),
+              palette = c("#848484","#1f1f1f"))+
+    labs(y = "proportion",
+         fill = "Beta blockers")
+```
+
+
+```{r include = F}
+glm(q_114_loss_of_consciousness~grouping*q_423_beta,
+    data = age_sex_matched %>%
+    filter(!is.na(q_423_beta),
+           q_423_beta!="unknown",
+           q_114_loss_of_consciousness != "unknown",
+           !is.na(grouping)) %>%
+    mutate(grouping = car::recode(grouping,
+                                  "'insects'='VIA';'other'='non-VIA'")),
+    family = "binomial") %>% summary()
+
+ age_sex_matched %>%
+    filter(!is.na(q_423_beta),
+           q_423_beta!="unknown",
+            q_114_loss_of_consciousness != "unknown",
+           !is.na(grouping)) %>%
+    mutate(grouping = car::recode(grouping,
+                                  "'insects'='VIA';'other'='non-VIA'")) %>%
+    group_by(q_423_beta,
+              q_114_loss_of_consciousness,
+             grouping) %>%
+    summarize(n=n()) %>%
+    ggbarplot(x = "q_423_beta",
+              fill = "q_114_loss_of_consciousness",
+              y = "n",
+              facet.by = "grouping",
+              position = position_fill(),
+              palette = c("#848484","#1f1f1f"))+
+    labs(y = "proportion",
+         fill = "Beta blockers")
+```
+
+
+
+```{r}
+ttt <- glm1$coefficients %>% 
+  rbind(glm2$coefficients) %>% 
+  rbind(glm3$coefficients) %>%
+  rbind(glm4$coefficients) %>%
+  rbind(glm6$coefficients) %>%
+  rbind(glm7$coefficients) %>% data.frame() %>% 
+  tibble::rownames_to_column() %>% 
+  mutate(`Pr...z..` = round(`Pr...z..`,4))
+
+df22 <- data.frame(graph = c("B1","B2","B3","B4","C2","C3"),
+  symptom = c("cardiac arrest",
+                             "arrythmia",
+                             "chest pain angina",
+                             "cardiac arrest",
+                             "cardiac arrest",
+                             "loss of consciousness"),
+                 IVA = c("0",
+                         "↑",
+                         "0",
+                         "↓",
+                         "0",
+                         "↑"),
+                 Betablockers = c("↑",
+                                  "0",
+                                  "↑",
+                                  "",
+                                  "",
+                                  ""),
+                 ACEI = c("",
+                          "",
+                          "",
+                          "↑",
+                          "",
+                          ""),
+                 Tryptase = c("",
+                              "",
+                              "",
+                              "",
+                              "↑",
+                              "0"),
+                 interaction = c("+",
+                                 "0",
+                                 "0",
+                                 "0",
+                                 "0",
+                                 "+")
+                 
+                 )
+df22 %>% knitr::kable()
+```
+
+
+
+
+
+**MINOR COMMENTS: Line 147 mention BST values in Fig 3B but the figure should be 3C and D.**
+
+Thank you for pointing that out. It has been corrected.
+
+## REVIEWER #3
+
+**MAJOR COMMENTS:**
+
+**This report focuses on a sub-population of the European Anaphylaxis Registry and attempts to define phenotypes of insect sting anaphylaxis (VIA). This is therefore a study of severe insect sting anaphylaxis (VIA). The exclusion of patients with mild-to-moderate VIA provides a selected dataset and limits the generalizability of the results. The authors should point out at many points in the introduction, methods, results, and discussion, that this is a study limited to severe VIA and does not represent the full spectrum of VIA. There is a lack of depth in the references.**
+
+
+We are afraid that a misunderstanding occurred. We do consider in this report mild, moderate and severe cases from grades II-IV according to Ring and Messmer. We decided to group the grades of 4 and 3 together as severe vs. mild-to-moderate cases of grade II. We arrived at a distribution that was very suited for statistical analysis as the two formed groups formed a nearly 50-50 split in VIA and non-VIA groups. Please inspect the figure 1D for details. 
+
+Due to the reviewer's comment, we have revised the line 130 in the methods section as it seems to be unclear that we also compared the severe cases (grades III+IV) to mild-to-moderate cases of grade II. 
+
+The method section now reads: 
+*"The diagnosis of anaphylaxis was based on the definition by NIAID/FAAN [@Sampson2006] and the severity according to the Ring and Messmer Scale [@Ring1977]. Reactions of grade II were considered mild and grades III and IV (presenting with significant hypoxia, hypotension, confusion, and loss of consciousness, or incontinence or cardiac arrest) were considered severe."*
+
+
+**MINOR COMMENTS:**
+
+**1. Line 117 Some mention should be made here, and in the discussion, of Stoevesandt et al, who reported on the risk factors for severe anaphylaxis to insect stings, and specifically identified the absence of urticaria as a major finding. (Stoevesandt J, Hain J, Kerstan A, Trautmann A. Over- and underestimated parameters in severe Hymenoptera venom-induced anaphylaxis: Cardiovascular medication and absence of urticaria/angioedema. J Allergy Clin Immunol. 2012;130:698-704.)**
+
+Thank you for pointing that out, we added this relevant reference in our discussion and introduction sections.
+
+**Line 134 The registry was designed for reporting of grades II - IV, but this study excluded grade II. This selection bias weakens the analysis.**
+
+As answered above we used cases of grades II to IV in this study and apologize if this was not quite clear. 
+
+**Line 143-144 What was the distribution of cases in the 11 countries? Did one or two centers predominate?**
+
+```{r}
+most <- age_sex_matched %>%
+  group_by(d_centres_country) %>% 
+  count() %>% 
+  mutate(percent = (n/sum(.$n)*100) %>% round(2)) %>% 
+  arrange(desc(n)) %>% {.[1:30,1]} %>% pull()
+
+age_sex_matched %>%
+  mutate(d_centres_country = forcats::fct_other(d_centres_country,keep = most)) %>% 
+  group_by(d_centres_country) %>% 
+  count() %>% 
+  mutate(percent = (n/sum(.$n)*100) %>% round(2)) %>% 
+  arrange(desc(n)) %>% 
+  ggplot(aes(reorder(d_centres_country,n),n)) + 
+           geom_histogram(stat = "identity")+
+  theme(axis.text.x = element_text(angle=70,hjust = 1))+
+  labs(x = "")
+
+```
+
+As illustrated in the figure above - most of the cases came from the centers in Germany. This is because the Anaphylaxis Registry was established in Germany and during the first years of its existence it only gathered cases in German centers. Subsequently, it was broadened to include german-speaking countries (Switzerland and Austria), other European countries, and now it enters the phase when centers from other continents are gradually starting to collaborate in this great effort. 
+
+**Line 170 There is no p-value here, and no detail in the figure.**
+
+Thank you for pointing that out. We added the information about p value and included the stars in the figure. 
+
+```{r}
+tempdf  %>%
+  {.[,c(2,1,5,3,4)]} %>%
+    rownames_to_column( var = "group" ) %>%
+    mutate_at(vars(-group),funs(rescale)) %>%
+    filter(group%in%c("VIA","non-VIA")) %>%
+    ggradar(axis.label.offset = c(1.1),
+            axis.label.size = 5,
+            group.point.size = 3,
+            legend.text.size = 7,
+            grid.label.size = 0)+
+    theme(legend.position = "none")+
+    scale_color_manual(values = c("#1f1f1f", "#848484"))+
+  annotate(geom = "text",y = 0.3076874,x = -0.951624024,label = "*",angle = 70,size =6)+
+  annotate(geom = "text",y = -0.7587985,x = 0.5584042,label = "*",angle = 20,size =6)
+```
+
+
+**Line 180-184 The frequency of hives reported here is in grade III/IV reactors (a selected population). Here, as in many other places, it would be preferred to refer to "patients undergoing severe VIA" so as to distinguish this population with severe anaphylaxis from the broader spectrum of patients who present with VIA.**
+
+This comment is related to #1 and is no longer valid. Please see our answer above.
+
+
+**Line 226 The fact that 28% had a prior anaphylactic reaction to a sting is worthy of discussion. Is this a typical example of the failure of emergency and primary health care personnel to advise patients with sting anaphylaxis about the importance of allergy consultation for testing and preventative VIT?**
+
+Thank you for this comment. 
+We agree that this rate is high and suggests suboptimal adherence to the therapy guidelines.  We added this observation into the discussion.
+
+*IVA patients had a documented history of anaphylaxis in 28% of the cases, and systemic immunotherapy has not been initiated in these patients. These data underline the utmost importance to recommend SIT to all patients who experienced VIA.*
+
+```{r include = F}
+age_sex_matched %>% 
+   #filter(q_160_ever_react =="yes") %>% 
+   filter(grouping == "insects") %>% 
+  filter(d_year_reaction>2005) %>% 
+   group_by(d_year_reaction) %>% 
+   count() %>% 
+  full_join( age_sex_matched %>% 
+   filter(q_160_ever_react =="yes") %>% 
+   filter(d_severity_rm!="1",
+          grouping == "insects") %>% 
+  filter(d_year_reaction>2005) %>% 
+   group_by(d_year_reaction) %>% 
+   count() ,
+by = "d_year_reaction"
+) %>% 
+  mutate(percent = n.y/n.x*100) %>% 
+  ggpubr::ggline(
+    x = "d_year_reaction",
+    y = "percent"
+  )+
+  labs(x = "Year",
+       title = "Fraction of patients that undergo VIA\nas a repeated reaction")+
+  theme(axis.text.x = element_text(angle = 45,hjust = 1
+                                   ))
+
+```
+
+
+
+**Line 230 Note that the 10% frequency of more severe reaction was in patients selected for severe (grade III/IV) reactions. This does not address the frequency of more severe reactions in milder systemic reactors.**
+
+This comment is related to #1 and is no longer valid. Please see our answer above.
+
+
+**Line 247 These were "moderate" not "mild" reactions, but they were milder than the severe (comparator) reactions. Mild anaphylactic reactions were excluded from the study.**
+
+This comment is related to #1 and is no longer valid. Please see our answer above.
+
+
+**Line 277 It is not clear what is meant by "at the onset"**
+
+Changed the wording.
+
+**Line 277 The authors make an important point about the inherent selection bias of this study. This is specific to the use of the Ring and Messmer scale, in comparison with the Mueller grading scale, or the scale of Simon Brown (Brown SG. Clinical features and severity grading of anaphylaxis. J Allergy Clin Immunol. 2004;114:371-6.) The Ring scale emphasizes hypoxia as an element of the Grade 3 reaction and shock as the definition of the Grade 4 reaction. In other grading systems, both are considered severe, whereas moderate anaphylaxis might include patients with dyspnea, throat tightness, and moderate hypotensive symptoms. Thus the current study would be more likely to include patients with shock and hypoxia (and fewer cases of respiratory and cutaneous symptoms), than if it were to structure its definition of "moderate and severe anaphylaxis" on a different scale. It would be of interest to include an analysis of the Grade 2 reactors to provide another comparator with the phenotypes described in the current analysis.**
+
+This comment is related to #1 and is no longer valid. Please see our answer above.
+
+
+**Lines 281-285 The discussion should include the reference to previously published studies that have reported this finding. This study adds to our knowledge by the strength of numbers that permits comparison of those with and without mastocytosis.**
+
+The references have been added. 
+
+**Lines 281-285 These are important phenotypic correlations, showing the relation between BST levels, absence of urticaria, and severity of VIA. However, we must recall that the data are based on a population that excluded the majority of milder systemic reactors. The average allergist sees patients of all kinds with no study exclusions. It would be very useful to know how this paradigm fits in the patients with Grade II reactions.**
+
+This comment is related to #1 and is no longer valid. Please see our answer above.
+
+
+**Line 294 I agree, but perhaps the discussion should indicate the sensitivity of the test in these patients? Patients with a relatively low mast cell burden may have negative blood c-kit.**
+
+We added the following text to the discussion:
+
+*"Previous studies showed 92% sensitivity of this test in patients with Hymenoptera anaphylaxis, presenting without skin symptoms and with tryptase under 20 ng/ml."*
+
+**Line 316 One likely explanation for the under-use of epinephrine in VIA is the absence of urticaria in many cases, especially those with a very severe reaction. Most physicians believe that "it is not anaphylaxis if there are no hives".**
+
+Thank you for this comment. Indeed we also believe that this is true. 
+We added the following sentence to the discussion:
+
+*"A second possibility could be that many physicians fail to diagnose anaphylaxis when no skin symptoms are present."*
+
+**Line 321 Do the authors mean "underestimate" rather than "undermine"?**
+
+Yes, thank you.
+
+**Line 326 The observations of Smith et al would contradict the assumption that the tachycardia is psychological. (Smith PL, Kagey-Sobotka A, Bleecker ER, Traystman R, Kaplan AP, Gralnick H, et al. Physiologic manifestations of human anaphylaxis. J Clin Invest. 1980;66:1072-80.)**
+
+Thank you for this important comment, we fully agree with the Reviewer. We have changed the discussion in this paragraph accordingly.
+
+*"Nevertheless, the three exceptionally well-documented cases of anaphylaxis upon sting challenge showed that the initial transient increase in blood pressure should not be interpreted as a contraindication to adrenaline and it could be safely given even if the heart rate was above 120 beats per minute."*
+
+**Lines 351-356 Any recommendation for management of VIA should include the indication for appropriate testing and immunotherapy.**
+
+Thank you for this suggestion. We changed the conclusions to read: 
+
+*"All cases should undergo appropriate allergological testing and indication for SIT should be evaluated. Patients with BST above 8 ng/ml should undergo extensive diagnostic tests to exclude indolent systemic mastocytosis or MCAS and should be provided with two EAIs for acute self-management."* 
+
+
+<!-- ## COMMENTS FROM THE EDITORIAL OFFICE: -->
+<!-- ** Change the colour of the title & headings to black -->
+<!-- ** Remove the date on the title page -->
+<!-- ** Please include a disclosure statement for all of the authors. If appropriate, you may state: "The rest of the authors declare that they have no relevant conflicts of interest." -->
+<!-- ** Move the Disclosure statement to title page -->
+<!-- ** Please follow the JACI standard format for author names in references, according to Vancouver style. Examples are given in the Instructions for Authors. List all author names when there are six or fewer; when there are seven or more, list the first six and add et al. -->
+<!-- ** Upload each figure in the manuscript separately and place all of the figure legends together in a section after the references -->
+<!-- ** Upload each figure in the Online Repository separately and place all of the figure legends together in a section in the Online Repository text file. -->
+<!-- ** Include Table S1 in the Online Repository text file -->
+<!-- Your revision must include the following items: (1) point-by-point responses to the Editor and reviewer comments, (2) a marked copy of your revision showing the changes made, and (3) a clean (unmarked) copy of your revised manuscript. If your manuscript has any figures, tables, or Online Repository material in separate files, please be sure these are included in the revision as well. For further information regarding formatting of these elements, please consult the Guidelines for Submitting a Revision (found on the Editorial Manager homepage by clicking on Instructions for Authors). To avoid a delay in a final decision on your manuscript, please follow these instructions carefully. -->
+<!-- If you have questions or encounter difficulties in submitting your revised manuscript, please contact James Galipeau at jgalipeau@origineditorial.com, providing the title and manuscript number. -->
+<!-- Include interactive data visualizations in your publication and let your readers interact and engage more closely with your research. Follow the instructions here: https://www.elsevier.com/authors/author-services/data-visualization to find out about available data visualization options and how to include them with your article. -->
+<!-- Sincerely, -->
+<!-- The Editors -->
+<!-- The Journal of Allergy and Clinical Immunology -->
+<!-- The JACI is the #1 most-cited allergy/immunology journal, with an impact factor of 14.110. -->
+
+## References
+

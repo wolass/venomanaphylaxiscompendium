@@ -5,6 +5,10 @@ pacman::p_load(dplyr,magrittr,ggplot2,forestplot,summarytools,
                vcd,MatchIt,tidyr,ggradar,tibble,scales,ggpubr,rlang,
                forcats,fmsb,purrr,DiagrammeR,DiagrammeRsvg,rsvg,
                DescTools,optmatch,randomForest,ggfortify,heatmaply,verification)
+pacman::p_load("rprojroot")
+root <- rprojroot::is_r_package
+R <- root$make_fix_file()
+
 #install.packages("questionr")
 #
 # require(dplyr)
@@ -34,7 +38,8 @@ pacman::p_load(dplyr,magrittr,ggplot2,forestplot,summarytools,
 #                            trim_values = T)
 
 #load('../RefractoryAnaOrg/analysis/data/raw_data/data4.R')
-load("data.R") # here the anascore is done using the severity_analysis R script
+#load("data.R") # here the anascore is done using the severity_analysis R script
+load(R("data.R")) # here the anascore is done using the severity_analysis R script
 
 # update the anascore according to nora consensus
 #source("R/anascore_vas.R")
@@ -50,7 +55,7 @@ manual_greens <- rev(c("#E5F5E0",
                        "#005A32"))
 
 ####### General Functions #############
-source("R/functions.R")
+source(R("R/functions.R"))
 
 palBW <- c("#848484","#1f1f1f")
 
@@ -94,7 +99,10 @@ data4$d_organ_sum %<>% car::recode("'none' = '0';
                                    'four' = '4';
                                    'unknown' = NA") %>% as.numeric()
 data4$q_116_VAS_v7 %<>% as.numeric()
-data4$q_120_time_between_v4%<>% as.numeric()
+data4 %<>%
+  mutate(q_120_time_between_v4 = as.character(q_120_time_between_v4)) %>%
+  mutate(q_120_time_between_v4 = ifelse(q_120_time_between_v4 %in%c("4h","more","4h-5"),"240",q_120_time_between_v4) %>% as.numeric()) #%>%
+  #dplyr::select(q_120_time_between_v4) %>% summary()
 data4$q_131_biphasic_time_v4 %<>% car::recode("'b_version<4' = NA;
                                               'no biphasic reaction' = NA;
                                               'unknown' = NA;
@@ -240,13 +248,13 @@ testsYJ <- makeTests("groupYJ",rdb = rdb) %>%
 
 
 ##### DIAGRAM ##############
-source("R/make_flow.R")
+source(R("R/make_flow.R"))
 make_flow()
 
 ###### FOREST PLOT ####
 
-source("R/make_all_forest_plots.R")
-#make_all_forest_plots() # important chached figures!!!
+source(R("R/make_all_forest_plots.R"))
+make_all_forest_plots() # important chached figures!!!
 
 ##### convert to function ######
 
@@ -754,7 +762,7 @@ F1$conclusion <-  "More patients showed no reduction in severity after in repeat
 ### discussion
 F1$discussion <- "Low patient numbers could have prevented an adequate analysis. This is very plausible as many of these reactions which happen in the meantime could be really mild and therefore not cosidered anaphylaxis and therefore not reported in the registry"
 
-source("R/findingOrientedResearch.R")
+source(R("R/findingOrientedResearch.R"))
 
 ### Adrenaline managment in insect cases ###
 # F2 Adrenaline use Corellation with severity? #####
@@ -1264,7 +1272,7 @@ symptomsdf <- data.frame( symptoms=c("q_111_angioedema",                        
 # add_anascore_points(data$q_552_dopamine_v5_v5,85)
 
 # save(data, file="data.R")
-load("data.R")
+# load("data.R")
 
 data %>%
   ggplot(aes(d_severity_rm,as.numeric(q_116_VAS_v7)))+
@@ -2206,7 +2214,9 @@ fig_symptoms <- ggarrange(
             legend.text.size = 7,
             grid.label.size = 0)+
     theme(legend.position = "none")+
-    scale_color_manual(values = c("#1f1f1f", "#848484")),
+    scale_color_manual(values = c("#1f1f1f", "#848484"))+
+  annotate(geom = "text",y = 0.3076874,x = -0.951624024,label = "*",angle = 70,size =6)+
+  annotate(geom = "text",y = -0.7587985,x = 0.5584042,label = "*",angle = 20,size =6),
 
   common.legend = F,
   labels = c("A","B"),
@@ -2245,7 +2255,7 @@ require(ggpubr)
 cof_fig<- ggarrange(
   #ggarrange(
     ggplot()+
-      background_image(png::readPNG("analysis/figures/figForestfinalrmr.png")),
+      background_image(png::readPNG("analysis/figures/figForestfinalrmr.png" %>% R)),
   #   age_sex_matched %>%
   #     filter(q_410_masto_cur!="yes",
   #            !is.na(tryptase_value_3cat ),
@@ -2305,7 +2315,7 @@ cof_fig<- ggarrange(
     filter(!is.na(d_severity_rmr),
            !is.na(tryp_cat)) %>%
     mutate(d_severity_rmr = d_severity_rmr %>%
-             factor(labels = c("I+II","III+IV"))) %>%
+             factor(labels = c("II","III+IV"))) %>%
     group_by(grouping,d_severity_rmr,tryp_cat) %>%
     summarize(n = n()) %>%
       ungroup() %>%
@@ -3582,6 +3592,7 @@ age_sex_matched %>%
 matching.result <- ggarrange(
 rdb %>%
   filter(!is.na(grouping)) %>%
+  mutate(grouping = ifelse(grouping =="insects","VIA","non-VIA") %>% factor(levels=c("VIA","non-VIA"))) %>%
   # count(b_sex, grouping) %>% #spread(b_sex,n) %>% {chisq.test(.[,2:3])}
   # ggpubr::ggbarplot(
   #   fill = "grouping",
@@ -3897,3 +3908,55 @@ ggarrange(plot_lab2(q_211_sIgE_extract_v6),
           plot_lab2(q_211_baso_v5),
           nrow = 1
 )
+
+### Baseline serun tryptase in masto ####
+BST_masto <-list()
+
+BST_masto$bst_model <- age_sex_matched %>%
+  filter(q_410_masto_cur!="unknown") %>%
+  mutate(grouping = ifelse(grouping =="insects","VIA","non-VIA")) %>%
+  glm(formula = q_212_tryptase_value_v5~q_410_masto_cur*grouping, data =.)
+
+
+sgs <- data.frame(x    = c(0.8,1.2,1.8,2.2,0.8,1.8,1,2,1),
+                  xend = c(0.8,1.2,1.8,2.2,1.2,2.2,1,2,2),
+                  y    = c(rep(300,4),rep(350,2),rep(450,2),600),
+                  yend = c(rep(350,4),rep(350,2),rep(600,2),600))
+
+BST_masto$plot <- age_sex_matched %>%
+  filter(q_410_masto_cur!="unknown") %>%
+  mutate(grouping = ifelse(grouping =="insects","VIA","non-VIA")) %>%
+  ggpubr::ggboxplot(
+    x= "grouping",
+    y = "q_212_tryptase_value_v5",
+    fill = "q_410_masto_cur",
+    palette = palBW
+  )+
+  scale_y_log10()+
+  labs(fill = "concomitant mastocytosis",y= "Baseline serum tryptase [ng/ml]", x = "")+
+  geom_segment(aes(x =x, xend = xend, y = y, yend = yend),data = sgs)+
+  annotate(geom = "text",x = c(1,2,1.5),y = c(220,220,400),label=c("***","***","NS"), size = 5)
+
+
+### Pval organ sum #####
+p_organ <-
+  age_sex_matched %>%
+  filter(!is.na(d_organ_sum_binom)) %>%
+  group_by(grouping,d_organ_sum_binom) %>%
+  summarize(n= n()) %>%
+  mutate(variable = d_organ_sum_binom) %>%
+  group_by(grouping) %>%
+  pivot_wider(names_from = d_organ_sum_binom,
+              values_from = n,1:3) %>%
+              {chisq.test(.[,2:3])}
+p_card <-
+  age_sex_matched %>%
+  filter(!is.na(q_114),
+         q_114!="unknown") %>%
+  group_by(grouping,q_114) %>%
+  summarize(n= n()) %>%
+  #mutate(variable = q_114) %>%
+  group_by(grouping) %>%
+  pivot_wider(names_from = q_114,
+              values_from = n,1:3) %>%
+              {chisq.test(.[,2:3])}

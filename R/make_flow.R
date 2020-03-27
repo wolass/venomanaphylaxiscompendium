@@ -1,4 +1,6 @@
 ### mAKE THE DIAGRAMM FOR THE fLOW CHART
+root <- rprojroot::is_r_package
+R <- root$make_fix_file()
 
 make_flow <- function(){
 require(DiagrammeRsvg)
@@ -93,7 +95,7 @@ create_graph() %>%
   add_global_graph_attrs(value="white",
                          attr = "fillcolor",
                          attr_type = "node") %>% #render_graph()
-  export_graph(file_name = "analysis/figures/flow.png", file_type = "png",
+  export_graph(file_name = "analysis/figures/flow.png" %>% R, file_type = "png",
                title = NULL,
                width = 1000,
                height = 900)
