@@ -6,44 +6,18 @@ output:
       fig_caption: yes
       reference_docx: "../templates/template.docx" # Insert path for the DOCX file
 bibliography: references.bib
-csl: "../templates/vancouver.csl" # Insert path for the bib-style
+csl: "../templates/the-journal-of-allergy-and-clinical-immunology.csl" # Insert path for the bib-style
 ---
 
-Wojciech Francuzik^1^,
-Franziska Ruëff^2^,
-Andrea Bauer^3^,.
-Maria Beatrice Bilò ^4,5^,
-Victoria Cardona^6^,
-George Christoff^7^,
-Sabine Dölle-Bierke^8^,
-Luis Ensina^9^,
-Montserat Fernandes-Rivas^7,11^,
-Thomas Hawranek^12^,
-Johnathan O'B Hourihane^13^,
-Tilo Jakob^14,15^,
-Nicos G. Papadopoulus^16,17^,
-Claudia Pföhler^18^,
-Iwona Poziomkowska-Gęsicka^19^,
-Xavier Van der Brempt^20^,
-Kathrin Scherer Hofmeier^21^,
-Regina Treudler^22^,
-Nicola Wagner^23^,
-Bettina Wedi^24^,
-Margitta Worm^1^
+Wojciech Francuzik, MD ^1^, Franziska Ruëff, MD ^2^ , Andrea Bauer, MD ^3^ , Maria Beatrice Bilò, MD
+^4,5^ , Victoria Cardona, MD, PhD ^6,7^ , George Christoff, MD, PhD ^8,9^ , Sabine Dölle-Bierke, PhD ^1^ , Luis
+Ensina, MD, PhD ^10^ , Montserat Fernandes-Rivas, MD, PhD ^7,11^ , Thomas Hawranek, MD ^12^ ,
+Johnathan O’B Hourihane, MD, PhD ^13^ , Thilo Jakob, MD ^14,15^ , Nicos G. Papadopoulus, MD
+PhD ^16,17^ , Claudia Pföhler MD ^18^ , Iwona Poziomkowska-Gęsicka, MD, PhD ^19^ , Xavier Van der
+Brempt, MD ^20^ , Kathrin Scherer Hofmeier, MD ^21^ , Regina Treudler, MD ^226 , Nicola Wagner, MD ^23^ ,
 
-**Conflict of interest:**
+Bettina Wedi, MD ^24^ , Margitta Worm, MD ^1^
 
-A. Bauer reports personal fees from ALK, Allergopharma, Allergy Therapeutics, Diater, LETI, Thermofisher, and Stallergens outside the submitted work
-N. Wagner reports personal fees from ALK outside the submitted work.
-R. Treudler reports grants and personal fees from Sanofi-Genzyme, ALK-Abello, Takeda,  Novartis, grants from Hautnetz Leipzig and Fraunhofer-IZI Leipzig, outside the submitted work.
-V. Cardona  reports personal fees from ALK, Allergopharma, Allergy Therapeutics, Diater, LET, Thermofisher and Stallergens outside the submitted work. 
-M. B. Bilò reports personal fees from ALK outside the submitted work.
-K. Scherer reports personal fees from Allergopharma, Sanofi-Aventis, and Shire outside submitted work. 
-Franziska Ruëff reports personal fees outside the submitted work from ALK-Abelló, Allergopharma, Bencard, Boehringer Ingelheim, Bristol Myers Squibb, Circassia, Dermira, DST, LEO Pharma, Lilly, Dr. Gerhard Mann chem.-pharm. Fabrik GmbH, Mylan, Novartis, Pfizer, Thermo Fisher Scientific and UCB
-Claudia Pföhler performed clinical studies for Allergy Therapeutics and received speaker honoraria and
-travel support from Bencard, Novartis and ALK. The rest of the authors declare that they have no relevant conflicts of interest.
-
-**Affiliations:**
 
 ^1^ Division of Allergy and Immunology, Department of Dermatology, Venerology, and Allergology, Charité – Universitätsmedizin Berlin, corporate member of Freie Universität Berlin, Humboldt-Universität zu Berlin, and Berlin Institute of Health, Germany
 
@@ -95,16 +69,27 @@ travel support from Bencard, Novartis and ALK. The rest of the authors declare t
 
 
 **Corresponding author: **
-  Prof. Dr. med. M. Worm margitta.worm@charite.de
+  Prof. Dr. med. M. Worm, margitta.worm@charite.de,
 Phone: +49 30 450 529 005;      Fax: +49 30 450 529 902
 
-**Keywords:**
-  anaphylaxis, epinephrine (adrenaline), beta-blockers, insect venom allergy, Hymenoptera
+
+**Conflict of interest:**
+
+A. Bauer reports personal fees from ALK, Allergopharma, Allergy Therapeutics, Diater, LETI, Thermofisher, and Stallergens outside the submitted work
+N. Wagner reports personal fees from ALK outside the submitted work.
+R. Treudler reports grants and personal fees from Sanofi-Genzyme, ALK-Abello, Takeda,  Novartis, grants from Hautnetz Leipzig and Fraunhofer-IZI Leipzig, outside the submitted work.
+V. Cardona  reports personal fees from ALK, Allergopharma, Allergy Therapeutics, Diater, LET, Thermofisher and Stallergens outside the submitted work. 
+M. B. Bilò reports personal fees from ALK outside the submitted work.
+K. Scherer reports personal fees from Allergopharma, Sanofi-Aventis, and Shire outside submitted work. 
+Franziska Ruëff reports personal fees outside the submitted work from ALK-Abelló, Allergopharma, Bencard, Boehringer Ingelheim, Bristol Myers Squibb, Circassia, Dermira, DST, LEO Pharma, Lilly, Dr. Gerhard Mann chem.-pharm. Fabrik GmbH, Mylan, Novartis, Pfizer, Thermo Fisher Scientific and UCB
+Claudia Pföhler performed clinical studies for Allergy Therapeutics and received speaker honoraria and
+travel support from Bencard, Novartis and ALK. The rest of the authors declare that they have no relevant conflicts of interest.
+
 
 <!-- **Highlights:** -->
 <!--   These are the highlights.  -->
 **Document statistics:**
-2838 words, 5 figures, 0 tables, 29 references
+3136 words, 5 figures, 0 tables, 34 references
 
 
 
@@ -139,33 +124,67 @@ pacman::p_load(stargazer)
 
 #####
 
-# Key points 
+<!-- # Key points  -->
 
-**Question:** What is the phenotype of insect venom anaphylaxis?
+<!-- **Question:** What is the phenotype of insect venom anaphylaxis? -->
 
-**Findings:** This case-control study showed that venom-induced anaphylaxis significantly more often presented with cardiovascular symptoms. Secondly, severe cases of venom-induced anaphylaxis were significantly more often associated with the lack of skin symptoms upon anaphylaxis and showed a significant interaction with the levels of baseline serum tryptase (in range from 8 - 11 ng/ml).  
+<!-- **Findings:** This case-control study showed that venom-induced anaphylaxis significantly more often presented with cardiovascular symptoms. Secondly, severe cases of venom-induced anaphylaxis were significantly more often associated with the lack of skin symptoms upon anaphylaxis and showed a significant interaction with the levels of baseline serum tryptase (in range from 8 - 11 ng/ml).   -->
 
-**Meaning:** Allegologists should consider intesified prophylaxis (and diagnostic) measures in patients with baseline tryptase levels of above 8 and a history of insect venom anaphylaxis. 
+<!-- **Meaning:** Allegologists should consider intesified prophylaxis (and diagnostic) measures in patients with baseline tryptase levels of above 8 and a history of insect venom anaphylaxis.  -->
 
-#####
+<!-- ##### -->
 
 # Abstract
 
-**Importance:** Venom-induced anaphylaxis is a common, potentially life-threatening hypersensitivity reaction associated with specific: 1) symptom profile, 2) cofactors, and 3) management. Identifying the differences in phenotypes of anaphylaxis is crucial for future management guidelines and the development of a personalized medicine approach.  
+**Background:** Venom-induced anaphylaxis is a common, potentially life-threatening
+hypersensitivity reaction associated with specific: 1) symptom profile, 2) cofactors, and 3)
+management. Identifying the differences in phenotypes of anaphylaxis is crucial for future
+management guidelines and the development of a personalized medicine approach.
 
-**Objective:** This study aimed to evaluate the phenotype and risk factors of venom-induced anaphylaxis in comparison to other elicitors of anaphylaxis.
+**Objective:** This study aimed to evaluate the phenotype and risk factors of venom-induced
+anaphylaxis.
 
-**Design:** Using data from the European Anaphylaxis Registry (`r nrow(data)` cases) we identified `r length(which(data4$d_elicitor_gr5== "insects" & data4$reaction_type_brown=="anaphylaxis"))` with venom-induced anaphylaxis and analyzed these in comparison to sex- and age-matched anaphylaxis cases triggered by other elicitors (non-VIA n = `r nrow(age_sex_matched %>% filter(grouping == "other"))`).
+**Methods:** Using data from the European Anaphylaxis Registry (12874 cases) we identified
+3612 with venom-induced anaphylaxis and analyzed these in comparison to sex- and age-
+matched anaphylaxis cases triggered by other elicitors (non-VIA n = 3605). All patients
+with anaphylaxis (Ring and Messmer grade II-IV) who gave informed consent were
+included in the study. Subsequently, we matched the group of patients presenting with
+venom anaphylaxis to sex- and age-matched group of patients who presented with
+anaphylaxis to other elicitors (i.e., food, drugs).
 
-**Setting:** Multicenter, international, prospective, case-control study.
+**Results:** Venom-induced anaphylaxis more frequently involved more than three organ
+systems and was associated with cardiovascular symptoms. The absence of skin symptoms
+during anaphylaxis correlated with baseline serum tryptase and was associated with an
+increased risk of a severe reaction. Intramuscular or intravenous epinephrine was
+administered significantly less often in venom-induced anaphylaxis, in particular in
+patients without prior history of anaphylaxis. Baseline serum tryptase within the upper
+normal range (8-11.5 ng-ml) was more frequently associated with severe anaphylaxis.
 
-**Participants:** All patients with the diagnosis of moderate to severe anaphylaxis (according to Ring and Messmer grade II-IV) who gave informed consent to provide their clinical data for the Anaphylaxis Registry were included in the study. Subsequently, we matched the group of patients presenting with venom anaphylaxis to sex- and age-matched group of patients who presented with anaphylaxis to other elicitors (i.e., food, drugs). 
+**Conclusion:** Regarding the fact that venom-induced anaphylaxis frequently affects the
+cardiovascular system, patients were undertreated with epinephrine. The lack of skin
+symptoms (i.e., urticaria or flushing) during anaphylaxis and baseline serum tryptase levels
+within the upper normal limits were associated with severe reactions. Patients with serum
+tryptase of above 8 ng/ml and a history of venom anaphylaxis may require additional
+prophylaxis.
 
-**Main Outcome(s) and Measure(s):** This study measured the severity of anaphylaxis on the Ring and Messmer scale. Hypotheses regarding the comparisons between groups were formulated during and after data collection.
+# Clinical Implications
 
-**Results:** Venom-induced anaphylaxis more frequently involved more than three organ systems and was associated with cardiovascular symptoms. The absence of skin symptoms during anaphylaxis correlated with baseline serum tryptase and was associated with an increased risk of a severe reaction. Intramuscular or intravenous epinephrine was administered significantly less often in venom-induced anaphylaxis, in particular in patients without prior history of anaphylaxis. Baseline serum tryptase within the upper normal range (8-11.5 ng-ml) was more frequently associated with severe anaphylaxis.
+Allergologists should consider intensified prophylactic (and diagnostic) measures in patients with baseline serum tryptase of above eight ng/ml and a history of insect venom anaphylaxis without skin involvement. 
 
-**Conclusions and Relevance:** Regarding the fact that venom-induced anaphylaxis frequently affects the cardiovascular system, patients were undertreated with epinephrine. The lack of skin symptoms (i.e., urticaria or flushing) during anaphylaxis and baseline serum tryptase levels within the upper normal limits were associated with severe reactions. Patients with serum tryptase of above 8 ng/ml and a history of venom anaphylaxis may require additional prophylaxis. 
+# Capsule Summary
+
+Venom-induced anaphylaxis significantly more often presented with cardiovascular symptoms. Severe cases more often showed lack of skin involvement and were associated with higher levels of baseline serum tryptase (in range from 8 - 11 ng/ml). 
+
+
+**Keywords:**
+  anaphylaxis, epinephrine (adrenaline), beta-blockers, insect venom allergy, Hymenoptera
+
+**List of abbreviations:**
+* VIA - venom-induced anaphylaxis
+* BST - baseline serum tryptase
+* EAI - epinephrine auto-injector
+* MCAS - mast cell activation syndrome
+* ER - emergency room
 
 #####
 
@@ -222,20 +241,20 @@ By applying factorial logistic regression modeling, we confirmed a significant i
 
 ## Absence of skin symptoms correlates with BST levels and increases the risk of severe anaphylaxis specifically in VIA
 
-BST levels were significantly higher in patients with a prior diagnosis of mastocytosis \@ref(fig:BST). 
-Next, we investigated the association of skin symptoms with the tryptase levels in non-mastocytosis patients. For this model, we excluded the cases with known mastocytosis and with BST above 11.5 ng/ml, potentially indicating non-diagnosed mast cell activation disorders. Similarly, 1) tryptase levels were higher in VIA patients, 2) correlated with the severity of anaphylaxis, and 3) this effect was significant in VIA (`r skin_symptoms$fit_tryp[[1]][4,5] %>% pval()`) but not in the non-VIA group (Fig. \@ref(fig:figskinsymptoms)C-D).
+BST levels were significantly higher in patients with a prior diagnosis of mastocytosis (eFig. \@ref(fig:BST)).
+We investigated the association of skin symptoms with the tryptase levels in non-mastocytosis patients. For this model, we excluded the cases with known mastocytosis and with BST above 11.5 ng/ml, potentially indicating non-diagnosed mast cell activation disorders. Similarly, 1) tryptase levels were higher in VIA patients, 2) correlated with the severity of anaphylaxis, and 3) this effect was significant in VIA (`r skin_symptoms$fit_tryp[[1]][4,5] %>% pval()`) but not in the non-VIA group (Fig. \@ref(fig:figskinsymptoms)C-D).
 
 ## BST over 8 ng/ml and concomitant cardiovascular conditions increase the risk of severe VIA
 
-The cofactor most prominently associated with an increased risk of severe anaphylaxis was mastocytosis (Fig. \@ref(fig:figcofactors)). Concomitant mastocytosis increased the risk for 1) cardiac arrest and 2) loss of consciousness in patients undergoing VIA significantly more than in patients undergoing anaphylaxis due to other elicitors (Fig. \@ref(fig:figcofactors)C and Fig. S\@ref(fig:supplement)A).    
+The cofactor most prominently associated with an increased risk of severe anaphylaxis was mastocytosis (Fig. \@ref(fig:figcofactors)). Concomitant mastocytosis increased the risk for 1) cardiac arrest and 2) loss of consciousness in patients undergoing VIA significantly more than in patients undergoing anaphylaxis due to other elicitors (Fig. \@ref(fig:figcofactors)C and eFig. \@ref(fig:supplement)A).    
 
 In line with the findings above, BST levels also correlated with the severity of anaphylaxis (on the Ring and Messmer scale) and, most importantly, sub-elevated BST was more prominently associated with increasing the risk of severe anaphylaxis in VIA than in non-VIA (Fig. \@ref(fig:figsymptoms)D and Fig. \@ref(fig:figcofactors)B).
 
-Concomitant cardiovascular diseases were more prevalent in VIA than in non-VIA cases (`r age_sex_matched %>% count(grouping,q_410_cardio_cur) %>% group_by(grouping) %>% mutate(prop= n/sum(n)) %>% {.[c(2,5),4]} %>% pull() %>% compare(x = (age_sex_matched %>% count(grouping,q_410_cardio_cur) %>% group_by(grouping) %>% {.[c(2,5),3]} %>% pull()), type = "both")`) and were associated with higher risk of severe anaphylaxis when elicited by insects but were not relevant in non-VIA cases (Fig. \@ref(fig:figcofactors)). Interestingly, BST values were increased in patients with concomitant cardiovascular diseases, irrespectively of the reaction severity (Fig. S\@ref(fig:trypcardiocur)). 
+Concomitant cardiovascular diseases were more prevalent in VIA than in non-VIA cases (`r age_sex_matched %>% count(grouping,q_410_cardio_cur) %>% group_by(grouping) %>% mutate(prop= n/sum(n)) %>% {.[c(2,5),4]} %>% pull() %>% compare(x = (age_sex_matched %>% count(grouping,q_410_cardio_cur) %>% group_by(grouping) %>% {.[c(2,5),3]} %>% pull()), type = "both")`) and were associated with higher risk of severe anaphylaxis when elicited by insects but were not relevant in non-VIA cases (Fig. \@ref(fig:figcofactors)). Interestingly, BST values were increased in patients with concomitant cardiovascular diseases, irrespectively of the reaction severity (eFig. \@ref(fig:trypcardiocur)). 
 
 ## Other cofactors of severe reactions 
 
-Severe reactions of VIA were more prevalent in patients above 22 years of age, and in VIA cases vs. non-VIA cases (Fig. S\@ref(fig:sev)). There were no differences in severity of reactions elicited by yellow-jackets and other 
+Severe reactions of VIA were more prevalent in patients above 22 years of age, and in VIA cases vs. non-VIA cases (eFig. \@ref(fig:sev)). There were no differences in severity of reactions elicited by yellow-jackets and other 
 insect species (p = 0.4128).
 
 The effect of using ACE-I (as well as beta-blockers) on the risk of severe anaphylaxis correlated with coexisting cardiovascular diseases. ACE-I use was, however, more often associated with cardiac arrests in all anaphylaxis cases (`r ace_tab %>% filter(q_114_cardiac_arrest =="yes") %>% dplyr::select(prop) %>% pull() %>% rev() %>% compare( x = ace_tab %>% filter(q_114_cardiac_arrest =="yes") %>% dplyr::select(n) %>% pull() %>% rev(), type = "both")`, `r pval(ace_tab %>% dplyr::select(-prop) %>% spread(q_114_cardiac_arrest,n) %>% {chisq.test(.[,2:3])$p.value})`) regardless of the elicitor  (Fig. \@ref(fig:figcofactors)C). 
@@ -275,7 +294,7 @@ sev_time$others_p <- df_sev_time %>%
 
 ```
 
-IVA was more often severe if the reaction occured in the first 10 minutes after exposure to venom (`r sev_time$insects[1,2] %>% {.*100} %>% round(2)`% of Ring and Messmer grade III or IV cases) then when the reaction occured after 10 minutes post exposure (`r sev_time$insects[2,2] %>% {.*100} %>% round(2)`% p = `r sev_time$insects_p`).
+IVA was more often severe if the reaction occured in the first 10 minutes after exposure to venom (`r sev_time$insects[1,2] %>% {.*100} %>% round(2)`% were severe cases) then when the reaction occured after 10 minutes post exposure (`r sev_time$insects[2,2] %>% {.*100} %>% round(2)`% were severe cases, p = `r sev_time$insects_p`).
 
 ## One-third of VIA patients experience repeated reactions
 
@@ -314,10 +333,9 @@ pvaladrenprev_no <- adren_prev$data %>%
 ```
 
 A positive history of anaphylaxis influenced the therapy of a current episode as well. Epinephrine as a first-line treatment was given less often in VIA cases when compared to other cases **if patients did not report a previous history of anaphylaxis** (`r pvaladrenprev_no`), but in patients reporting previous reactions, there was no difference in epinephrine therapy (`r pvaladrenprev`, Fig. \@ref(fig:adrenalineuse)B). 
-Similarly, there were no differences in the epinephrine use between VIA and non-VIA when only severe reactions were taken into consideration (`r adren_severity_sev`). However, when we restricted the analysis to moderate anaphylaxis cases --- non-VIA patients received epinephrine more frequently than VIA (`r adren_severity_mild`).  The presence of skin symptoms during these mild reactions also was associated with a lower fraction of epinephrine treated patients (Fig. \@ref(fig:rfplot)). 
+Similarly, there were no differences in the epinephrine use between VIA and non-VIA when only severe reactions were taken into consideration (`r adren_severity_sev`). However, when we restricted the analysis to moderate anaphylaxis cases --- non-VIA patients received epinephrine more frequently than VIA (`r adren_severity_mild`).  The presence of skin symptoms during these mild reactions also was associated with a lower fraction of epinephrine treated patients (eFig. \@ref(fig:rfplot)). 
 
-Patients with VIA received corticosteroids and antihistamines significantly more frequently than patients with anaphylaxis to other elicitors. On the other hand, epinephrine, beta-2 mimetics, and oxygen were given more often to patients suffering from non-VIA  (Fig. \@ref(fig:adrenalineuse)A, Fig. S\@ref(fig:rfplot)).
-
+Patients with VIA received corticosteroids and antihistamines significantly more frequently than patients with anaphylaxis to other elicitors. On the other hand, epinephrine, beta-2 mimetics, and oxygen were given more often to patients suffering from non-VIA  (Fig. \@ref(fig:adrenalineuse)A, eFig. \@ref(fig:rfplot)).
 
 Next, we asked whether specific symptom clusters and treatment profiles could be identified within our cohort (association measured using phi coefficient). We found that patients displaying cardiovascular symptoms (cardiac arrest, hypotension, loss of consciousness) and urticaria were treated differently than patients with respiratory or gastrointestinal symptoms (Fig. \@ref(fig:adrenalineuse)C). The treatment of the former symptoms consisted of epinephrine autoinjector (EAI) use, i.v. epinephrine in multiple doses, 100% oxygen inhalation, an initial dose of antihistamines, and inhaled β-2 agonists. Corticosteroids, i.v. volume replacement, and i.v. β-2 agonists formed another therapy mode. 
 
@@ -391,7 +409,7 @@ Based on these and previous findings [@Ruff2009;@Zanotti2015;@JaraAcevedo2015] w
 
 Age is an important risk factor for severe anaphylaxis [@Stoevesandt2019]. Adult patients experienced VIA more frequently. Young patients mainly suffer from food-induced anaphylaxis [@Grabenhenrich2016]. 
 Emergency room (ER) admission data indicate that the frequency of insect stings hypersensitivity reactions in children is comparable to food hypersensitivity reactions (12-15% of cases of hypersensitivity reactions admitted to the ER), but pediatric anaphylaxis is triggered significantly more often by food elicitors (56% of food hypersensitivity cases vs. 5.3% of sting cases seen in the ER) [@Braganza2005]. Senior patients, on the other hand, suffer from drug-related hypersensitivity more often than insect sting hypersensitivity [@Aurich2019]. <!-- Risk factors - Concomitant disease -->
-Similarly, we observed less VIA in patients with concomitant atopic diseases (Fig. \@ref(fig:supplement)) , as these patients more often present with food anaphylaxis [@Tham2019]. 
+Similarly, we observed less VIA in patients with concomitant atopic diseases (eFig. \@ref(fig:supplement)) , as these patients more often present with food anaphylaxis [@Tham2019]. 
 
 The role of cardiovascular medication cannot be isolated from the effect of concomitant cardiovascular conditions; therefore, we cannot state whether ACE-I and beta-blockers increase the severity of anaphylaxis. However, we did observe that there were no significant differences between VIA and non-VIA cases regarding the symptoms and severity of an episode with concomitant use of ACE-I or beta-blockers.  
 
@@ -442,7 +460,8 @@ temp3 <- gsub(temp2, pattern = ".*?\\. (..).*",replacement = "\\1")  %>%
 ```
 
 
-We thank all patients, parents, and their children for their support in providing data on the occurrence of anaphylaxis for this study. We thank the study personnel for patients counseling and data entry, and we thank the members of The European Anaphylaxis Registry in detail:
+The European Anaphylaxis Registry was supported by the Network for Online-Registration
+of Anaphylaxis NORA e. V. We thank all patients, parents, and their children for their support in providing data on the occurrence of anaphylaxis for this study. We thank the study personnel for patients counseling and data entry, and we thank the members of The European Anaphylaxis Registry in detail:
 
 `r temp2[temp3] %>% paste0(collapse = ", ")`.
 
@@ -558,7 +577,7 @@ fig_basic
 
 
 ```{r,include=F}
-tiff("figS1.tiff", width = 7, height = 4.5,units = 'in', res = 300)
+tiff("efig6.tiff", width = 7, height = 4.5,units = 'in', res = 300)
 fig_basic
 dev.off()
 ```
@@ -571,7 +590,7 @@ matching.result
 ```
 
 ```{r,include=F}
-tiff("figS2.tiff", width = 7, height = 5,units = 'in', res = 300)
+tiff("efig7.tiff", width = 7, height = 5,units = 'in', res = 300)
 matching.result 
 dev.off()
 ```
@@ -676,7 +695,7 @@ figS3
 
 
 ```{r,include=F}
-tiff("figS3.tiff", width = 7, height = 5,units = 'in', res = 300)
+tiff("efig8.tiff", width = 7, height = 5,units = 'in', res = 300)
 figS3
 dev.off()
 ```
@@ -699,7 +718,7 @@ plot_tryptase_in_cardio_cur
 ```
 
 ```{r,include=F}
-tiff("figS4.tiff", width = 7, height = 4,units = 'in', res = 300)
+tiff("efig9.tiff", width = 7, height = 4,units = 'in', res = 300)
 plot_tryptase_in_cardio_cur
 dev.off()
 ```
@@ -725,10 +744,11 @@ figS5 <- severity_joined_brown %>%
     #annotate("text",x = 1.5, y = 0.5, label = c("*"),
      #        size =12)+
     guides(color = F)
+figS5
 ```
 
 ```{r,include=F}
-tiff("figS5.tiff", width = 7, height = 4,units = 'in', res = 300)
+tiff("efig10.tiff", width = 7, height = 4,units = 'in', res = 300)
 figS5
 dev.off()
 ```
@@ -750,10 +770,11 @@ figS6 <- ggarrange(
   labels=c("A","B"),
   widths = c(1,1.3)
 )
+figS6
 ```
 
 ```{r,include=F}
-tiff("figS6.tiff", width = 7., height = 3.5,units = 'in', res = 300)
+tiff("efig11.tiff", width = 7., height = 3.5,units = 'in', res = 300)
 figS6
 dev.off()
 ```
@@ -766,7 +787,7 @@ BST_masto$plot
 ```
 
 ```{r,include=F}
-tiff("figS7.tiff", width = 7, height = 4,units = 'in', res = 300)
+tiff("efig12.tiff", width = 7, height = 4,units = 'in', res = 300)
 BST_masto$plot
 dev.off()
 ```
