@@ -2,10 +2,10 @@
 title: "Phenotype and risk factors of venom-induced anaphylaxis: a case-control study of the European Anaphylaxis Registry"
 output: 
     #bookdown::html_document2:
-    bookdown::word_document2:
-      fig_caption: yes
-      reference_docx: "../templates/template.docx" # Insert path for the DOCX file
-bibliography: references.bib
+  bookdown::word_document2:
+    fig_caption: yes
+    reference_docx: "../templates/template.docx" # Insert path for the DOCX file
+bibliography: "references.bib"
 csl: "../templates/the-journal-of-allergy-and-clinical-immunology.csl" # Insert path for the bib-style
 ---
 
@@ -115,7 +115,7 @@ knitr::opts_chunk$set(
   fig.path = "../figures/"
 )
 
-pacman::p_load("tidyvese")
+pacman::p_load("tidyverse")
 
 devtools::load_all('.',quiet = T) # Or use devtools::load_all('.', quiet = T) if your code is in script files, rather than as functions in the `/R` diretory
 ###### SETUP
@@ -160,12 +160,12 @@ administered significantly less often in venom-induced anaphylaxis, in particula
 patients without prior history of anaphylaxis. Baseline serum tryptase within the upper
 normal range (8-11.5 ng-ml) was more frequently associated with severe anaphylaxis.
 
-**Conclusion:** Regarding the fact that venom-induced anaphylaxis frequently affects the
-cardiovascular system, patients were undertreated with epinephrine. The lack of skin
-symptoms (i.e., urticaria or flushing) during anaphylaxis and baseline serum tryptase levels
-within the upper normal limits were associated with severe reactions. Patients with serum
-tryptase of above 8 ng/ml and a history of venom anaphylaxis may require additional
-prophylaxis.
+**Conclusion:** Using a large cohort of VIA cases, we have validated that patients 
+with intermediate baseline serum tryptase levels (8 - 11 ng/ml) and without skin 
+involvement have higher risk of severe VIA. Patients receiving beta-blockers or 
+ACE-I had a higher risk of developing severe cardiovascular symptoms (including cardiac arrest) 
+in VIA and non-VIA cases. Patients undergoing VIA received epinephrine less frequently than non-VIA cases.
+
 
 # Clinical Implications
 
@@ -398,7 +398,7 @@ Nevertheless, the pathomechanism promoting cardiovascular symptoms in VIA requir
 
 As cardiovascular symptoms like hypotension, collapse, or cardiac arrest lead to a higher grade on the Ring and Messmer scale than skin or gastrointestinal symptoms, VIA (being associated with cardiovascular symptoms) is likely to be associated with more severe anaphylaxis.  
 
-Importantly, the absence of skin symptoms was associated with more severe VIA, which was still present after excluding patients with a known diagnosis of mastocytosis. Previous studies also observed this phenomenon [@Stoevesandt2012;@Fehr2019]. Subsequently, the correlation of BST levels with the severity of anaphylaxis lead us to identify an interaction between the absence of skin symptoms and VIA using generalized linearf regression.
+Importantly, the absence of skin symptoms was associated with more severe VIA, which was still present after excluding patients with a known diagnosis of mastocytosis (although in non-mastocytosis cases the difference between groups was small and the clinical relevance of this needs cautious evaluation). Previous studies also observed this phenomenon [@Stoevesandt2012;@Fehr2019]. Subsequently, the correlation of BST levels with the severity of anaphylaxis lead us to identify an interaction between the absence of skin symptoms and VIA using generalized linear regression.
 
 Our findings indicate that patients with BST above 8 ng/ml are prone to severe anaphylaxis to insect venom. Patients with normal BST in the range of 8-11.4 ng/ml may have indolent systemic mastocytosis or concomitant undiagnosed mast cell activation syndrome (MCAS) [@Valent2019]. Zanotti et al. identified mast cell disorders in 17 out of 22 patients with VIA lacking skin symptoms  and concluded that patients with BST above 7.95 ng/ml and VIA should undergo extensive diagnostic procedures [@Zanotti2015]. We recently identified that elderly patient undergoing anaphylaxis without concomitant skin symptoms tended to have more severe reactions [@Aurich2019]. Our finding are in corcondance with a recent retrospective study from Fehr et al. [@Fehr2019] who identified lack of skin symptoms as a risk factor for severe VIA.  
 
@@ -433,9 +433,9 @@ Nevertheless, because the European Anaphylaxis Registry has until now gathered o
 
 # Conclusion
 
-Based on our results, VIA is a distinctive phenotype of anaphylaxis, with a specific symptom profile and risk factors. VIA cases should undergo therapy according to the international management guidelines, and epinephrine should be given more often in VIA. 
+Based on our results, VIA is a distinctive phenotype of anaphylaxis, with a specific symptom profile and risk factors. Using a large cohort of VIA cases compared to a sex and age matched non-VIA cases, we have validated that patients with intermediate baseline serum tryptase levels (8 - 11 ng/ml) and without skin involvement have higher risk of severe VIA. Similarily, patients receiving beta-blockers or ACE-I had a higher risk of developing severe cardiovascular symptoms (including cardiac arrest) in VIA and non-VIA cases. Patients undergoing VIA received epinephrine less frequently than non-VIA cases.
 
-All cases should undergo appropriate allergologic testing and indication for SIT should be evaluated. Patients with BST above 8 ng/ml should undergo extensive diagnostic tests to exclude indolent systemic mastocytosis or MCAS and should be provided with two EAIs for acute self-management. 
+VIA cases should undergo therapy according to the international management guidelines, and epinephrine should be given more often in VIA. All cases should undergo appropriate allergologic testing and indication for SIT should be evaluated along with patient education regarding the risk of future anaphylaxis. Patients with BST above 8 ng/ml should undergo extensive diagnostic tests to exclude indolent systemic mastocytosis or MCAS and should be provided with two EAIs for acute self-management. 
 
 
 
